@@ -1,16 +1,8 @@
-import { Howl } from "howler";
 import React from "react";
 import PathList from "../components/career/PathCard/PathList";
 
 const Home = () => {
-  var sound = new Howl({
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    autoplay: true,
-    loop: true,
-    volume: 0.5,
-  });
-
-  sound.play();
+  console.log("home");
   return (
     <div
       style={{

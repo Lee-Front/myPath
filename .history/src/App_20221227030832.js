@@ -11,8 +11,8 @@ function App() {
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Navigator />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/write" element={<PathWrite />} />
+        <Route path={`${process.env.PUBLIC_URL}/`} element={<Home />} />
+        <Route path="write" element={<PathWrite />} />
         <Route path="/pathDetail" element={<PathDetail />} />
       </Routes>
     </div>

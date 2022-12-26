@@ -5,11 +5,11 @@ import CardEditor from "../components/career/Editor/CardEditor";
 const AddPathWrapper = styled.div`
   width: 100%;
   flex: 1;
-  transition: 0.5s;
   overflow: hidden;
 `;
 
 const PathWrite = () => {
+  console.log("path");
   return (
     <AddPathWrapper>
       <CardEditor />

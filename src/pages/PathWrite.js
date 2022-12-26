@@ -9,6 +9,7 @@ const AddPathWrapper = styled.div`
 `;
 
 const PathWrite = () => {
+  console.log("path");
   return (
     <AddPathWrapper>
       <CardEditor />

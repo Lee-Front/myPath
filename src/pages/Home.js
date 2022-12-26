@@ -2,6 +2,7 @@ import React from "react";
 import PathList from "../components/career/PathCard/PathList";
 
 const Home = () => {
+  console.log("home");
   return (
     <div
       style={{

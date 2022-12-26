@@ -3,14 +3,17 @@ import "./App.css";
 import Home from "./pages/Home";
 import Navigator from "./components/navigator/Navigator";
 import PathDetail from "./pages/PathDetail";
+import PathWrite from "./pages/PathWrite";
 
 function App() {
+  console.log(process.env.PUBLIC_URL);
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Navigator />
       <Routes>
-        <Route index to="/" element={<Home />} />
-        <Route index to="/pathDetail" element={<PathDetail />} />
+        <Route path={`${process.env.PUBLIC_URL}/`} element={<Home />} />
+        <Route path="/write" element={<PathWrite />} />
+        <Route path="/pathDetail" element={<PathDetail />} />
       </Routes>
     </div>
   );

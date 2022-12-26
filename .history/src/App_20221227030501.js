@@ -3,14 +3,17 @@ import "./App.css";
 import Home from "./pages/Home";
 import Navigator from "./components/navigator/Navigator";
 import PathDetail from "./pages/PathDetail";
+import PathWrite from "./pages/PathWrite";
 
 function App() {
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Navigator />
       <Routes>
-        <Route to="/" element={<Home />} />
-        <Route to="/pathDetail" element={<PathDetail />} />
+        <Route path="/" element={<Home />}>
+          <Route path="/write" element={<PathWrite />} />
+          <Route path="/pathDetail" element={<PathDetail />} />
+        </Route>
       </Routes>
     </div>
   );
