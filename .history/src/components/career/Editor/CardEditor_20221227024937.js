@@ -223,6 +223,7 @@ const CardEditor = () => {
               ? "bottom"
               : minDistance.position;
           } else {
+            console.log("2");
             targetElementData.uuid = targetData.uuid;
             targetElementData.position = minDistance.position;
           }
