@@ -77,9 +77,12 @@ const PathList = () => {
   const nav = useNavigate();
 
   const getPathList = async (userId) => {
-    const pathList = await axios.get("/api/path/getList", {
-      params: { userId },
-    });
+    const pathList = await axios.get(
+      "https://port-0-mypathserver-1luhct24lclsoq2m.gksl2.cloudtype.app/api/path/getList",
+      {
+        params: { userId },
+      }
+    );
     console.log("pathList.data : ", pathList.data);
     setPathList(pathList.data);
   };
