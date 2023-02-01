@@ -119,8 +119,6 @@ const CardEditor = ({ pathId }) => {
         modifyList.push(newData);
       }
     });
-
-    console.log("newEditDom: ", newEditDom);
     setEditDom(newEditDom);
     await axios.post("/api/editor/save", modifyList);
   };

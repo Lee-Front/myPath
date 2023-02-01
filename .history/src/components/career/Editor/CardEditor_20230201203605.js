@@ -78,10 +78,10 @@ const CardEditor = ({ pathId }) => {
       params: { pathId },
     });
 
-    tagList.data.sort(function (a, b) {
+    tagList.sort(function (a, b) {
       return a.sort - b.sort;
     });
-
+    console.log("tagList: ", tagList);
     const newEditDom = [];
 
     tagList.data.map((tag) => {
@@ -119,8 +119,6 @@ const CardEditor = ({ pathId }) => {
         modifyList.push(newData);
       }
     });
-
-    console.log("newEditDom: ", newEditDom);
     setEditDom(newEditDom);
     await axios.post("/api/editor/save", modifyList);
   };

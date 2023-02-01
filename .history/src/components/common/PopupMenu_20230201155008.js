@@ -8,9 +8,11 @@ const PopupMenu = ({ changePopupYn, fileData, modifyEditDom }) => {
     const formData = new FormData();
     formData.append("img", file);
     formData.append("uuid", fileData.uuid);
+    console.log("formData : ", formData);
 
     const upload = await axios.post("/api/common/upload", formData);
-    modifyEditDom(fileData.uuid, { files: upload.data });
+    console.log("upload: ", upload);
+    modifyEditDom(fileData.uuid, upload.data);
   };
   return (
     <>

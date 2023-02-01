@@ -78,10 +78,6 @@ const CardEditor = ({ pathId }) => {
       params: { pathId },
     });
 
-    tagList.data.sort(function (a, b) {
-      return a.sort - b.sort;
-    });
-
     const newEditDom = [];
 
     tagList.data.map((tag) => {
@@ -119,8 +115,6 @@ const CardEditor = ({ pathId }) => {
         modifyList.push(newData);
       }
     });
-
-    console.log("newEditDom: ", newEditDom);
     setEditDom(newEditDom);
     await axios.post("/api/editor/save", modifyList);
   };
@@ -575,7 +569,6 @@ const CardEditor = ({ pathId }) => {
     // multiple에서 데이터 삭제시 multiple 삭제 여부확인 및 처리
     if (from[0].parentId) {
       const fromParentData = getEditComponentData(from[0].parentId);
-      console.log("newEditDom: ", [...newEditDom]);
       if (fromParentData.tagName !== "checkbox") {
         removeNullMultipleTag(newEditDom, from[0].uuid);
       }
@@ -605,9 +598,9 @@ const CardEditor = ({ pathId }) => {
         // column 제거
         if (element.uuid === columnData.uuid) {
           newEditDom.splice(index, 1);
+          console.log("elementData : ", elementData);
           elementData.parentId = null;
 
-          // 남아있는 동일 column의 Element들 parentId 삭제
           columnChildElements.map((columnElement) => {
             columnElement.parentId = null;
           });

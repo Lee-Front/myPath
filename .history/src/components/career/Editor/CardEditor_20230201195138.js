@@ -78,10 +78,6 @@ const CardEditor = ({ pathId }) => {
       params: { pathId },
     });
 
-    tagList.data.sort(function (a, b) {
-      return a.sort - b.sort;
-    });
-
     const newEditDom = [];
 
     tagList.data.map((tag) => {
@@ -119,8 +115,6 @@ const CardEditor = ({ pathId }) => {
         modifyList.push(newData);
       }
     });
-
-    console.log("newEditDom: ", newEditDom);
     setEditDom(newEditDom);
     await axios.post("/api/editor/save", modifyList);
   };
@@ -575,7 +569,6 @@ const CardEditor = ({ pathId }) => {
     // multiple에서 데이터 삭제시 multiple 삭제 여부확인 및 처리
     if (from[0].parentId) {
       const fromParentData = getEditComponentData(from[0].parentId);
-      console.log("newEditDom: ", [...newEditDom]);
       if (fromParentData.tagName !== "checkbox") {
         removeNullMultipleTag(newEditDom, from[0].uuid);
       }
@@ -588,7 +581,7 @@ const CardEditor = ({ pathId }) => {
     const elementData = getEditComponentData(uuid);
     const columnData = getEditComponentData(elementData.parentId);
 
-    // 동일 column에 Data가 있는지 체크  [이동된 데이터는 삭제된 후]
+    // 동일 column에 Data가 있는지 체크
     const columnChildElements = newEditDom.filter(
       (element) => element.parentId === columnData.uuid
     );
@@ -600,18 +593,12 @@ const CardEditor = ({ pathId }) => {
     );
 
     // 같음 column에 데이터가 없으면 colum 없애주면됨
-    if (columnChildElements.length <= 1) {
+    if (columnChildElements.length < 1) {
       newEditDom.map((element, index) => {
         // column 제거
         if (element.uuid === columnData.uuid) {
           newEditDom.splice(index, 1);
           elementData.parentId = null;
-
-          // 남아있는 동일 column의 Element들 parentId 삭제
-          columnChildElements.map((columnElement) => {
-            columnElement.parentId = null;
-          });
-
           // 컬럼이 없어지면 이웃 컬럼들의 width값을 재조정 해야함
           rowChildElements.map((rowElement) => {
             if (rowElement.uuid !== element.uuid) {
@@ -628,8 +615,10 @@ const CardEditor = ({ pathId }) => {
       const rowUuid = rowChildElements[0].parentId;
       const columnUuid = rowChildElements[0].uuid;
 
+      console.log("rowUuid: ", rowUuid);
       newEditDom.map((element, index) => {
         // row 제거
+        console.log("element; ", element);
         if (element.uuid === rowUuid) {
           newEditDom.splice(index, 1);
           columnData.parentId = null;

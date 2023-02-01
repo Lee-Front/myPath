@@ -1,19 +1,8 @@
-import axios from "axios";
 import React from "react";
-import { useRef } from "react";
 
-const PopupMenu = ({ changePopupYn, fileData, modifyEditDom }) => {
-  const fileUploadRef = useRef();
-  const fileUpload = async (file) => {
-    const formData = new FormData();
-    formData.append("img", file);
-    formData.append("uuid", fileData.uuid);
-
-    const upload = await axios.post("/api/common/upload", formData);
-    modifyEditDom(fileData.uuid, { files: upload.data });
-  };
+const PopupMenu = () => {
   return (
-    <>
+    <div>
       <div
         onClick={(e) => {
           changePopupYn();
@@ -101,7 +90,7 @@ const PopupMenu = ({ changePopupYn, fileData, modifyEditDom }) => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

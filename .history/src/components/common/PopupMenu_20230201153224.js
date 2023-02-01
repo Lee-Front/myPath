@@ -3,6 +3,7 @@ import React from "react";
 import { useRef } from "react";
 
 const PopupMenu = ({ changePopupYn, fileData, modifyEditDom }) => {
+  console.log("fileData: ", fileData);
   const fileUploadRef = useRef();
   const fileUpload = async (file) => {
     const formData = new FormData();
@@ -10,7 +11,7 @@ const PopupMenu = ({ changePopupYn, fileData, modifyEditDom }) => {
     formData.append("uuid", fileData.uuid);
 
     const upload = await axios.post("/api/common/upload", formData);
-    modifyEditDom(fileData.uuid, { files: upload.data });
+    modifyEditDom(fileData.uuid, upload.data);
   };
   return (
     <>
