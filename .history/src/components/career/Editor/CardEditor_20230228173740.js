@@ -338,16 +338,19 @@ const CardEditor = ({ pathId }) => {
           minDistance.position === "top" &&
           prevData?.uuid === selectElements[i].uuid
         ) {
+          console.log("3");
           setMovementSide(null);
           return;
         } else if (
           minDistance.position === "bottom" &&
           nextData?.uuid === selectElements[i].uuid
         ) {
+          console.log("1");
           if (
             targetData.tagName !== "checkbox" &&
             targetData.tagName !== "bullet"
           ) {
+            console.log("2");
             setMovementSide(null);
             return;
           }
@@ -433,7 +436,6 @@ const CardEditor = ({ pathId }) => {
         const checkboxElement = editorRef.current.querySelector(
           `[uuid="${targetElementData.uuid}"]`
         );
-        console.log({ nextData, prevData });
 
         const checkboxTextElement = checkboxElement.querySelector(".text-area");
 
@@ -594,10 +596,7 @@ const CardEditor = ({ pathId }) => {
     // multiple에서 데이터 삭제시 multiple 삭제 여부확인 및 처리
     if (from[0].parentId) {
       const fromParentData = getEditComponentData(from[0].parentId);
-      if (
-        fromParentData.tagName !== "checkbox" &&
-        fromParentData.tagName !== "bullet"
-      ) {
+      if (fromParentData.tagName !== "checkbox") {
         removeNullMultipleTag(newEditDom, from[0].uuid);
       }
     }

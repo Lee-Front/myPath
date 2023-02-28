@@ -17,7 +17,7 @@ const CheckBoxTagWrapper = styled.div`
   justify-content: ${(props) =>
     props?.styleData?.textAlign ? props?.styleData?.textAlign : null};
   font-size: ${(props) =>
-    props?.styleData?.fontSize ? props?.styleData?.fontSize + "px" : "16px"};
+    props?.styleData?.fontSize ? props?.styleData?.fontSize + "px" : null};
   background: ${(props) =>
     props?.styleData?.background ? props?.styleData?.background : null};
 `;

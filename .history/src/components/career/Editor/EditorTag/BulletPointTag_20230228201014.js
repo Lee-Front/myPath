@@ -17,7 +17,7 @@ const CheckBoxTagWrapper = styled.div`
   justify-content: ${(props) =>
     props?.styleData?.textAlign ? props?.styleData?.textAlign : null};
   font-size: ${(props) =>
-    props?.styleData?.fontSize ? props?.styleData?.fontSize + "px" : "16px"};
+    props?.styleData?.fontSize ? props?.styleData?.fontSize + "px" : null};
   background: ${(props) =>
     props?.styleData?.background ? props?.styleData?.background : null};
 `;
@@ -70,45 +70,18 @@ const CheckBoxTag = ({
             }}
           >
             <div style={{ width: "1.6rem", height: "1.6rem" }}>
-              {!state.checkYn ? (
-                <svg
-                  viewBox="0 0 16 16"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "block",
-                    flexshrink: 0,
-                    backfacevisibility: "hidden",
-                  }}
-                >
-                  <path d="M1.5,1.5 L1.5,14.5 L14.5,14.5 L14.5,1.5 L1.5,1.5 Z M0,0 L16,0 L16,16 L0,16 L0,0 Z"></path>
-                </svg>
-              ) : (
-                <div
-                  style={{
-                    background: "rgb(35, 131, 226)",
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <svg
-                    viewBox="0 0 14 14"
-                    style={{
-                      width: "12px",
-                      height: "12px",
-                      display: "block",
-                      fill: "white",
-                      flexshrink: 0,
-                      backfacevisibility: "hidden",
-                    }}
-                  >
-                    <polygon points="5.5 11.9993304 14 3.49933039 12.5 2 5.5 8.99933039 1.5 4.9968652 0 6.49933039"></polygon>
-                  </svg>
-                </div>
-              )}
+              <svg
+                viewBox="0 0 512 512"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "block",
+                  flexshrink: 0,
+                  backfacevisibility: "hidden",
+                }}
+              >
+                <path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0S0 114.6 0 256S114.6 512 256 512z" />
+              </svg>
             </div>
           </div>
           <div

@@ -1,10 +1,12 @@
-import React from "react";
+import React, { memo } from "react";
 import styled from "@emotion/styled";
 import { v4 as uuidv4 } from "uuid";
 import { useState, useEffect, useRef } from "react";
 import EditBranchComponent from "./EditBranchComponent";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import PopupMenu from "../../common/PopupMenu";
+import ContextMenuPopup from "../../common/ContextMenuPopup";
 
 const CloseButton = styled.div`
   width: 5rem;
@@ -18,6 +20,7 @@ const CloseButton = styled.div`
   right: 2rem;
   top: 1.5rem;
   background: white;
+  z-index: 999;
 `;
 
 const CloseButtonRotateWrapper = styled.div`
@@ -27,7 +30,6 @@ const CloseButtonRotateWrapper = styled.div`
   line-height: 4rem;
   transform: rotate(45deg);
 `;
-
 const EditorWrapper = styled.div`
   overflow: scroll;
   display: flex;
@@ -42,47 +44,60 @@ const CardEditorContentWrapper = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1rem 3rem 10rem 3rem;
+  padding: 1rem 2rem 10rem 2rem;
   z-index: 998;
 `;
 const OverlayWrapper = styled.div`
   position: fixed;
   min-width: 34rem;
-  z-index: ${(props) => (props.popupYn ? 999 : "")};
+  z-index: ${(props) => (props.zindex ? 999 : 0)};
   inset: 0px;
 `;
+
+const OverlayContentWrapper = styled.div`
+  width: calc(100% - 4rem);
+  position: relative;
+`;
+
+const OverlayContentContents = styled.div`
+  /* position: absolute;
+  width: 100%; */
+`;
+
 const CardEditor = ({ pathId }) => {
+  const [editDom, setEditDom] = useState([]);
+
   const [nearElement, setNearElement] = useState(null);
   const [hoverElement, setHoverElement] = useState(null);
+  const [popupUuid, setPopupUuid] = useState();
+
   const [selectElements, setSelectElements] = useState([]);
-  const [selectPoint, setSelectPoint] = useState(null);
   const [movementSide, setMovementSide] = useState("");
-  const [editDom, setEditDom] = useState([]);
-  const [popupYn, setPopupYn] = useState(false);
   const [newUuid, setNewUuid] = useState(null);
   const [draggable, setDraggable] = useState(false);
   const [fileData, setFileData] = useState(null);
 
+  const [selectPoint, setSelectPoint] = useState(null);
+  const [currentPoint, setCurrentPoint] = useState(null);
+  const [contextMenuPoint, setContextMenuPoint] = useState(null);
+
+  const [contextMenuYn, setContextMenuYn] = useState();
+  const [popupYn, setPopupYn] = useState(false);
+
   const editorRef = useRef();
-  const overlayRef = useRef();
   const popupRef = useRef();
-  const fileUploadRef = useRef();
 
   const nav = useNavigate();
-
-  const fileUpload = async (file) => {
-    const formData = new FormData();
-    formData.append("img", file);
-    formData.append("uuid", fileData.uuid);
-
-    const upload = await axios.post("/api/common/upload", formData);
-    modifyEditDom(fileData.uuid, upload.data);
-  };
 
   const getTagList = async () => {
     const tagList = await axios.get("/api/editor/getList", {
       params: { pathId },
     });
+
+    tagList.data.sort(function (a, b) {
+      return a.sort - b.sort;
+    });
+
     const newEditDom = [];
 
     tagList.data.map((tag) => {
@@ -97,6 +112,10 @@ const CardEditor = ({ pathId }) => {
   }, []);
 
   const modifyDomSave = async (newEditDom) => {
+    newEditDom.map((element, index) => {
+      element.sort = index;
+    });
+
     const modifyList = [];
     editDom.map((element) => {
       const differentData = getDifferentType(element, newEditDom);
@@ -111,11 +130,13 @@ const CardEditor = ({ pathId }) => {
       editDom.map((element) => {
         if (newElement.uuid === element.uuid) matchCount++;
       });
+
       if (!matchCount) {
         const newData = { type: "create", data: newElement };
         modifyList.push(newData);
       }
     });
+
     setEditDom(newEditDom);
     await axios.post("/api/editor/save", modifyList);
   };
@@ -301,8 +322,7 @@ const CardEditor = ({ pathId }) => {
       });
 
       const { prevData, nextData } = getSiblingsData(targetData);
-      //const topParentData = getTopParentData(targetData);
-      //const topSiblingsData = getSiblingsData(topParentData);
+
       for (let i = 0; i < selectElements.length; i++) {
         if (targetUuid === selectElements[i].uuid) {
           if (
@@ -324,8 +344,13 @@ const CardEditor = ({ pathId }) => {
           minDistance.position === "bottom" &&
           nextData?.uuid === selectElements[i].uuid
         ) {
-          setMovementSide(null);
-          return;
+          if (
+            targetData.tagName !== "checkbox" &&
+            targetData.tagName !== "bullet"
+          ) {
+            setMovementSide(null);
+            return;
+          }
         }
       }
 
@@ -401,22 +426,19 @@ const CardEditor = ({ pathId }) => {
 
       // 체크박스만 예외적으로 추가처리 필요
       if (
-        findTargerData.tagName === "checkbox" &&
+        (findTargerData.tagName === "checkbox" ||
+          findTargerData.tagName === "bullet") &&
         targetElementData.position === "bottom"
       ) {
         const checkboxElement = editorRef.current.querySelector(
           `[uuid="${targetElementData.uuid}"]`
         );
+        console.log({ nextData, prevData });
 
-        const checkboxTextElement =
-          checkboxElement.querySelector(".checkbox-text");
+        const checkboxTextElement = checkboxElement.querySelector(".text-area");
 
         const { left, right } = checkboxTextElement.getBoundingClientRect();
 
-        targetElementData.tagName = "checkbox";
-
-        // console.log({ x1, y1 });
-        // console.log("rect : ", { left, right, top, bottom });
         if (left <= x1 && x1 <= right) {
           targetElementData.movementSideType = "text";
         } else {
@@ -493,15 +515,32 @@ const CardEditor = ({ pathId }) => {
         movementSide.position === "top" ||
         movementSide.position === "bottom"
       ) {
-        const parentData = getEditComponentData(findToData.parentId);
         // column으로의 새로운 multiple이 필요
-        fromData.parentId = parentData.uuid;
+        if (movementSide?.movementSideType === "text") {
+          fromData.parentId = findToData.uuid;
+        } else {
+          const parentData = getEditComponentData(findToData.parentId);
+          fromData.parentId = parentData.uuid;
+        }
       } else {
+        const rowChildElements = newEditDom.filter(
+          (element) => element.parentId === to.parentId
+        );
+
+        const width = (100 / (rowChildElements.length + 1)).toFixed(4);
+
         // left right즉 해당 multiple에 들어가는 경우에만 같은 parentId로 해주면됨
         const newElement = makeNewElement({
           tagName: "multiple",
           direction: "column",
+          width: parseFloat(width),
         });
+
+        rowChildElements.map((element) => {
+          const newWidth = (element.width / 100) * (100 - width);
+          element.width = newWidth;
+        });
+
         newElement.parentId = to.parentId;
         fromData.parentId = newElement.uuid;
         newEditDom.splice(moveIndex, 0, newElement);
@@ -512,19 +551,25 @@ const CardEditor = ({ pathId }) => {
         movementSide.position === "left" ||
         movementSide.position === "right"
       ) {
+        let elementSort = editDom.length;
         const newElement = makeNewElement({
           tagName: "multiple",
           direction: "row",
+          sort: elementSort,
         });
 
         const newColumElement1 = makeNewElement({
           tagName: "multiple",
           direction: "column",
+          width: 50,
+          sort: elementSort + 1,
         });
 
         const newColumElement2 = makeNewElement({
           tagName: "multiple",
           direction: "column",
+          width: 50,
+          sort: elementSort + 2,
         });
 
         newColumElement1.parentId = newElement.uuid;
@@ -536,7 +581,11 @@ const CardEditor = ({ pathId }) => {
         newEditDom.splice(moveIndex, 0, newColumElement2);
         newEditDom.splice(moveIndex, 0, newColumElement1);
       } else {
-        fromData.parentId = null;
+        if (movementSide?.movementSideType === "text") {
+          fromData.parentId = findToData.uuid;
+        } else {
+          fromData.parentId = null;
+        }
       }
     }
 
@@ -544,59 +593,79 @@ const CardEditor = ({ pathId }) => {
 
     // multiple에서 데이터 삭제시 multiple 삭제 여부확인 및 처리
     if (from[0].parentId) {
-      removeNullMultipleTag(newEditDom, from[0].uuid);
+      const fromParentData = getEditComponentData(from[0].parentId);
+      if (
+        fromParentData.tagName !== "checkbox" &&
+        fromParentData.tagName !== "bullet"
+      ) {
+        removeNullMultipleTag(newEditDom, from[0].uuid);
+      }
     }
+
     modifyDomSave(newEditDom);
-    //setEditDom(newEditDom);
   };
 
   const removeNullMultipleTag = (newEditDom, uuid) => {
     const elementData = getEditComponentData(uuid);
     const columnData = getEditComponentData(elementData.parentId);
-    // 동일 column에 Data가 있는지 체크
+
+    // 동일 column에 Data가 있는지 체크  [이동된 데이터는 삭제된 후]
     const columnChildElements = newEditDom.filter(
       (element) => element.parentId === columnData.uuid
     );
 
-    // 같음 column에 데이터가 없으면 colum 없애주면됨
+    let rowChildElements;
+
+    // 해당 colum에 데이터가 1개 미만인 경우 해당 컬럼을 지우는 과정
     if (columnChildElements.length < 1) {
       newEditDom.map((element, index) => {
-        // column 제거
-        if (element.uuid === elementData.parentId) {
+        if (element.uuid === columnData.uuid) {
+          // colum 삭제
           newEditDom.splice(index, 1);
+          // 삭제했으니 data의 prarentId 비워주기
           elementData.parentId = null;
-        }
-      });
-    }
 
-    const rowChildElements = newEditDom.filter(
-      (element) => element.parentId === columnData.parentId
-    );
-
-    if (rowChildElements.length <= 1) {
-      const rowUuid = rowChildElements[0].parentId;
-      const columnUuid = rowChildElements[0].uuid;
-
-      newEditDom.map((element, index) => {
-        // row 제거
-        if (element.uuid === rowUuid) {
-          newEditDom.splice(index, 1);
-          columnData.parentId = null;
+          rowChildElements = newEditDom.filter(
+            (element) => element.parentId === columnData.parentId
+          );
+          // 컬럼이 지워졌으니 row에있는 column들 width 수정이 필요함
+          rowChildElements.map((rowElement) => {
+            if (
+              rowElement.uuid !== columnData.uuid &&
+              rowElement.uuid !== element.uuid
+            ) {
+              const newWidth = (rowElement.width / (100 - element.width)) * 100;
+              rowElement.width = newWidth;
+            }
+          });
         }
       });
 
-      newEditDom.map((element, index) => {
-        if (element.uuid === columnUuid) {
-          newEditDom.splice(index, 1);
-          element.parentId = null;
-        }
-      });
+      if (rowChildElements?.length <= 1) {
+        const rowUuid = rowChildElements[0].parentId;
+        const columnUuid = rowChildElements[0].uuid;
 
-      newEditDom.map((element, index) => {
-        if (element.parentId === columnUuid) {
-          element.parentId = null;
-        }
-      });
+        newEditDom.map((element, index) => {
+          // row 제거
+          if (element.uuid === rowUuid) {
+            newEditDom.splice(index, 1);
+            columnData.parentId = null;
+          }
+        });
+
+        newEditDom.map((element, index) => {
+          if (element.uuid === columnUuid) {
+            newEditDom.splice(index, 1);
+            element.parentId = null;
+          }
+        });
+
+        newEditDom.map((element) => {
+          if (element.parentId === columnUuid) {
+            element.parentId = null;
+          }
+        });
+      }
     }
   };
 
@@ -609,23 +678,24 @@ const CardEditor = ({ pathId }) => {
   };
 
   const windowMouseDown = (e) => {
-    if (!popupYn && hoverElement && e.ctrlKey) {
+    if (!popupYn && !contextMenuYn && hoverElement && e.ctrlKey) {
       window.getSelection().removeAllRanges();
       const selectArray = [];
       const hoverUuid = hoverElement.getAttribute("uuid");
 
       const hoverTree = makeTree(editDom, hoverUuid);
+
       selectArray.push(hoverTree);
       setSelectElements(selectArray);
     }
 
-    const { clientX, clientY } = e;
-    setSelectPoint({ x: clientX, y: clientY });
+    setSelectPoint({ x: e.clientX, y: e.clientY });
   };
 
   const windowMouseMove = (e) => {
     const { clientX, clientY } = e;
     findNearElementByPointer(clientX, clientY);
+    setCurrentPoint({ x: clientX, y: clientY });
 
     // 마우스 클릭 좌표가 있을 경우에만 드래그 확인
     if (selectPoint) {
@@ -645,18 +715,42 @@ const CardEditor = ({ pathId }) => {
     // 선택된 Element가 있을경우 드래그 이벤트
     if (selectElements.length > 0) {
       window.getSelection().removeAllRanges();
-
-      overlayRef.current.style.left = clientX - 10 + "px";
-      overlayRef.current.style.top = clientY - 10 + "px";
-
       decideMovementSide(clientX, clientY);
     }
   };
 
   const windowMouseUp = (e) => {
+    const contextMenu = e.target.closest(".contextMenu");
+    if (hoverElement && !contextMenu && e.button === 2) {
+      const { clientX, clientY } = e;
+      const popupRight = clientX + 300;
+      const popupBottom = clientY + 120;
+
+      let popupX = clientX;
+      let popupY = clientY;
+
+      if (popupRight > window.innerWidth) {
+        popupX = window.innerWidth - 310;
+      }
+
+      if (popupBottom > window.innerHeight) {
+        popupY = window.innerHeight - 130;
+      }
+      setContextMenuPoint({ x: popupX, y: popupY });
+      // 한번 닫았다 열어줘서 열려있는 스크롤같은걸 닫아줌
+      setContextMenuYn(false);
+    }
+
+    // Element를 옮기는 중이고, 선택된 Element가 있음
     if (movementSide?.uuid && selectElements.length > 0) {
       const hoverData = getEditComponentData(movementSide.uuid);
       moveElementData(selectElements, hoverData);
+    } else if (contextMenuYn) {
+      const contextMenu = e.target.closest(".contextMenu");
+
+      if (!contextMenu && !draggable) {
+        setContextMenuYn(false);
+      }
     } else {
       const { clientX, clientY } = e;
       const distance = Math.sqrt(
@@ -664,14 +758,8 @@ const CardEditor = ({ pathId }) => {
           Math.pow(Math.abs(clientY - selectPoint.y), 2)
       );
 
-      if (hoverElement && distance < 10) {
-        const hoverData = getEditComponentData(
-          hoverElement.getAttribute("uuid")
-        );
-
-        if (!popupYn && hoverData.tagName === "image") {
-          changePopupYn();
-        }
+      if (distance < 10) {
+        changePopupYn(e);
       }
     }
 
@@ -681,7 +769,7 @@ const CardEditor = ({ pathId }) => {
     setSelectPoint(null);
   };
 
-  const makeNewElement = ({ tagName, direction }) => {
+  const makeNewElement = ({ tagName, direction, width, sort }) => {
     const newUuid = uuidv4();
     // 추후에 타입에따라 필요한것들만 생성되게
     const newElement = {
@@ -689,38 +777,52 @@ const CardEditor = ({ pathId }) => {
       uuid: newUuid,
       tagName: tagName,
       html: "",
-      placeholder: "내용을 입력하세요",
-      defaultPlaceHolder: "",
       parentId: null,
       direction: direction,
       checkYn: false,
+      width: width ? width : 100,
+      sort: sort ? sort : editDom.length,
     };
 
     return newElement;
   };
 
-  const modifyEditDom = (uuid, data) => {
+  const modifyEditDom = (uuid, data, type) => {
     let newEditDom = editDom.map((element) => Object.assign({}, element));
 
-    const keys = Object.keys(data);
+    if (type === "delete") {
+      newEditDom = newEditDom.filter((element) => element.uuid !== uuid);
+      removeNullMultipleTag(newEditDom, uuid);
+      modifyDomSave(newEditDom);
+    }
+    if (type === "style") {
+      const targetElement = newEditDom.filter(
+        (element) => element.uuid === uuid
+      );
 
-    newEditDom = newEditDom.map((dom) => {
-      if (dom.tagName === "multiple") {
-        findElementFromChild(dom, uuid, data.html);
-      } else {
-        if (dom.uuid === uuid) {
-          if (keys.length > 0) {
-            keys.map((key) => {
-              dom[key] = data[key];
-            });
+      if (targetElement.length > 0) {
+        targetElement[0].styleData = data.styleData;
+      }
+      setEditDom(newEditDom);
+    } else {
+      const keys = Object.keys(data);
+
+      newEditDom = newEditDom.map((dom) => {
+        if (dom.tagName === "multiple") {
+          findElementFromChild(dom, uuid, data.html);
+        } else {
+          if (dom.uuid === uuid) {
+            if (keys.length > 0) {
+              keys.map((key) => {
+                dom[key] = data[key];
+              });
+            }
           }
         }
-      }
-      return dom;
-    });
-
-    modifyDomSave(newEditDom);
-    setEditDom(newEditDom);
+        return dom;
+      });
+      modifyDomSave(newEditDom);
+    }
   };
 
   const findElementFromChild = (dom, uuid, html) => {
@@ -735,21 +837,59 @@ const CardEditor = ({ pathId }) => {
     });
   };
 
-  const changePopupYn = () => {
-    if (!popupYn) {
-      const { bottom } = hoverElement.getBoundingClientRect();
-      const hoverData = getEditComponentData(hoverElement.getAttribute("uuid"));
-      let popupY = 0;
-      if (bottom + 100 > window.innerHeight) {
-        popupY = window.innerHeight - 110;
-      } else {
-        popupY = bottom;
-      }
+  const changePopupYn = (e) => {
+    // 2. 이미지 태그 이외 클릭 [왼,오 모두 팝업 닫힘만 처리되면됨]
+    const hoverData = getEditComponentData(hoverElement?.getAttribute("uuid"));
+    const filePopup = e.target.closest(".filePopup");
 
-      setFileData({ uuid: hoverData.uuid, y: popupY });
+    // 파일 업로드 팝업을 클릭했을때는 처리X 업로드후 이미지 변경 이벤트일때도 X
+    if (e.type === "mouseup" && filePopup) {
+      return;
     }
 
-    setPopupYn(!popupYn);
+    if (e.button === 0) {
+      // 이미지태그 왼쪽 클릭
+      if (hoverData.tagName === "image") {
+        if (!popupYn) {
+          const { bottom, left, width } = hoverElement?.getBoundingClientRect();
+          let popupY = 0;
+          let popupX = 0;
+
+          if (bottom + 100 > window.innerHeight) {
+            popupY = window.innerHeight - 110;
+          } else {
+            popupY = bottom;
+          }
+
+          const popupRight = 410 + left;
+
+          if (popupRight > window.innerWidth) {
+            popupX = left - (popupRight - window.innerWidth);
+          } else {
+            const newX = left + (width - 400) / 2;
+
+            popupX = newX <= 20 ? left : newX;
+          }
+
+          setFileData({ uuid: hoverData.uuid, y: popupY, x: popupX });
+        }
+        setPopupYn(!popupYn);
+      } else {
+        // 이미지 태그가 아닌것 좌 클릭
+        if (popupYn) {
+          setPopupYn(!popupYn);
+        }
+      }
+    } else {
+      // 우클릭
+      if (popupYn) {
+        setPopupYn(!popupYn);
+      }
+    }
+  };
+
+  const changeContextMenuYn = (menuYn) => {
+    setContextMenuYn(menuYn);
   };
 
   useEffect(() => {
@@ -782,6 +922,10 @@ const CardEditor = ({ pathId }) => {
     <EditorWrapper
       onContextMenu={(e) => {
         e.preventDefault();
+        if (hoverElement) {
+          setPopupUuid(hoverElement?.getAttribute("uuid"));
+          setContextMenuYn(true);
+        }
       }}
     >
       <CloseButton
@@ -800,6 +944,8 @@ const CardEditor = ({ pathId }) => {
             !draggable &&
             !hoverElement
           ) {
+            // 좌클릭이며, 드래그중이 아니고 마우스 위치에 Element가 없는경우
+            // 새로운 Element 생성
             const newElement = makeNewElement({ tagName: "div" });
             setEditDom((prevEditDom) => [...prevEditDom, newElement]);
             setNewUuid(newElement.uuid);
@@ -810,130 +956,90 @@ const CardEditor = ({ pathId }) => {
           <EditBranchComponent
             key={element.uuid}
             data={element}
-            hoverUuid={hoverElement?.getAttribute("uuid")}
+            hoverUuid={
+              !popupYn && !contextMenuYn
+                ? hoverElement?.getAttribute("uuid")
+                : null
+            }
             modifyEditDom={modifyEditDom}
             movementSide={movementSide}
           />
         ))}
       </CardEditorContentWrapper>
-      {/* 오버레이 영역 */}
-      <OverlayWrapper popupYn={popupYn}>
-        <div style={{ width: "calc(100% - 6rem)", position: "relative" }}>
-          <div ref={overlayRef} style={{ position: "absolute", width: "100%" }}>
-            {draggable &&
-              selectElements?.map((element) => {
-                return (
-                  <EditBranchComponent
-                    key={element.uuid}
-                    data={{ ...element, uuid: null }}
-                  ></EditBranchComponent>
-                );
-              })}
-            {!draggable ? <div></div> : ""}
-          </div>
-        </div>
-        <div
-          ref={popupRef}
-          onContextMenu={(e) => {
-            e.preventDefault();
-          }}
-          style={{ display: "flex", justifyContent: "center" }}
-        >
-          {popupYn ? (
-            <>
+      {/* 오버레이 영역 
+      파일 팝업이 열려있거나, 선택된 Element가 있으며 드래그중일때 zindex를 더 위로 올려줌
+      */}
+
+      <OverlayWrapper
+        zindex={
+          popupYn || contextMenuYn || (selectElements.length > 0 && draggable)
+        }
+      >
+        <OverlayContentWrapper>
+          <OverlayContentContents>
+            <div
+              style={{
+                position: "fixed",
+                width: "100%",
+                height: "100%",
+                minWidth: "34rem",
+                left: 0,
+                top: 0,
+              }}
+            ></div>
+            {selectElements.length > 0 && (
               <div
-                onClick={(e) => {
-                  changePopupYn();
-                }}
                 style={{
-                  position: "fixed",
+                  position: "absolute",
                   width: "100%",
-                  height: "100%",
-                  minWidth: "34rem",
-                  left: 0,
-                  top: 0,
-                  zIndex: 998,
-                }}
-              ></div>
-              <div
-                style={{
-                  position: "fixed",
-                  top: fileData?.y,
-                  width: "54rem",
-                  minWidth: "18rem",
-                  maxWidth: "calc(100vw - 4rem)",
-                  height: "10rem",
-                  zIndex: 999,
-                  border: "1px solid rgba(55, 53, 47, 0.3)",
-                  borderRadius: "0.5rem",
-                  background: "white",
-                  boxShadow:
-                    "rgb(15 15 15 / 5%) 0px 0px 0px 1px, rgb(15 15 15 / 10%) 0px 3px 6px, rgb(15 15 15 / 20%) 0px 9px 24px",
+                  left: currentPoint.x + "px",
+                  top: currentPoint.y - 10 + "px",
+                  opacity: "0.4",
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "1rem",
-                    padding: " 0.7rem 0.7rem 0 0.7rem",
-                  }}
-                >
-                  <div
-                    style={{
-                      cursor: "pointer",
-                      height: "3rem",
-                      width: "6rem",
-                      textAlign: "center",
-                      //borderBottom: "0.2rem solid black",
-                    }}
-                  >
-                    이미지
-                  </div>
-                  <div
-                    style={{
-                      cursor: "pointer",
-                      height: "3rem",
-                      width: "6rem",
-                      textAlign: "center",
-                      //borderBottom: "0.2rem solid black",
-                    }}
-                  >
-                    링크
-                  </div>
-                </div>
-                <div style={{ borderTop: "1px solid rgba(55, 53, 47, 0.3)" }}>
-                  <div
-                    onClick={() => {
-                      fileUploadRef.current.click();
-                    }}
-                    style={{
-                      cursor: "pointer",
-                      margin: "1rem 1rem 0 1rem",
-                      padding: "0.5rem",
-                      border: "1px solid rgba(55, 53, 47, 0.3)",
-                      borderRadius: "0.5rem",
-                      textAlign: "center",
-                    }}
-                  >
-                    <input
-                      type="file"
-                      ref={fileUploadRef}
-                      style={{ display: "none" }}
-                      onChange={(e) => {
-                        changePopupYn();
-                        fileUpload(e.target.files[0]);
-                      }}
-                    />
-                    파일 업로드
-                  </div>
-                </div>
+                {selectElements?.map((element) => {
+                  const selectElement = getEditComponentData(element?.parentId);
+                  const overlayWidth = selectElement.width;
+                  return (
+                    <EditBranchComponent
+                      key={element.uuid}
+                      data={{ ...element, uuid: null }}
+                      overlayWidth={overlayWidth}
+                    ></EditBranchComponent>
+                  );
+                })}
               </div>
-            </>
-          ) : null}
-        </div>
+            )}
+
+            {popupYn ? (
+              <div
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                }}
+                style={{ display: "flex", justifyContent: "center" }}
+              >
+                <PopupMenu
+                  popupRef={popupRef}
+                  changePopupYn={changePopupYn}
+                  fileData={fileData}
+                  modifyEditDom={modifyEditDom}
+                />
+              </div>
+            ) : null}
+
+            {contextMenuYn ? (
+              <ContextMenuPopup
+                pointer={contextMenuPoint}
+                changeContextMenuYn={changeContextMenuYn}
+                modifyEditDom={modifyEditDom}
+                popupData={getEditComponentData(popupUuid)}
+              />
+            ) : null}
+          </OverlayContentContents>
+        </OverlayContentWrapper>
       </OverlayWrapper>
     </EditorWrapper>
   );
 };
 
-export default CardEditor;
+export default memo(CardEditor);
