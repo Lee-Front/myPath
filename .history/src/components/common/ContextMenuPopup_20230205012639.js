@@ -1,0 +1,32 @@
+import React from "react";
+import styled from "@emotion/styled";
+
+const ContextMenuWarpper = styled.div`
+  position: absolute;
+  left: ${(props) => props.x + "px"};
+  top: ${(props) => props.y + "px"};
+  padding: 1rem;
+`;
+
+const MenuWarpper = styled.div`
+  padding: 1rem;
+`;
+const Menu = styled.div`
+  width: 20rem;
+  background: rgba(55, 53, 47, 0.2);
+  font-size: 2rem;
+  padding-left: 0.5rem;
+`;
+
+const ContextMenuPopup = ({ pointer }) => {
+  return (
+    <ContextMenuWarpper x={pointer?.x} y={pointer?.y}>
+      <MenuWarpper>
+        <Menu>삭제</Menu>
+        <Menu>변경</Menu>
+      </MenuWarpper>
+    </ContextMenuWarpper>
+  );
+};
+
+export default ContextMenuPopup;
