@@ -22,7 +22,13 @@ const ImageWrapper = styled.div`
   display: flex;
 `;
 
-const ImageTag = ({ style, data, overlayWidth, hoverUuid }) => {
+const ImageTag = ({
+  style,
+  data,
+  overlayWidth,
+  changeShowFileUploader,
+  hoverUuid,
+}) => {
   const [fileId, setFileId] = useState();
   const [width, setWidth] = useState();
 
@@ -38,6 +44,9 @@ const ImageTag = ({ style, data, overlayWidth, hoverUuid }) => {
       style={{
         position: "relative",
         width: overlayWidth + "%",
+      }}
+      onClick={(e) => {
+        changeShowFileUploader(e);
       }}
     >
       <ImageTagWrapper fileId={fileId} hoverYn={hoverUuid === data.uuid}>

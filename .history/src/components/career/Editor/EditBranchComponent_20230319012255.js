@@ -22,10 +22,10 @@ const EditBranchComponent = ({
           data={data}
           updateElement={updateElement}
           movementSide={movementSide}
-          changeShowFileUploader={changeShowFileUploader}
         />
       );
     } else if (data?.tagName === "image") {
+      console.log("changeShowFileUploader :", changeShowFileUploader);
       returnComponent = (
         <ImageTag
           data={data}

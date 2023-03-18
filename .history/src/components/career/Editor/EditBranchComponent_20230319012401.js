@@ -26,6 +26,7 @@ const EditBranchComponent = ({
         />
       );
     } else if (data?.tagName === "image") {
+      console.log("changeShowFileUploader :", changeShowFileUploader);
       returnComponent = (
         <ImageTag
           data={data}

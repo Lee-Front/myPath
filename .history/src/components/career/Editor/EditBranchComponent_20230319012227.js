@@ -13,6 +13,7 @@ const EditBranchComponent = ({
   overlayWidth,
 }) => {
   const BranchTab = () => {
+    console.log("changeShowFileUploader : "k,changeShowFileUploader)
     let returnComponent;
     const movement = movementSide?.uuid === data.uuid ? movementSide : null;
 
@@ -22,7 +23,6 @@ const EditBranchComponent = ({
           data={data}
           updateElement={updateElement}
           movementSide={movementSide}
-          changeShowFileUploader={changeShowFileUploader}
         />
       );
     } else if (data?.tagName === "image") {

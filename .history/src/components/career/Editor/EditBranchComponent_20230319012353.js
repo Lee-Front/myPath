@@ -17,6 +17,7 @@ const EditBranchComponent = ({
     const movement = movementSide?.uuid === data.uuid ? movementSide : null;
 
     if (data?.tagName === "multiple") {
+      console.log("changeShowFileUploader: ", changeShowFileUploader);
       returnComponent = (
         <MultipleTag
           data={data}
@@ -26,6 +27,7 @@ const EditBranchComponent = ({
         />
       );
     } else if (data?.tagName === "image") {
+      console.log("changeShowFileUploader :", changeShowFileUploader);
       returnComponent = (
         <ImageTag
           data={data}
