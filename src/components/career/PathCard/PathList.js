@@ -80,6 +80,7 @@ const PathList = () => {
     console.log("a");
   }, []);
 
+  // getPathList 를 개선해줘
   const getPathList = async (userId) => {
     const pathList = await axios.get("/api/path/getList", {
       params: { userId },

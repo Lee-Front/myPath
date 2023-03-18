@@ -2,7 +2,7 @@ import axios from "axios";
 import React from "react";
 import { useRef } from "react";
 
-const PopupMenu = ({ changePopupYn, fileData, modifyEditDom }) => {
+const PopupMenu = ({ changeShowFileUploader, fileData, updateElement }) => {
   const fileUploadRef = useRef();
 
   const fileUpload = async (file) => {
@@ -28,7 +28,7 @@ const PopupMenu = ({ changePopupYn, fileData, modifyEditDom }) => {
 
   const fileUploadSend = async (formData) => {
     const upload = await axios.post("/api/common/upload", formData);
-    modifyEditDom(fileData.uuid, { files: upload.data });
+    updateElement(fileData.uuid, { files: upload.data });
   };
 
   return (
@@ -111,7 +111,7 @@ const PopupMenu = ({ changePopupYn, fileData, modifyEditDom }) => {
               ref={fileUploadRef}
               style={{ display: "none" }}
               onChange={(e) => {
-                changePopupYn(e);
+                changeShowFileUploader(e);
                 fileUpload(e.target.files[0]);
               }}
             />
@@ -123,4 +123,5 @@ const PopupMenu = ({ changePopupYn, fileData, modifyEditDom }) => {
   );
 };
 
+// 1부터 10까지 더하는 함수
 export default PopupMenu;
