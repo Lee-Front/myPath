@@ -6,14 +6,8 @@ const ContentEditor = styled.div`
   background-color: #eeead9;
 `;
 
-const ElementWrapper = styled.div``;
-
 const PathDetail = () => {
-  return (
-    <ContentEditor>
-      <ElementWrapper></ElementWrapper>
-    </ContentEditor>
-  );
+  return <ContentEditor></ContentEditor>;
 };
 
 export default PathDetail;
