@@ -4,8 +4,19 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
+import axios from "axios";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
+axios.interceptors.request.use((config) => {
+  if (config.url.startsWith("/api")) {
+    const apiUrl =
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:8080"
+        : "http://";
+    config.url = apiUrl + config.url;
+  }
+  return config;
+});
 root.render(
   <BrowserRouter basename={process.env.PUBLIC_URL}>
     <App />

@@ -39,13 +39,6 @@ const EditableBlock = ({ updateElement, data, overlayWidth, movementSide }) => {
     return styleObject;
   };
   const style = movementSide && getMovementStyle(movementSide);
-
-  const hadleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-    }
-  };
-
   return (
     <>
       <Editable
@@ -70,7 +63,6 @@ const EditableBlock = ({ updateElement, data, overlayWidth, movementSide }) => {
         onMouseLeave={() => {
           setIsHover(false);
         }}
-        onKeyDown={hadleKeyDown}
         onInput={(e) => {
           const childNodes = Array.from(e.target.childNodes);
           let newHtml = "";
@@ -107,15 +99,16 @@ const EditableBlock = ({ updateElement, data, overlayWidth, movementSide }) => {
                 return node;
               }
             );
+            console.log("newChildeList : ", newChildeList);
 
             const newRange = document.createRange();
             newRange.setStart(newChildeList[startIndex], startOffset);
             document.getSelection().removeAllRanges();
             document.getSelection().addRange(newRange);
 
-            // updateElement(data.uuid, {
-            //   html: newHtml,
-            // });
+            updateElement(data.uuid, {
+              html: newHtml,
+            });
           } else {
             updateElement(data.uuid, {
               html: e.target.innerHTML,

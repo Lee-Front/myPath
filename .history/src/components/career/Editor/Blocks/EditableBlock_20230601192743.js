@@ -72,55 +72,63 @@ const EditableBlock = ({ updateElement, data, overlayWidth, movementSide }) => {
         }}
         onKeyDown={hadleKeyDown}
         onInput={(e) => {
-          const childNodes = Array.from(e.target.childNodes);
-          let newHtml = "";
+          console.log("e.target : ", e.target);
+          // const childNodes = Array.from(e.target.childNodes);
+          // console.log("childNodes : ", childNodes);
+          // let newHtml = "";
 
-          if (childNodes.length > 1) {
-            for (let i = 0; i < childNodes.length; i++) {
-              if (childNodes[i]?.nodeName === "SPAN") {
-                newHtml += childNodes[i].outerHTML;
-              } else {
-                newHtml += childNodes[i].textContent;
-              }
+          // if (childNodes.length > 1) {
+          //   for (let i = 0; i < childNodes.length; i++) {
+          //     if (childNodes[i]?.nodeName === "SPAN") {
+          //       newHtml += childNodes[i].outerHTML;
+          //     } else {
+          //       newHtml += childNodes[i].textContent;
+          //     }
 
-              if (
-                childNodes[i]?.nodeName === "SPAN" ||
-                childNodes[i]?.nodeName === "B"
-              ) {
-                childNodes[i] = childNodes[i].firstChild;
-              }
-            }
+          //     if (
+          //       childNodes[i]?.nodeName === "SPAN" ||
+          //       childNodes[i]?.nodeName === "B"
+          //     ) {
+          //       childNodes[i] = childNodes[i].firstChild;
+          //     }
+          //   }
 
-            const range = window.getSelection().getRangeAt(0);
+          //   const range = window.getSelection().getRangeAt(0);
 
-            const startIndex = childNodes.indexOf(range.startContainer);
-            const startOffset = range.startOffset;
+          //   const startIndex = childNodes.indexOf(range.startContainer);
+          //   const startOffset = range.startOffset;
 
-            const target = document.querySelector(`[data-uuid="${data.uuid}"]`);
-            const editableTag = target.querySelector(".editable-tag");
-            editableTag.innerHTML = newHtml;
-            const newChildeList = Array.from(editableTag.childNodes).map(
-              (node) => {
-                if (node.nodeName === "SPAN") {
-                  node = node.firstChild;
-                }
-                return node;
-              }
-            );
+          //   const target = document.querySelector(`[data-uuid="${data.uuid}"]`);
+          //   const editableTag = target.querySelector(".editable-tag");
+          //   editableTag.innerHTML = newHtml;
+          //   const newChildeList = Array.from(editableTag.childNodes).map(
+          //     (node) => {
+          //       if (node.nodeName === "SPAN") {
+          //         node = node.firstChild;
+          //       }
+          //       return node;
+          //     }
+          //   );
+          //   console.log("newChildeList : ", newChildeList);
+          //   console.log("startIndex : ", startIndex);
 
-            const newRange = document.createRange();
-            newRange.setStart(newChildeList[startIndex], startOffset);
-            document.getSelection().removeAllRanges();
-            document.getSelection().addRange(newRange);
+          //   const newRange = document.createRange();
+          //   console.log(
+          //     "newChildeList[startIndex] : ",
+          //     newChildeList[startIndex]
+          //   );
+          //   newRange.setStart(newChildeList[startIndex], startOffset);
+          //   document.getSelection().removeAllRanges();
+          //   document.getSelection().addRange(newRange);
 
-            // updateElement(data.uuid, {
-            //   html: newHtml,
-            // });
-          } else {
-            updateElement(data.uuid, {
-              html: e.target.innerHTML,
-            });
-          }
+          //   // updateElement(data.uuid, {
+          //   //   html: newHtml,
+          //   // });
+          // } else {
+          //   updateElement(data.uuid, {
+          //     html: e.target.innerHTML,
+          //   });
+          // }
         }}
         dangerouslySetInnerHTML={{ __html: html }}
         suppressHydrationWarning={true}
