@@ -6,6 +6,7 @@ import axios from "axios";
 import { SketchPicker } from "react-color";
 import { useEffect } from "react";
 import SubContextMenu from "./SubContextMenu";
+import ColorPicker from "./ColorPicker";
 
 // 폰트 사이즈 목록
 const sizeList = [10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
@@ -165,8 +166,6 @@ const ContextMenuPopup = ({
   };
 
   const changeTextStyle = (style) => {
-    const selection = window.getSelection();
-
     const target = document.querySelector(`[data-uuid="${uuid}"]`);
     const editableTag = target.querySelector("[name=editable-tag]");
     if (!editableTag) {
@@ -174,13 +173,18 @@ const ContextMenuPopup = ({
     }
 
     const nodes = Array.from(editableTag.childNodes);
+
+    const selection = window.getSelection();
     const isFullSelection = selection.type === "Caret";
 
     const range = isFullSelection
       ? createFullRange(nodes)
       : selection.getRangeAt(0);
 
+    console.log("style: ", style);
     const newHtmlData = makeNewHtml(nodes, range, style);
+
+    console.log("newHtmlData: ", newHtmlData);
 
     //대상 내용물 삭제
     while (editableTag.firstChild) {
@@ -201,12 +205,8 @@ const ContextMenuPopup = ({
   };
 
   const makeNewHtml = (nodes, range, style) => {
-    const nodeList = getNodesData(nodes); // nodes를 데이터로 변환하여 담을 목록
-    const newNodeList = []; // nodeList를 돌면서 바뀌는 nodeData를 담을 목록
-    const newStyleList = Object.keys(style);
-    const returnData = {};
-
-    let newHtml = [];
+    const nodeDatas = getNodesData(nodes); // nodes를 데이터로 변환하여 담을 목록
+    const dragInfo = {};
 
     const { startOffset, endOffset, startContainer, endContainer } = range;
 
@@ -227,14 +227,39 @@ const ContextMenuPopup = ({
       [startNodeIndex, endNodeIndex] = [endNodeIndex, startNodeIndex];
     }
 
-    returnData.startNodeIndex = startNodeIndex;
-    returnData.endNodeIndex = endNodeIndex;
-    returnData.startOffset = startOffset;
-    returnData.endOffset = endOffset;
+    dragInfo.startNodeIndex = startNodeIndex;
+    dragInfo.endNodeIndex = endNodeIndex;
+    dragInfo.startOffset = startOffset;
+    dragInfo.endOffset = endOffset;
 
-    // index 골라서 넘겨주고 selection 새로잡는걸로 수정해야됨
-    for (let i = 0; i < nodeList.length; i++) {
-      const nodeData = nodeList[i];
+    const { splitedNodeDatas, splitedDragInfo } = splitNodes(
+      nodeDatas,
+      dragInfo
+    );
+    const styledNodeDatas = applyStyle(
+      splitedNodeDatas,
+      style,
+      splitedDragInfo
+    );
+
+    const { mergedNodeDatas, mergedDragInfo } = mergedNodesWithSameStyle(
+      styledNodeDatas,
+      splitedDragInfo
+    );
+
+    const generatedElements = generateStyledElements(mergedNodeDatas);
+    mergedDragInfo.html = generatedElements;
+
+    return mergedDragInfo;
+  };
+
+  const splitNodes = (nodeDatas, dragInfo) => {
+    const splitedNodeDatas = [];
+    const { startNodeIndex, endNodeIndex, startOffset, endOffset } = dragInfo;
+    const splitedDragInfo = JSON.parse(JSON.stringify(dragInfo));
+
+    for (let i = 0; i < nodeDatas.length; i++) {
+      const nodeData = nodeDatas[i];
       if (startNodeIndex <= i && i <= endNodeIndex) {
         // 선택된 범위안의 node 들
         const prevText =
@@ -251,127 +276,145 @@ const ContextMenuPopup = ({
         if (prevText.length > 0) {
           nodeData.textContent = nodeData.textContent.slice(startOffset);
           // prevText가 있다는건 분리를 시켜줘야 한다는뜻임
-          returnData.startNodeIndex += 1;
-          returnData.startOffset = 0;
-          returnData.endNodeIndex += 1;
+          splitedDragInfo.startNodeIndex += 1;
+          splitedDragInfo.startOffset = 0;
+          splitedDragInfo.endNodeIndex += 1;
 
           if (startNodeIndex === endNodeIndex) {
-            returnData.endOffset -= prevText.length;
+            splitedDragInfo.endOffset -= prevText.length;
           }
 
           const prevNode = JSON.parse(JSON.stringify(nodeData));
           prevNode.textContent = prevText;
-          newNodeList.push(prevNode);
+          splitedNodeDatas.push(prevNode);
         }
 
-        newNodeList.push(nodeData);
+        splitedNodeDatas.push(nodeData);
 
         if (nextText.length > 0) {
           nodeData.textContent = nodeData.textContent.slice(
             0,
-            returnData.endOffset
+            splitedDragInfo.endOffset
           );
 
           const nextNode = JSON.parse(JSON.stringify(nodeData));
           nextNode.textContent = nextText;
-          newNodeList.push(nextNode);
-        }
-
-        for (let i = 0; i < newStyleList.length; i++) {
-          const styleName = newStyleList[i];
-          if (styleName === "link") {
-            nodeData.link = style[styleName];
-          } else {
-            if (style[styleName] === "") {
-              delete nodeData.style[styleName];
-            } else {
-              nodeData.style[styleName] = style[styleName];
-            }
-          }
+          splitedNodeDatas.push(nextNode);
         }
       } else {
-        newNodeList.push(nodeData);
+        splitedNodeDatas.push(nodeData);
       }
     }
 
-    const currentNodeData = JSON.parse(JSON.stringify(returnData));
+    return { splitedNodeDatas, splitedDragInfo };
+  };
 
-    const mergedNodeList = newNodeList.reduce((acc, current, index) => {
+  const applyStyle = (splitedNodeDatas, style, splitedDragInfo) => {
+    const newStyleList = Object.keys(style);
+    return splitedNodeDatas.map((nodeData, index) => {
       if (
-        JSON.stringify(acc[acc.length - 1]?.style) ===
-        JSON.stringify(current.style)
+        index < splitedDragInfo.startNodeIndex ||
+        index > splitedDragInfo.endNodeIndex
       ) {
-        // 1. 시작 노드 순번보다 앞인경우
-        // 2. 시작 노드
-        // 3. 시작 노드보다 크고 종료 노드와 같거나 작은 경우
-        //현재 순번이 시작 노드보다 이전이거나 같으면 합쳐진만큼 index를 당겨야됨
-        if (index < currentNodeData.startNodeIndex) {
-          returnData.startNodeIndex -= 1;
-          returnData.endNodeIndex -= 1;
-        } else if (index === currentNodeData.startNodeIndex) {
-          // 현재 순번이 시작 노드 순번이라면
-          // offset에 이전 text의 길이만큼 추가
-          returnData.startNodeIndex -= 1;
-          returnData.endNodeIndex -= 1;
-          returnData.startOffset += newNodeList[index - 1].textContent.length;
-          returnData.endOffset += newNodeList[index - 1].textContent.length;
-        } else if (
-          currentNodeData.startNodeIndex < index &&
-          currentNodeData.endNodeIndex > index
-        ) {
-          returnData.endNodeIndex -= 1;
-        } else if (index === currentNodeData.endNodeIndex) {
-          returnData.endNodeIndex -= 1;
-          returnData.endOffset += newNodeList[index - 1].textContent.length;
-        }
-
-        acc[acc.length - 1].textContent += current.textContent;
-      } else {
-        acc.push(current);
+        return nodeData;
       }
+      for (let i = 0; i < newStyleList.length; i++) {
+        const styleName = newStyleList[i];
+        if (styleName === "link") {
+          nodeData.link = style[styleName];
+        } else {
+          if (style[styleName] === "") {
+            delete nodeData.style[styleName];
+          } else {
+            nodeData.style[styleName] = style[styleName];
+          }
+        }
+      }
+      return nodeData;
+    });
+  };
+
+  const mergedNodesWithSameStyle = (styledNodeDatas, splitedDragInfo) => {
+    const mergedDragInfo = JSON.parse(JSON.stringify(splitedDragInfo));
+    const mergedNodeDatas = styledNodeDatas.reduce((acc, cur, index) => {
+      const curData = JSON.parse(JSON.stringify(cur));
+      const prevData = acc[acc.length - 1];
+      const prevStyles = Object.keys(prevData?.style || {});
+      const curStyles = Object.keys(curData.style || {});
+
+      const isSameStyle =
+        prevStyles.length === curStyles.length &&
+        prevStyles.every(
+          (styleName) => prevData.style[styleName] === curData.style[styleName]
+        );
+
+      if (prevData && isSameStyle) {
+        if (index <= splitedDragInfo.startNodeIndex) {
+          mergedDragInfo.startNodeIndex -= 1;
+          mergedDragInfo.endNodeIndex -= 1;
+          if (index === splitedDragInfo.startNodeIndex) {
+            mergedDragInfo.startOffset += prevData.textContent.length;
+            mergedDragInfo.endOffset += prevData.textContent.length;
+          }
+        } else if (
+          splitedDragInfo.startNodeIndex < index &&
+          splitedDragInfo.endNodeIndex > index
+        ) {
+          mergedDragInfo.endNodeIndex -= 1;
+        } else if (index === splitedDragInfo.endNodeIndex) {
+          mergedDragInfo.endNodeIndex -= 1;
+          mergedDragInfo.endOffset += prevData.textContent.length;
+        }
+        acc[acc.length - 1].textContent += curData.textContent;
+      } else {
+        acc.push(curData);
+      }
+
       return acc;
     }, []);
 
-    mergedNodeList.forEach((node) => {
+    return { mergedNodeDatas, mergedDragInfo };
+  };
+
+  const generateStyledElements = (styledNodeDatas) => {
+    return styledNodeDatas.map((node) => {
       const styleKeys = Object.keys(node.style);
       if (styleKeys.length > 0) {
-        let newStyle = "";
-        styleKeys.forEach((nodeStyle) => {
-          newStyle += nodeStyle + ":" + node.style[nodeStyle] + ";";
-        });
+        let newStyle = styleKeys
+          .map((nodeStyle) => {
+            return nodeStyle + ":" + node.style[nodeStyle] + ";";
+          })
+          .join("");
         if (node.link) {
           const linkTag = document.createElement("a");
-          linkTag.target = "_black";
-          linkTag.style.cssText =
-            "opacity: 0.7; cursor: pointer; color: inherit; text-decoration: inherit;";
+          linkTag.target = "_blank";
+          const linkStyle = {
+            opacity: 0.7,
+            cursor: "pointer",
+            color: "inherit",
+            textDecoration: "inherit",
+          };
+          Object.assign(linkTag.style, linkStyle);
+
           linkTag.innerHTML = `<span style="${newStyle}">${node.textContent}</span>`;
           linkTag.href = `http://${node.link}`;
           linkTag.addEventListener("click", function (e) {
-            e.preventDefault(); // 링크의 기본 동작 차단
             const href = e.currentTarget?.getAttribute("href");
             if (href) {
               window.open(href, "_blank");
             }
           });
-          //newHtml += `<a href="http://${node.link}" target="_blank" style="opacity:0.7; cursor:pointer;color:inherit;font-weight:600;text-decoration:inherit;"><span style="${newStyle}">${node.textContent}</span></a>`;
-          //newHtml += linkTag.outerHTML;
-          newHtml.push(linkTag);
+          return linkTag;
         } else {
           const spanTag = document.createElement("span");
-          spanTag.style.cssText = newStyle;
           spanTag.innerText = node.textContent;
-          newHtml.push(spanTag);
-          // += `<span style="${newStyle}">${node.textContent}</span>`;
+          return spanTag;
         }
       } else {
-        //newHtml += `${node.textContent}`;
         const textTag = document.createTextNode(node.textContent);
-        newHtml.push(textTag);
+        return textTag;
       }
     });
-    returnData.html = newHtml;
-
-    return returnData;
   };
 
   const setCaretPosition = (target, newHtmlData) => {
@@ -379,11 +422,8 @@ const ContextMenuPopup = ({
     const { startNodeIndex, endNodeIndex, startOffset, endOffset } =
       newHtmlData;
     const newRange = document.createRange();
-    console.log("target: ", target);
-    console.log("newHtmlData: ", newHtmlData);
     let startNode = nodes[startNodeIndex];
     let endNode = nodes[endNodeIndex];
-    console.log("startNode: ", startNode);
     // 가장 마지막인 text까지 가야됨
     while (startNode.firstChild) {
       startNode = startNode.firstChild;
@@ -400,19 +440,18 @@ const ContextMenuPopup = ({
   };
 
   const changeFontSize = async (value) => {
-    let newValue;
-    if (value < 10) {
-      newValue = 10;
-    } else {
-      newValue = value;
+    let newValue = value > 10 ? value : 10;
+
+    if (newValue < 10) {
+      return;
     }
 
-    if (newValue >= 10) {
-      changeElementStyle(popupData.uuid, {
-        ...popupData?.styleData,
-        fontSize: newValue,
-      });
-    }
+    inputRef.current.value = newValue;
+
+    changeElementStyle(popupData.uuid, {
+      ...popupData?.styleData,
+      fontSize: newValue,
+    });
 
     await axios.post("/api/editor/style", {
       uuid: uuid,
@@ -452,11 +491,101 @@ const ContextMenuPopup = ({
     }
   };
 
-  const changeSelectSubMenu = (subMenu) => {
+  const changeSelectSubMenu = (e) => {
+    const subMenu = e.currentTarget;
     if (subMenu !== fontRef.current && isFontSizeOpen) {
       setIsFontSizeOpen(false);
     }
     setSelectMenu(subMenu);
+  };
+
+  const handleClick = (e) => {
+    if (isFontSizeOpen) {
+      setIsFontSizeOpen(false);
+    }
+
+    const sketchElement = e.target.closest(".color-sketch");
+    // 팔레트가 아니고 팝업이 열려있으면
+    if (!sketchElement && isSketchOpen) {
+      setIsSketchOpen(false);
+      changeColor(color);
+    }
+
+    const backgroundSketchElement = e.target.closest(".background-sketch");
+    // 팔레트가 아니고 팝업이 열려있으면
+    if (!backgroundSketchElement && isBackgroundSketchOpen) {
+      setIsBackgroundSketchOpen(false);
+      changeBackground(background);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      const value = e.target.value;
+      changeFontSize(value);
+      setIsFontSizeOpen(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    e.target.value = e.target.value.replace(/[^-0-9]/g, "");
+  };
+
+  const handleColorChange = (e) => {
+    const rgba = e.rgb;
+    const rgbaText = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
+    setColor(rgbaText);
+
+    const selection = window.getSelection();
+    if (selection.type !== "Caret") {
+      const style = { color: rgbaText };
+      changeTextStyle(style);
+    }
+  };
+
+  const handleColorChangeComplete = async (e) => {
+    console.log("2");
+    const rgba = e.rgb;
+    const rgbaText = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
+
+    const selection = window.getSelection();
+    if (selection.type === "Caret") {
+      setColor(rgbaText);
+    } else {
+      const style = { color: rgbaText };
+      changeTextStyle(style);
+    }
+  };
+
+  const handleBackgroundChange = (e) => {
+    const rgba = e.rgb;
+    const rgbaText = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
+    setBackground(rgbaText);
+
+    const selection = window.getSelection();
+    if (selection.type === "Caret") {
+      changeBackground(rgbaText);
+    } else {
+      const style = { "background-color": rgbaText };
+      changeTextStyle(style);
+    }
+  };
+
+  const handleBackgroundChangeComplete = async (e) => {
+    const rgba = e.rgb;
+    const rgbaText = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
+
+    const selection = window.getSelection();
+    if (selection.type === "Caret") {
+      changeBackground(rgbaText);
+      await axios.post("/api/editor/style", {
+        uuid: uuid,
+        background: rgbaText,
+      });
+    } else {
+      const style = { "background-color": rgbaText };
+      changeTextStyle(style);
+    }
   };
 
   return (
@@ -464,210 +593,80 @@ const ContextMenuPopup = ({
       ref={contextRef}
       pointer={pointer}
       className="contextMenu"
-      onClick={(e) => {
-        if (isFontSizeOpen) {
-          setIsFontSizeOpen(false);
-        }
-
-        const sketchElement = e.target.closest(".color-sketch");
-        // 팔레트가 아니고 팝업이 열려있으면
-        if (!sketchElement && isSketchOpen) {
-          setIsSketchOpen(false);
-          changeColor(color);
-        }
-
-        const backgroundSketchElement = e.target.closest(".background-sketch");
-        // 팔레트가 아니고 팝업이 열려있으면
-        if (!backgroundSketchElement && isBackgroundSketchOpen) {
-          setIsBackgroundSketchOpen(false);
-          changeBackground(background);
-        }
-      }}
+      onClick={handleClick}
     >
       <TextMenuWrapper>
-        <div style={{ position: "relative" }}>
-          <TextMenu
-            ref={fontRef}
-            onMouseEnter={(e) => changeSelectSubMenu(e.currentTarget)}
-          >
-            <TextSizeWrapper>
-              <div style={{ width: "2rem", position: "relative" }}>
-                <input
-                  ref={inputRef}
-                  defaultValue={
-                    popupData?.styleData?.fontSize
-                      ? popupData?.styleData?.fontSize
-                      : 16
-                  }
-                  //value={fontSize}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const value = e.target.value;
-                      changeFontSize(value);
-                      setIsFontSizeOpen(false);
-                    }
-                  }}
-                  onChange={(e) => {
-                    e.target.value = e.target.value.replace(/[^-0-9]/g, "");
-                  }}
-                  style={{
-                    fontSize: "1.6rem",
-                    border: "none",
-                    outline: "none",
-                    width: "100%",
-                    background: "none",
-                  }}
-                />
-              </div>
-              <div
-                onClick={() => {
-                  setIsFontSizeOpen(!isFontSizeOpen);
-                }}
-                style={{ width: "2rem", textAlign: "center" }}
-              >
-                ▼
-              </div>
-            </TextSizeWrapper>
-          </TextMenu>
-          <div
-            style={{
-              position: "absolute",
-              width: "90%",
-              height: !isFontSizeOpen ? "0px" : "17rem",
-              transition: "0.1s",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                border: "1px solid rgba(55, 53, 47, 0.2)",
-                overflow: "scroll",
-                height: "100%",
-                background: "white",
-              }}
-            >
-              {sizeList.map((size, index) => (
-                <TextSizeOption
-                  key={index}
-                  onClick={() => {
-                    changeFontSize(size);
-                  }}
-                >
-                  {size}
-                </TextSizeOption>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div>
-          <TextMenu
-            onMouseEnter={(e) => changeSelectSubMenu(e.currentTarget)}
-            onClick={() => {
-              setIsSketchOpen(!isSketchOpen);
-            }}
-          >
-            A
-            <div
-              style={{
-                width: "3rem",
-                height: "1.2rem",
-                borderRadius: "0.2rem",
-                background: color,
-                border: "1px solid rgba(55, 53, 47, 0.2)",
-              }}
-            ></div>
-          </TextMenu>
-          {isSketchOpen ? (
-            <div
+        <TextMenu
+          ref={fontRef}
+          onMouseEnter={changeSelectSubMenu}
+          onClick={() => {
+            setIsFontSizeOpen(!isFontSizeOpen);
+          }}
+        >
+          <TextSizeWrapper>
+            <FontInput
+              ref={inputRef}
+              defaultValue={popupData?.styleData?.fontSize || 16}
+              onKeyDown={handleKeyDown}
+              onChange={handleChange}
+            />
+            <FontSizeButton>▼</FontSizeButton>
+            <FontSizeListContainer isFontSizeOpen={isFontSizeOpen}>
+              <FontSizeList>
+                {sizeList.map((size, index) => (
+                  <TextSizeOption
+                    key={index}
+                    onClick={() => {
+                      changeFontSize(size);
+                    }}
+                  >
+                    {size}
+                  </TextSizeOption>
+                ))}
+              </FontSizeList>
+            </FontSizeListContainer>
+          </TextSizeWrapper>
+        </TextMenu>
+        <TextMenu
+          onMouseEnter={changeSelectSubMenu}
+          onClick={(e) => {
+            setIsSketchOpen(!isSketchOpen);
+          }}
+        >
+          A
+          <PickerPreview color={color} />
+          {isSketchOpen && (
+            <ColorPicker
               className="color-sketch"
-              style={{ position: "absolute", marginTop: "0.2rem" }}
-            >
-              <SketchPicker
-                color={color}
-                onChange={(e) => {
-                  const rgba = e.rgb;
-                  const rgbaText = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
-                  setColor(rgbaText);
-                  const style = { color: rgbaText };
-                  changeTextStyle(style);
-                }}
-                onChangeComplete={async (e) => {
-                  const rgba = e.rgb;
-                  const rgbaText = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
-
-                  const style = { color: rgbaText };
-                  changeTextStyle(style);
-
-                  await axios.post("/api/editor/style", {
-                    uuid: uuid,
-                    color: rgbaText,
-                  });
-                }}
-              />
-            </div>
-          ) : null}
-        </div>
-        <div>
-          <TextMenu
-            onMouseEnter={(e) => changeSelectSubMenu(e.currentTarget)}
-            onClick={() => {
-              setIsBackgroundSketchOpen(!isBackgroundSketchOpen);
-            }}
-          >
-            배경
-            <div
-              style={{
-                width: "3rem",
-                height: "1.2rem",
-                borderRadius: "0.2rem",
-                background: background,
-                border: "1px solid rgba(55, 53, 47, 0.2)",
-              }}
-            ></div>
-          </TextMenu>
-          {isBackgroundSketchOpen ? (
-            <div
+              uuid={uuid}
+              color={color}
+              handleChange={handleColorChange}
+              handleChangeComplete={handleColorChangeComplete}
+            />
+          )}
+        </TextMenu>
+        <TextMenu
+          onMouseEnter={changeSelectSubMenu}
+          onClick={() => {
+            setIsBackgroundSketchOpen(!isBackgroundSketchOpen);
+          }}
+        >
+          배경
+          <PickerPreview color={background} />
+          {isBackgroundSketchOpen && (
+            <ColorPicker
               className="background-sketch"
-              style={{ position: "absolute", marginTop: "0.2rem" }}
-            >
-              <SketchPicker
-                color={background}
-                onChange={(e) => {
-                  const rgba = e.rgb;
-                  const rgbaText = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
-                  setBackground(rgbaText);
+              uuid={uuid}
+              color={background}
+              handleChange={handleBackgroundChange}
+              handleChangeComplete={handleBackgroundChangeComplete}
+            />
+          )}
+        </TextMenu>
 
-                  const selection = window.getSelection();
-                  if (selection.type === "Caret") {
-                    changeBackground(rgbaText);
-                  } else {
-                    const style = { "background-color": rgbaText };
-                    changeTextStyle(style);
-                  }
-                }}
-                onChangeComplete={async (e) => {
-                  const rgba = e.rgb;
-                  const rgbaText = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
-
-                  const selection = window.getSelection();
-                  if (selection.type === "Caret") {
-                    changeBackground(rgbaText);
-                    await axios.post("/api/editor/style", {
-                      uuid: uuid,
-                      background: rgbaText,
-                    });
-                  } else {
-                    const style = { "background-color": rgbaText };
-                    changeTextStyle(style);
-                  }
-                }}
-              />
-            </div>
-          ) : null}
-        </div>
         <div style={{ fontWeight: "bold" }}>
           <TextMenu
-            onMouseEnter={(e) => changeSelectSubMenu(e.currentTarget)}
+            onMouseEnter={changeSelectSubMenu}
             border={bold}
             onClick={async () => {
               setBold(!bold);
@@ -686,7 +685,7 @@ const ContextMenuPopup = ({
         </div>
         <div style={{ fontStyle: "italic" }}>
           <TextMenu
-            onMouseEnter={(e) => changeSelectSubMenu(e.currentTarget)}
+            onMouseEnter={changeSelectSubMenu}
             border={italic}
             onClick={async () => {
               setItalic(!italic);
@@ -705,7 +704,7 @@ const ContextMenuPopup = ({
         </div>
         <div style={{ textDecoration: "underline" }}>
           <TextMenu
-            onMouseEnter={(e) => changeSelectSubMenu(e.currentTarget)}
+            onMouseEnter={changeSelectSubMenu}
             border={underLine}
             onClick={async () => {
               setUnderLine(!underLine);
@@ -726,7 +725,7 @@ const ContextMenuPopup = ({
         </div>
         <div style={{ textDecoration: "line-through" }}>
           <TextMenu
-            onMouseEnter={(e) => changeSelectSubMenu(e.currentTarget)}
+            onMouseEnter={changeSelectSubMenu}
             border={strikethrough}
             onClick={async () => {
               setStrikethrough(!strikethrough);
@@ -836,6 +835,7 @@ const TextMenuWrapper = styled.div`
 `;
 
 const TextMenu = styled.div`
+  position: relative;
   min-width: 4rem;
   padding: 0 0.5rem;
   height: 4rem;
@@ -858,6 +858,40 @@ const TextMenu = styled.div`
 
 const TextSizeWrapper = styled.div`
   display: flex;
+  position: relative;
+`;
+
+const FontInput = styled.input`
+  font-size: 1.6rem;
+  border: none;
+  outline: none;
+  width: 100%;
+  background: none;
+`;
+
+const FontSizeButton = styled.div`
+  width: 2rem;
+  text-align: center;
+`;
+
+const FontSizeListContainer = styled.div`
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  height: ${(props) => (!props.isFontSizeOpen ? "0px" : "17rem")};
+  transition: 0.1s;
+  overflow: hidden;
+`;
+
+const FontSizeList = styled.div`
+  border: 1px solid rgba(55, 53, 47, 0.2);
+  overflow: auto;
+  height: 100%;
+  background: white;
+
+  ::-webkit-scrollbar {
+    width: 0.5rem;
+  }
 `;
 
 const TextSizeOption = styled.div`
@@ -865,4 +899,19 @@ const TextSizeOption = styled.div`
   :hover {
     background: rgba(55, 53, 47, 0.2);
   }
+`;
+
+const PickerPreview = styled.div`
+  width: 3rem;
+  height: 1.2rem;
+  border-radius: 0.2rem;
+  background: ${(props) => props.color};
+  border: 1px solid rgba(55, 53, 47, 0.2);
+`;
+
+const PickerContainer = styled.div`
+  position: absolute;
+  margintop: 0.2rem;
+  top: 100%;
+  left: 0;
 `;
