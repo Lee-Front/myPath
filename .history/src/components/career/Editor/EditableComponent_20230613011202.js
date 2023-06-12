@@ -19,25 +19,29 @@ const EditableComponent = ({ updateElement, data }) => {
         }
 
         while (childNodes[i] instanceof Text === false) {
+          console.log("childNodes[i]: ", childNodes[i]);
+          console.log("childNodes[i]: ", childNodes[i].firstChild);
           childNodes[i] = childNodes[i].firstChild;
         }
       }
 
       const range = window.getSelection().getRangeAt(0);
       const startIndex = childNodes.indexOf(range.startContainer);
+      console.log("startIndex: ", startIndex);
       const startOffset = range.startOffset;
 
       const target = document.querySelector(`[data-uuid="${data.uuid}"]`);
       const editableTag = target.querySelector("[name=editable-tag]");
 
-      // const newChildeList = Array.from(editableTag.childNodes).map((node) => {
-      //   if (node.nodeName === "SPAN") {
-      //     node = node.firstChild;
-      //   }
-      //   return node;
-      // });
+      const newChildeList = Array.from(editableTag.childNodes).map((node) => {
+        if (node.nodeName === "SPAN") {
+          node = node.firstChild;
+        }
+        return node;
+      });
+      console.log("newChildeList: ", newChildeList);
       const newRange = document.createRange();
-      newRange.setStart(childNodes[startIndex], startOffset);
+      newRange.setStart(newChildeList[startIndex], startOffset);
       document.getSelection().removeAllRanges();
       document.getSelection().addRange(newRange);
 

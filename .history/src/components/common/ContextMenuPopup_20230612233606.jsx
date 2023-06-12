@@ -401,6 +401,16 @@ const ContextMenuPopup = ({
       if (node.link) {
         const linkTag = document.createElement("a");
         linkTag.target = "_blank";
+        const linkStyle = {
+          opacity: 0.7,
+          cursor: "pointer",
+          color: "inherit",
+          textDecoration: "inherit",
+          borderBottom: "0.1rem solid",
+          borderColor: "rgba(55,53,47,0.4)",
+        };
+
+        Object.assign(linkTag.style, linkStyle);
 
         linkTag.appendChild(newElement);
         linkTag.href = `http://${node.link}`;
@@ -675,66 +685,72 @@ const ContextMenuPopup = ({
             });
           }}
         >
-          <TextMenuSpan bold={true}>B</TextMenuSpan>
+          <span>B</span>
         </TextMenu>
         {/* 기울기 */}
-        <TextMenu
-          onMouseEnter={changeSelectSubMenu}
-          border={italic}
-          onClick={async () => {
-            setItalic(!italic);
+        <div style={{ fontStyle: "italic" }}>
+          <TextMenu
+            onMouseEnter={changeSelectSubMenu}
+            border={italic}
+            onClick={async () => {
+              setItalic(!italic);
 
-            const style = { "font-style": !italic ? "italic" : "" };
-            changeTextStyle(style);
+              const style = { "font-style": !italic ? "italic" : "" };
+              changeTextStyle(style);
 
-            await axios.post("/api/editor/style", {
-              uuid: uuid,
-              italic: !italic,
-            });
-          }}
-        >
-          <TextMenuSpan italic={true}>i</TextMenuSpan>
-        </TextMenu>
+              await axios.post("/api/editor/style", {
+                uuid: uuid,
+                italic: !italic,
+              });
+            }}
+          >
+            i
+          </TextMenu>
+        </div>
         {/* 밑줄 */}
-        <TextMenu
-          onMouseEnter={changeSelectSubMenu}
-          border={underLine}
-          onClick={async () => {
-            setUnderLine(!underLine);
+        <div style={{ textDecoration: "underline" }}>
+          <TextMenu
+            onMouseEnter={changeSelectSubMenu}
+            border={underLine}
+            onClick={async () => {
+              setUnderLine(!underLine);
 
-            const style = {
-              "border-bottom": !underLine ? "0.1rem solid" : "",
-            };
-            changeTextStyle(style);
+              const style = {
+                "border-bottom": !underLine ? "0.1rem solid" : "",
+              };
+              changeTextStyle(style);
 
-            await axios.post("/api/editor/style", {
-              uuid: uuid,
-              underLine: !underLine,
-            });
-          }}
-        >
-          <TextMenuSpan underline={true}>U</TextMenuSpan>
-        </TextMenu>
+              await axios.post("/api/editor/style", {
+                uuid: uuid,
+                underLine: !underLine,
+              });
+            }}
+          >
+            U
+          </TextMenu>
+        </div>
         {/* 취소선 */}
-        <TextMenu
-          onMouseEnter={changeSelectSubMenu}
-          border={strikethrough}
-          onClick={async () => {
-            setStrikethrough(!strikethrough);
+        <div style={{ textDecoration: "line-through" }}>
+          <TextMenu
+            onMouseEnter={changeSelectSubMenu}
+            border={strikethrough}
+            onClick={async () => {
+              setStrikethrough(!strikethrough);
 
-            const style = {
-              "text-decoration": !strikethrough ? "line-through" : "",
-            };
-            changeTextStyle(style);
+              const style = {
+                "text-decoration": !strikethrough ? "line-through" : "",
+              };
+              changeTextStyle(style);
 
-            await axios.post("/api/editor/style", {
-              uuid: uuid,
-              strikethrough: !strikethrough,
-            });
-          }}
-        >
-          <TextMenuSpan lineThrough={true}>S</TextMenuSpan>
-        </TextMenu>
+              await axios.post("/api/editor/style", {
+                uuid: uuid,
+                strikethrough: !strikethrough,
+              });
+            }}
+          >
+            S
+          </TextMenu>
+        </div>
       </TextMenuWrapper>
       <div style={{ padding: "0.5rem" }}>
         <SubContextMenu
@@ -843,13 +859,6 @@ const TextMenu = styled.div`
     background: rgba(55, 53, 47, 0.1);
     border-radius: 0.3rem;
   }
-`;
-
-const TextMenuSpan = styled.span`
-  font-weight: ${(props) => (props.bold ? "bold" : "")};
-  font-style: ${(props) => (props.italic ? "italic" : "")};
-  text-decoration: ${(props) => (props.underline ? "underline" : "")};
-  text-decoration: ${(props) => (props.lineThrough ? "line-through" : "")};
 `;
 
 const TextSizeWrapper = styled.div`

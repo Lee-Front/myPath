@@ -9,35 +9,42 @@ const EditableComponent = ({ updateElement, data }) => {
 
   const handleInput = (e) => {
     const childNodes = Array.from(e.target.childNodes);
+    console.log("childNodes: ", childNodes);
     let newHtml = "";
     if (childNodes.length > 1) {
       for (let i = 0; i < childNodes.length; i++) {
-        if (childNodes[i] instanceof Text) {
-          newHtml += childNodes[i].textContent;
-        } else {
+        if (childNodes[i]?.nodeName === "SPAN") {
           newHtml += childNodes[i].outerHTML;
+        } else {
+          newHtml += childNodes[i].textContent;
         }
 
-        while (childNodes[i] instanceof Text === false) {
+        if (
+          childNodes[i]?.nodeName === "SPAN" ||
+          childNodes[i]?.nodeName === "B"
+        ) {
           childNodes[i] = childNodes[i].firstChild;
         }
       }
 
       const range = window.getSelection().getRangeAt(0);
+      console.log("range.startContainer: ", range);
       const startIndex = childNodes.indexOf(range.startContainer);
+      console.log("startIndex: ", startIndex);
       const startOffset = range.startOffset;
 
       const target = document.querySelector(`[data-uuid="${data.uuid}"]`);
       const editableTag = target.querySelector("[name=editable-tag]");
 
-      // const newChildeList = Array.from(editableTag.childNodes).map((node) => {
-      //   if (node.nodeName === "SPAN") {
-      //     node = node.firstChild;
-      //   }
-      //   return node;
-      // });
+      const newChildeList = Array.from(editableTag.childNodes).map((node) => {
+        if (node.nodeName === "SPAN") {
+          node = node.firstChild;
+        }
+        return node;
+      });
+      console.log("newChildeList: ", newChildeList);
       const newRange = document.createRange();
-      newRange.setStart(childNodes[startIndex], startOffset);
+      newRange.setStart(newChildeList[startIndex], startOffset);
       document.getSelection().removeAllRanges();
       document.getSelection().addRange(newRange);
 

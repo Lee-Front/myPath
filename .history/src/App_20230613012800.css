@@ -51,11 +51,13 @@ a{
 	-webkit-user-drag: none;
   -webkit-user-select: none;
   opacity: 0.7;
-  cursor: pointer;
-  color: inherit;
-  text-decoration: inherit;
-  border-bottom: 0.1rem solid;
-  border-color: rgba(55,53,47,0.4);
+          cursor: pointer;
+          color: inherit;
+          text-decoration: inherit;
+          border-bottom: 0.1rem solid;
+          border-color: rgba(55,53,47,0.4);
+
+
 }
 
 img{

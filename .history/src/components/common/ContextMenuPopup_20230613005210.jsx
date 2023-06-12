@@ -401,6 +401,16 @@ const ContextMenuPopup = ({
       if (node.link) {
         const linkTag = document.createElement("a");
         linkTag.target = "_blank";
+        const linkStyle = {
+          opacity: 0.7,
+          cursor: "pointer",
+          color: "inherit",
+          textDecoration: "inherit",
+          borderBottom: "0.1rem solid",
+          borderColor: "rgba(55,53,47,0.4)",
+        };
+
+        Object.assign(linkTag.style, linkStyle);
 
         linkTag.appendChild(newElement);
         linkTag.href = `http://${node.link}`;
@@ -693,7 +703,7 @@ const ContextMenuPopup = ({
             });
           }}
         >
-          <TextMenuSpan italic={true}>i</TextMenuSpan>
+          i{/* <TextMenuSpan italic={true}></TextMenuSpan> */}
         </TextMenu>
         {/* 밑줄 */}
         <TextMenu
