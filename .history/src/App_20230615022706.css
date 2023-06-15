@@ -90,7 +90,5 @@ div::-webkit-scrollbar{
 
 
   [contenteditable=true]{
-	-webkit-user-modify: read-write;
-    overflow-wrap: break-word;
-    -webkit-line-break: after-white-space;
+	-webkit-line-break: after-white-space;
   }

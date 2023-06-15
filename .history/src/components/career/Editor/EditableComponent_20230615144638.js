@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { useRef } from "react";
 
 const EditableComponent = ({ updateElement, data }) => {
+  console.log("a");
   const [html, setHtml] = useState(data?.html);
   const [editPlaceHolder, setEditPlaceHolder] = useState(null);
   const editRef = useRef(null);
@@ -17,9 +18,9 @@ const EditableComponent = ({ updateElement, data }) => {
         newHtml += childNodes[i].outerHTML;
       }
     }
-    updateElement(data.uuid, {
-      html: newHtml,
-    });
+    // updateElement(data.uuid, {
+    //   html: newHtml,
+    // });
   };
 
   const handleClick = (e) => {
@@ -79,17 +80,6 @@ const Editable = styled.div`
     props?.styleData?.color ? props?.styleData?.color : null};
   background: ${(props) =>
     props?.styleData?.background ? props?.styleData?.background : null};
-  font-weight: ${(props) =>
-    props?.styleData["font-weight"] ? props?.styleData["font-weight"] : ""};
-  font-style: ${(props) =>
-    props?.styleData["font-style"] ? props?.styleData["font-style"] : ""};
-  border-bottom: ${(props) =>
-    props?.styleData["border-bottom"] ? props?.styleData["border-bottom"] : ""};
-  text-decoration: ${(props) =>
-    props?.styleData["text-decoration"]
-      ? props?.styleData["text-decoration"]
-      : ""};
-
   text-align: ${(props) =>
     props?.styleData?.textAlign ? props?.styleData?.textAlign : null};
 `;

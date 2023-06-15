@@ -8,18 +8,43 @@ const EditableComponent = ({ updateElement, data }) => {
   const editRef = useRef(null);
 
   const handleInput = (e) => {
+    const selection = window.getSelection();
     const childNodes = Array.from(e.target.childNodes);
+    console.log("childNodes: ", childNodes);
     let newHtml = "";
     for (let i = 0; i < childNodes.length; i++) {
       if (childNodes[i] instanceof Text) {
-        newHtml += childNodes[i].textContent;
+        if (childNodes[i].textContent.trim() !== "") {
+          newHtml += childNodes[i].textContent;
+        }
       } else {
-        newHtml += childNodes[i].outerHTML;
+        if (childNodes[i].nodeName !== "BR") {
+          newHtml += childNodes[i].outerHTML;
+        }
+      }
+
+      while (childNodes[i].firstChild) {
+        childNodes[i] = childNodes[i].firstChild;
       }
     }
-    updateElement(data.uuid, {
-      html: newHtml,
-    });
+
+    console.log(JSON.parse(JSON.stringify(selection.baseNode)));
+    const range = window.getSelection().getRangeAt(0);
+    console.log("range.startContainer: ", JSON.parse(JSON.stringify(range)));
+    const startIndex = childNodes.indexOf(range.startContainer);
+    const startOffset = range.startOffset;
+
+    const newRange = document.createRange();
+    console.log("childNodes: ", childNodes);
+    console.log("startIndex: ", startIndex);
+    console.log("startOffset: ", startOffset);
+    newRange.setStart(childNodes[startIndex], startOffset);
+    document.getSelection().removeAllRanges();
+    document.getSelection().addRange(newRange);
+
+    // updateElement(data.uuid, {
+    //   html: newHtml,
+    // });
   };
 
   const handleClick = (e) => {
@@ -79,17 +104,6 @@ const Editable = styled.div`
     props?.styleData?.color ? props?.styleData?.color : null};
   background: ${(props) =>
     props?.styleData?.background ? props?.styleData?.background : null};
-  font-weight: ${(props) =>
-    props?.styleData["font-weight"] ? props?.styleData["font-weight"] : ""};
-  font-style: ${(props) =>
-    props?.styleData["font-style"] ? props?.styleData["font-style"] : ""};
-  border-bottom: ${(props) =>
-    props?.styleData["border-bottom"] ? props?.styleData["border-bottom"] : ""};
-  text-decoration: ${(props) =>
-    props?.styleData["text-decoration"]
-      ? props?.styleData["text-decoration"]
-      : ""};
-
   text-align: ${(props) =>
     props?.styleData?.textAlign ? props?.styleData?.textAlign : null};
 `;

@@ -79,17 +79,6 @@ const Editable = styled.div`
     props?.styleData?.color ? props?.styleData?.color : null};
   background: ${(props) =>
     props?.styleData?.background ? props?.styleData?.background : null};
-  font-weight: ${(props) =>
-    props?.styleData["font-weight"] ? props?.styleData["font-weight"] : ""};
-  font-style: ${(props) =>
-    props?.styleData["font-style"] ? props?.styleData["font-style"] : ""};
-  border-bottom: ${(props) =>
-    props?.styleData["border-bottom"] ? props?.styleData["border-bottom"] : ""};
-  text-decoration: ${(props) =>
-    props?.styleData["text-decoration"]
-      ? props?.styleData["text-decoration"]
-      : ""};
-
   text-align: ${(props) =>
     props?.styleData?.textAlign ? props?.styleData?.textAlign : null};
 `;

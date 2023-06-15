@@ -10,16 +10,58 @@ const EditableComponent = ({ updateElement, data }) => {
   const handleInput = (e) => {
     const childNodes = Array.from(e.target.childNodes);
     let newHtml = "";
-    for (let i = 0; i < childNodes.length; i++) {
-      if (childNodes[i] instanceof Text) {
-        newHtml += childNodes[i].textContent;
-      } else {
-        newHtml += childNodes[i].outerHTML;
+    if (childNodes.length > 1) {
+      for (let i = 0; i < childNodes.length; i++) {
+        if (childNodes[i] instanceof Text) {
+          if (childNodes[i].textContent.trim() !== "") {
+            console.log("childNodes[i].name: ", childNodes[i].nodeName);
+            console.log(
+              "childNodes[i].textContent: ",
+              childNodes[i].textContent
+            );
+            newHtml += childNodes[i].textContent;
+          }
+        } else {
+          if (childNodes[i].nodeName !== "BR") {
+            console.log("childNodes[i].outerHTML: ", childNodes[i].outerHTML);
+            newHtml += childNodes[i].outerHTML;
+          }
+        }
+
+        while (childNodes[i].firstChild) {
+          childNodes[i] = childNodes[i].firstChild;
+        }
       }
+
+      const range = window.getSelection().getRangeAt(0);
+      const startIndex = childNodes.indexOf(range.startContainer);
+      const startOffset = range.startOffset;
+
+      // const target = document.querySelector(`[data-uuid="${data.uuid}"]`);
+      // const editableTag = target.querySelector("[name=editable-tag]");
+
+      // const newChildeList = Array.from(editableTag.childNodes).map((node) => {
+      //   if (node.nodeName === "SPAN") {
+      //     node = node.firstChild;
+      //   }
+      //   return node;
+      // });
+      const newRange = document.createRange();
+      console.log("childNodes: ", childNodes);
+      console.log("startIndex: ", startIndex);
+      console.log("startOffset: ", startOffset);
+      newRange.setStart(childNodes[startIndex], startOffset);
+      // document.getSelection().removeAllRanges();
+      // document.getSelection().addRange(newRange);
+
+      // updateElement(data.uuid, {
+      //   html: newHtml,
+      // });
+    } else {
+      updateElement(data.uuid, {
+        html: e.target.innerHTML,
+      });
     }
-    updateElement(data.uuid, {
-      html: newHtml,
-    });
   };
 
   const handleClick = (e) => {
@@ -79,17 +121,6 @@ const Editable = styled.div`
     props?.styleData?.color ? props?.styleData?.color : null};
   background: ${(props) =>
     props?.styleData?.background ? props?.styleData?.background : null};
-  font-weight: ${(props) =>
-    props?.styleData["font-weight"] ? props?.styleData["font-weight"] : ""};
-  font-style: ${(props) =>
-    props?.styleData["font-style"] ? props?.styleData["font-style"] : ""};
-  border-bottom: ${(props) =>
-    props?.styleData["border-bottom"] ? props?.styleData["border-bottom"] : ""};
-  text-decoration: ${(props) =>
-    props?.styleData["text-decoration"]
-      ? props?.styleData["text-decoration"]
-      : ""};
-
   text-align: ${(props) =>
     props?.styleData?.textAlign ? props?.styleData?.textAlign : null};
 `;

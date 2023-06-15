@@ -49,23 +49,28 @@ const ContextMenuPopup = ({
 
     let selectNodes = [...nodes];
 
-    let styleData = {};
     // Range인 경우에는 시작부터 끝에 해당하는 node들을 넣어줘야함
     if (selection.type === "Range") {
       selectNodes = getSelectNodes(nodes, selection);
       const nodesStyle = getNodesData(selectNodes);
       const commonStyles = getCommonAttributes(nodesStyle);
-      styleData = Object.assign(styleData, commonStyles);
-    } else {
-      styleData = Object.assign(styleData, popupData?.style);
-    }
 
-    setColor(styleData["color"] || "");
-    setBackground(styleData["background"] || "");
-    setBold(!!styleData["font-weight"]);
-    setItalic(!!styleData["font-style"]);
-    setUnderLine(!!styleData["border-bottom"]);
-    setStrikethrough(!!styleData["text-decoration"]);
+      setColor(commonStyles["color"] || "");
+      setBold(!!commonStyles["font-weight"]);
+      setItalic(!!commonStyles["font-style"]);
+      setUnderLine(!!commonStyles["border-bottom"]);
+      setStrikethrough(!!commonStyles["text-decoration"]);
+      setBackground(commonStyles["background-color"] || "");
+    } else {
+      const blockStyle = popupData?.styleData;
+      console.log("blockStyle: ", blockStyle);
+      setColor(blockStyle?.color || "");
+      setBackground(blockStyle?.background || "");
+      setBold(!!blockStyle["font-weight"] || "");
+      setItalic(!!blockStyle["font-style"] || "");
+      setUnderLine(!!blockStyle["border-bottom"] || "");
+      setStrikethrough(!!blockStyle["text-decoration"] || "");
+    }
   }, []);
 
   const getCommonAttributes = (array) => {

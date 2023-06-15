@@ -1,22 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "@emotion/styled";
-import { useRef } from "react";
 
 const EditableComponent = ({ updateElement, data }) => {
   const [html, setHtml] = useState(data?.html);
   const [editPlaceHolder, setEditPlaceHolder] = useState(null);
   const editRef = useRef(null);
+  const cursorPositionRef = useRef(null);
+
+  useEffect(() => {
+    // 컴포넌트가 렌더링된 후 커서 위치를 복원합니다.
+    if (cursorPositionRef.current) {
+      restoreCursorPosition(cursorPositionRef.current);
+      cursorPositionRef.current = null;
+    }
+  }, []);
+
+  const saveCursorPosition = () => {
+    // 커서 위치를 저장합니다.
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      cursorPositionRef.current = range.cloneRange();
+    }
+  };
+
+  const restoreCursorPosition = (range) => {
+    // 저장된 커서 위치로 복원합니다.
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
 
   const handleInput = (e) => {
-    const childNodes = Array.from(e.target.childNodes);
-    let newHtml = "";
-    for (let i = 0; i < childNodes.length; i++) {
-      if (childNodes[i] instanceof Text) {
-        newHtml += childNodes[i].textContent;
-      } else {
-        newHtml += childNodes[i].outerHTML;
-      }
-    }
+    saveCursorPosition();
+
+    const text = e.target.innerText;
+    const newHtml = text.replace(/\n/g, "<br>");
+    setHtml(newHtml);
     updateElement(data.uuid, {
       html: newHtml,
     });
@@ -54,7 +74,14 @@ const EditableComponent = ({ updateElement, data }) => {
       onKeyDown={(e) => {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
-          // block 분리작업
+          const selection = window.getSelection();
+          const range = selection.getRangeAt(0);
+          const brNode = document.createElement("br");
+          range.insertNode(brNode);
+          range.setStartAfter(brNode);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
         }
       }}
       onInput={handleInput}
@@ -79,17 +106,6 @@ const Editable = styled.div`
     props?.styleData?.color ? props?.styleData?.color : null};
   background: ${(props) =>
     props?.styleData?.background ? props?.styleData?.background : null};
-  font-weight: ${(props) =>
-    props?.styleData["font-weight"] ? props?.styleData["font-weight"] : ""};
-  font-style: ${(props) =>
-    props?.styleData["font-style"] ? props?.styleData["font-style"] : ""};
-  border-bottom: ${(props) =>
-    props?.styleData["border-bottom"] ? props?.styleData["border-bottom"] : ""};
-  text-decoration: ${(props) =>
-    props?.styleData["text-decoration"]
-      ? props?.styleData["text-decoration"]
-      : ""};
-
   text-align: ${(props) =>
     props?.styleData?.textAlign ? props?.styleData?.textAlign : null};
 `;

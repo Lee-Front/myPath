@@ -220,7 +220,7 @@ const CardEditor = ({ pathId }) => {
       });
 
     const modifyList = [];
-    editDomList.forEach((element) => {
+    editDomList.map((element) => {
       const sameElement = newEditDom.find((x) => x.uuid === element.uuid);
       if (
         sameElement &&
@@ -233,7 +233,7 @@ const CardEditor = ({ pathId }) => {
 
     // 3개 배열 합치기
     modifyList.splice(0, 0, ...createList, ...deleteList);
-
+    console.log("newEditDom: ", newEditDom);
     editorStore.setBlocks(newEditDom);
     await axios.post("/api/editor", modifyList);
   };

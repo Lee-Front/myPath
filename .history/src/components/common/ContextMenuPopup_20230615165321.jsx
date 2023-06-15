@@ -59,7 +59,6 @@ const ContextMenuPopup = ({
     } else {
       styleData = Object.assign(styleData, popupData?.style);
     }
-
     setColor(styleData["color"] || "");
     setBackground(styleData["background"] || "");
     setBold(!!styleData["font-weight"]);

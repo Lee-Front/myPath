@@ -16,7 +16,21 @@ const EditableComponent = ({ updateElement, data }) => {
       } else {
         newHtml += childNodes[i].outerHTML;
       }
+
+      while (childNodes[i].firstChild) {
+        childNodes[i] = childNodes[i].firstChild;
+      }
     }
+
+    const range = window.getSelection().getRangeAt(0);
+    const startIndex = childNodes.indexOf(range.startContainer);
+    const startOffset = range.startOffset;
+
+    const newRange = document.createRange();
+    newRange.setStart(childNodes[startIndex], startOffset);
+    document.getSelection().removeAllRanges();
+    document.getSelection().addRange(newRange);
+    console.log("newHtmlL: ", newHtml);
     updateElement(data.uuid, {
       html: newHtml,
     });
@@ -79,17 +93,6 @@ const Editable = styled.div`
     props?.styleData?.color ? props?.styleData?.color : null};
   background: ${(props) =>
     props?.styleData?.background ? props?.styleData?.background : null};
-  font-weight: ${(props) =>
-    props?.styleData["font-weight"] ? props?.styleData["font-weight"] : ""};
-  font-style: ${(props) =>
-    props?.styleData["font-style"] ? props?.styleData["font-style"] : ""};
-  border-bottom: ${(props) =>
-    props?.styleData["border-bottom"] ? props?.styleData["border-bottom"] : ""};
-  text-decoration: ${(props) =>
-    props?.styleData["text-decoration"]
-      ? props?.styleData["text-decoration"]
-      : ""};
-
   text-align: ${(props) =>
     props?.styleData?.textAlign ? props?.styleData?.textAlign : null};
 `;
