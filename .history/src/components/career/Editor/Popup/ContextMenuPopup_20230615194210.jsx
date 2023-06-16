@@ -5,8 +5,8 @@ import { useRef } from "react";
 import axios from "axios";
 import { useEffect } from "react";
 import SubContextMenu from "./SubContextMenu";
-import ColorPicker from "./ColorPicker";
-import useEditorStore from "../../stores/useEditorStore";
+import ColorPicker from "../../../common/ColorPicker";
+import useEditorStore from "../../../../stores/useEditorStore";
 
 // 폰트 사이즈 목록
 const sizeList = [10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
@@ -47,12 +47,10 @@ const ContextMenuPopup = ({
     const selection = window.getSelection();
     const nodes = Array.from(editableTag.childNodes);
 
-    let selectNodes = [...nodes];
-
     let styleData = {};
     // Range인 경우에는 시작부터 끝에 해당하는 node들을 넣어줘야함
     if (selection.type === "Range") {
-      selectNodes = getSelectNodes(nodes, selection);
+      const selectNodes = getSelectNodes(nodes, selection);
       const nodesStyle = getNodesData(selectNodes);
       const commonStyles = getCommonAttributes(nodesStyle);
       styleData = Object.assign(styleData, commonStyles);
@@ -398,6 +396,7 @@ const ContextMenuPopup = ({
 
       if (node.link) {
         const linkTag = document.createElement("a");
+        linkTag.className = "link";
         linkTag.target = "_blank";
 
         linkTag.appendChild(newElement);
@@ -552,11 +551,20 @@ const ContextMenuPopup = ({
           onMouseEnter={changeSelectSubMenu}
           onClick={(e) => {
             const sketchElement = e.target.closest(".color-sketch");
-            if (!sketchElement) {
+            const cancelButton = e.target.closest(".cancel-button");
+            if (!sketchElement && !cancelButton) {
               setIsSketchOpen(!isSketchOpen);
             }
           }}
         >
+          <ColorCancelButton
+            className="cancel-button"
+            onClick={() => {
+              const style = { color: "" };
+              setColor("");
+              changeTextStyle(uuid, style);
+            }}
+          />
           A
           <PickerPreview color={color} />
           {isSketchOpen && (
@@ -573,11 +581,20 @@ const ContextMenuPopup = ({
           onMouseEnter={changeSelectSubMenu}
           onClick={(e) => {
             const sketchElement = e.target.closest(".color-sketch");
-            if (!sketchElement) {
+            const cancelButton = e.target.closest(".cancel-button");
+            if (!sketchElement && !cancelButton) {
               setIsBackgroundSketchOpen(!isBackgroundSketchOpen);
             }
           }}
         >
+          <ColorCancelButton
+            className="cancel-button"
+            onClick={() => {
+              const style = { background: "" };
+              setBackground("");
+              changeTextStyle(uuid, style);
+            }}
+          />
           배경
           <PickerPreview color={background} />
           {isBackgroundSketchOpen && (
@@ -696,13 +713,12 @@ const ContextMenuPopup = ({
           menuText="링크"
           onClick={() => {
             const link = prompt("링크를 입력해주세요");
-            // 일단 임시로 prompt로 링크 받아오고 나중에 디자인 나오면 팝업을 하나 더 띄우던가 해서 링크받는걸로
 
             if (link && link.length > 0) {
               const style = {
                 link: link,
               };
-              changeTextStyle(style);
+              changeTextStyle(uuid, style);
             }
           }}
         />
@@ -752,6 +768,17 @@ const TextMenu = styled.div`
     background: rgba(55, 53, 47, 0.1);
     border-radius: 0.3rem;
   }
+`;
+
+const ColorCancelButton = styled.div`
+  background-image: url(${process.env.PUBLIC_URL + "/images/xmark.svg"});
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  cursor: pointer;
 `;
 
 const TextMenuSpan = styled.span`
