@@ -12,6 +12,7 @@ const FontSizeSelector = ({
   changeTextStyle,
 }) => {
   const [isFontSizeOpen, setIsFontSizeOpen] = useState(false);
+  console.log("fontSize : ", fontSize);
   const parsedDefaultFontSize =
     defaultValue && parseInt(String(defaultValue)?.replace(fontSizeReg, ""));
   const parsedFontSize =
@@ -21,6 +22,8 @@ const FontSizeSelector = ({
   useEffect(() => {
     inputRef.current.value = parsedFontSize || parsedDefaultFontSize;
   }, [parsedFontSize]);
+  console.log("f : ", { parsedFontSize, parsedDefaultFontSize });
+  console.log("a : ", parsedFontSize || parsedDefaultFontSize);
 
   const handleOutsideClick = (e) => {
     const isOutside = !e.target.closest("[name=font-size-selector]");

@@ -116,11 +116,6 @@ const ContextMenuPopup = ({
   const changeTextStyle = (blockUuid, style) => {
     const selection = window.getSelection();
 
-    const isFontSize = style.hasOwnProperty("font-size");
-    if (isFontSize) {
-      setFontSize(style["font-size"]);
-    }
-
     if (selection.type === "Caret") {
       fullChangeTextStyle(blockUuid, style);
     } else {
@@ -542,6 +537,7 @@ const ContextMenuPopup = ({
         >
           i
         </TextMenuButton>
+
         {/* 밑줄 */}
         <TextMenuButton
           isActive={underLine}

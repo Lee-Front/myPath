@@ -52,6 +52,7 @@ const FontSizeSelector = ({
   };
 
   const handleReset = () => {
+    setFontSize(parsedDefaultFontSize);
     inputRef.current.value = parsedDefaultFontSize;
     changeFontSize(parsedDefaultFontSize);
   };

@@ -12,16 +12,17 @@ const FontSizeSelector = ({
   changeTextStyle,
 }) => {
   const [isFontSizeOpen, setIsFontSizeOpen] = useState(false);
-  const parsedDefaultFontSize =
-    defaultValue && parseInt(String(defaultValue)?.replace(fontSizeReg, ""));
-  const parsedFontSize =
-    fontSize && parseInt(String(fontSize)?.replace(fontSizeReg, ""));
+  const parsedDefaultFontSize = parseInt(
+    String(defaultValue)?.replace(fontSizeReg, "")
+  );
+  const parsedFontSize = parseInt(String(fontSize)?.replace(fontSizeReg, ""));
   const inputRef = useRef();
 
   useEffect(() => {
     inputRef.current.value = parsedFontSize || parsedDefaultFontSize;
   }, [parsedFontSize]);
-
+  console.log("f : ", { parsedFontSize, parsedDefaultFontSize });
+  console.log("a : ", parsedFontSize || parsedDefaultFontSize);
   const handleOutsideClick = (e) => {
     const isOutside = !e.target.closest("[name=font-size-selector]");
 
@@ -81,14 +82,11 @@ const FontSizeSelector = ({
       onMouseEnter={onMouseEnter}
       onClick={handleClick}
     >
-      {fontSize && (
-        <ColorCancelButton name="cancel-button" onClick={handleReset}>
-          <ColorCancelButtonImg
-            src={process.env.PUBLIC_URL + "/images/xmark.svg"}
-          />
-        </ColorCancelButton>
-      )}
-
+      <ColorCancelButton name="cancel-button" onClick={handleReset}>
+        <ColorCancelButtonImg
+          src={process.env.PUBLIC_URL + "/images/xmark.svg"}
+        />
+      </ColorCancelButton>
       <TextSizeWrapper>
         <FontInput
           ref={inputRef}

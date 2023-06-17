@@ -8,10 +8,12 @@ const FontSizeSelector = ({
   uuid,
   defaultValue,
   fontSize,
+  setFontSize,
   onMouseEnter,
   changeTextStyle,
 }) => {
   const [isFontSizeOpen, setIsFontSizeOpen] = useState(false);
+  console.log("fontSize : ", fontSize);
   const parsedDefaultFontSize =
     defaultValue && parseInt(String(defaultValue)?.replace(fontSizeReg, ""));
   const parsedFontSize =
@@ -52,6 +54,7 @@ const FontSizeSelector = ({
   };
 
   const handleReset = () => {
+    setFontSize(parsedDefaultFontSize);
     inputRef.current.value = parsedDefaultFontSize;
     changeFontSize(parsedDefaultFontSize);
   };

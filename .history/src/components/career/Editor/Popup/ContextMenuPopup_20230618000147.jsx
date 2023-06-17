@@ -115,11 +115,7 @@ const ContextMenuPopup = ({
 
   const changeTextStyle = (blockUuid, style) => {
     const selection = window.getSelection();
-
-    const isFontSize = style.hasOwnProperty("font-size");
-    if (isFontSize) {
-      setFontSize(style["font-size"]);
-    }
+    console.log("style: ", style);
 
     if (selection.type === "Caret") {
       fullChangeTextStyle(blockUuid, style);

@@ -5,6 +5,7 @@ import { useRef } from "react";
 import axios from "axios";
 import { useEffect } from "react";
 import SubContextMenu from "./SubContextMenu";
+import ColorPicker from "../../../common/ColorPicker";
 import useEditorStore from "../../../../stores/useEditorStore";
 import TextMenuButton from "./TextMenuButton";
 import FontSizeSelector from "./FontSizeSelector";
@@ -21,8 +22,9 @@ const ContextMenuPopup = ({
 }) => {
   const editorStore = useEditorStore();
   const [uuid, setUuid] = useState(popupData?.uuid);
+  const [isBackgroundSketchOpen, setIsBackgroundSketchOpen] = useState(false);
 
-  const [fontSize, setFontSize] = useState(null);
+  const [fontSize, setFontSize] = useState(16);
   const [color, setColor] = useState(null);
   const [background, setBackground] = useState(null);
   const [bold, setBold] = useState(false);
@@ -32,6 +34,8 @@ const ContextMenuPopup = ({
 
   const [selectMenu, setSelectMenu] = useState(null);
   const contextRef = useRef();
+
+  const fontRef = useRef();
 
   useEffect(() => {
     const target = document.querySelector(`[data-uuid="${uuid}"]`);
@@ -55,7 +59,7 @@ const ContextMenuPopup = ({
       styleData = Object.assign(styleData, popupData?.style);
     }
 
-    setFontSize(styleData["font-size"]);
+    setFontSize(styleData["color"] || 16);
     setColor(styleData["color"] || "");
     setBackground(styleData["background"] || "");
     setBold(!!styleData["font-weight"]);
@@ -115,11 +119,6 @@ const ContextMenuPopup = ({
 
   const changeTextStyle = (blockUuid, style) => {
     const selection = window.getSelection();
-
-    const isFontSize = style.hasOwnProperty("font-size");
-    if (isFontSize) {
-      setFontSize(style["font-size"]);
-    }
 
     if (selection.type === "Caret") {
       fullChangeTextStyle(blockUuid, style);
@@ -449,6 +448,16 @@ const ContextMenuPopup = ({
     setSelectMenu(subMenu);
   };
 
+  const handleClick = (e) => {
+    const sketchElement = e.target.closest(".color-sketch");
+
+    if (!sketchElement) {
+      if (isBackgroundSketchOpen) {
+        setIsBackgroundSketchOpen(false);
+      }
+    }
+  };
+
   const handleColorChange = async (e) => {
     const rgba = e.rgb;
     const rgbaText = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
@@ -476,13 +485,13 @@ const ContextMenuPopup = ({
       ref={contextRef}
       pointer={pointer}
       className="contextMenu"
+      onClick={handleClick}
     >
       <TextMenuWrapper>
         {/* 폰트사이즈 */}
         <FontSizeSelector
           uuid={uuid}
-          defaultValue={popupData?.style["font-size"] || "16px"}
-          fontSize={fontSize}
+          defaultValue={fontSize}
           onMouseEnter={changeSelectSubMenu}
           changeTextStyle={changeTextStyle}
         />
@@ -542,6 +551,7 @@ const ContextMenuPopup = ({
         >
           i
         </TextMenuButton>
+
         {/* 밑줄 */}
         <TextMenuButton
           isActive={underLine}

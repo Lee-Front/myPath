@@ -12,15 +12,13 @@ const FontSizeSelector = ({
   changeTextStyle,
 }) => {
   const [isFontSizeOpen, setIsFontSizeOpen] = useState(false);
-  const parsedDefaultFontSize =
-    defaultValue && parseInt(String(defaultValue)?.replace(fontSizeReg, ""));
-  const parsedFontSize =
-    fontSize && parseInt(String(fontSize)?.replace(fontSizeReg, ""));
   const inputRef = useRef();
 
   useEffect(() => {
-    inputRef.current.value = parsedFontSize || parsedDefaultFontSize;
-  }, [parsedFontSize]);
+    const value = String(fontSize)?.replace(fontSizeReg, "");
+
+    inputRef.current.value = value;
+  }, [fontSize]);
 
   const handleOutsideClick = (e) => {
     const isOutside = !e.target.closest("[name=font-size-selector]");
@@ -32,9 +30,10 @@ const FontSizeSelector = ({
 
   const changeFontSize = async (value) => {
     let newValue = value > 10 ? value : 10;
+    const defaultPixel = parseInt(defaultValue.replace(fontSizeReg, ""));
 
     inputRef.current.value = newValue;
-    if (newValue === parsedDefaultFontSize) {
+    if (newValue === defaultPixel) {
       newValue = "";
     } else {
       newValue = newValue + "px";
@@ -49,11 +48,6 @@ const FontSizeSelector = ({
     if (!cancelButton) {
       setIsFontSizeOpen(!isFontSizeOpen);
     }
-  };
-
-  const handleReset = () => {
-    inputRef.current.value = parsedDefaultFontSize;
-    changeFontSize(parsedDefaultFontSize);
   };
 
   useEffect(() => {
@@ -81,18 +75,15 @@ const FontSizeSelector = ({
       onMouseEnter={onMouseEnter}
       onClick={handleClick}
     >
-      {fontSize && (
-        <ColorCancelButton name="cancel-button" onClick={handleReset}>
-          <ColorCancelButtonImg
-            src={process.env.PUBLIC_URL + "/images/xmark.svg"}
-          />
-        </ColorCancelButton>
-      )}
-
+      <ColorCancelButton name="cancel-button">
+        <ColorCancelButtonImg
+          src={process.env.PUBLIC_URL + "/images/xmark.svg"}
+        />
+      </ColorCancelButton>
       <TextSizeWrapper>
         <FontInput
           ref={inputRef}
-          defaultValue={parsedFontSize || parsedDefaultFontSize}
+          defaultValue={fontSize}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
         />

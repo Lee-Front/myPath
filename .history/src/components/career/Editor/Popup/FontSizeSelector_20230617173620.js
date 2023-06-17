@@ -1,26 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-
 const sizeList = [10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
-const fontSizeReg = /[^-0-9]/g;
-
 const FontSizeSelector = ({
   uuid,
   defaultValue,
-  fontSize,
   onMouseEnter,
   changeTextStyle,
 }) => {
   const [isFontSizeOpen, setIsFontSizeOpen] = useState(false);
-  const parsedDefaultFontSize =
-    defaultValue && parseInt(String(defaultValue)?.replace(fontSizeReg, ""));
-  const parsedFontSize =
-    fontSize && parseInt(String(fontSize)?.replace(fontSizeReg, ""));
   const inputRef = useRef();
-
-  useEffect(() => {
-    inputRef.current.value = parsedFontSize || parsedDefaultFontSize;
-  }, [parsedFontSize]);
+  console.log("defaultValue: ", defaultValue);
 
   const handleOutsideClick = (e) => {
     const isOutside = !e.target.closest("[name=font-size-selector]");
@@ -33,27 +22,16 @@ const FontSizeSelector = ({
   const changeFontSize = async (value) => {
     let newValue = value > 10 ? value : 10;
 
-    inputRef.current.value = newValue;
-    if (newValue === parsedDefaultFontSize) {
-      newValue = "";
-    } else {
-      newValue = newValue + "px";
+    if (newValue < 10) {
+      return;
     }
 
+    inputRef.current.value = newValue;
+    if (newValue === 16) {
+      newValue = "";
+    }
     const style = { "font-size": newValue };
     changeTextStyle(uuid, style);
-  };
-
-  const handleClick = (e) => {
-    const cancelButton = e.target.closest("[name=cancel-button]");
-    if (!cancelButton) {
-      setIsFontSizeOpen(!isFontSizeOpen);
-    }
-  };
-
-  const handleReset = () => {
-    inputRef.current.value = parsedDefaultFontSize;
-    changeFontSize(parsedDefaultFontSize);
   };
 
   useEffect(() => {
@@ -79,20 +57,12 @@ const FontSizeSelector = ({
     <TextMenu
       name="font-size-selector"
       onMouseEnter={onMouseEnter}
-      onClick={handleClick}
+      onClick={() => setIsFontSizeOpen(!isFontSizeOpen)}
     >
-      {fontSize && (
-        <ColorCancelButton name="cancel-button" onClick={handleReset}>
-          <ColorCancelButtonImg
-            src={process.env.PUBLIC_URL + "/images/xmark.svg"}
-          />
-        </ColorCancelButton>
-      )}
-
       <TextSizeWrapper>
         <FontInput
           ref={inputRef}
-          defaultValue={parsedFontSize || parsedDefaultFontSize}
+          defaultValue={defaultValue}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
         />
@@ -183,21 +153,4 @@ const TextSizeOption = styled.div`
   :hover {
     background: rgba(55, 53, 47, 0.2);
   }
-`;
-
-const ColorCancelButton = styled.div`
-  z-index: 1;
-  position: absolute;
-  background: white;
-  right: 0;
-  top: 0;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 50%;
-  cursor: pointer;
-`;
-
-const ColorCancelButtonImg = styled.img`
-  width: 100%;
-  height: 100%;
 `;

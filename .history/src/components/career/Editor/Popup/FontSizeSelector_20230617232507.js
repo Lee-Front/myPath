@@ -12,16 +12,17 @@ const FontSizeSelector = ({
   changeTextStyle,
 }) => {
   const [isFontSizeOpen, setIsFontSizeOpen] = useState(false);
-  const parsedDefaultFontSize =
-    defaultValue && parseInt(String(defaultValue)?.replace(fontSizeReg, ""));
-  const parsedFontSize =
-    fontSize && parseInt(String(fontSize)?.replace(fontSizeReg, ""));
+  const defaultFontSize = parseInt(
+    String(defaultValue)?.replace(fontSizeReg, "")
+  );
   const inputRef = useRef();
 
   useEffect(() => {
-    inputRef.current.value = parsedFontSize || parsedDefaultFontSize;
-  }, [parsedFontSize]);
-
+    const value = String(fontSize)?.replace(fontSizeReg, "");
+    inputRef.current.value = value;
+  }, [fontSize]);
+  console.log("f : ", { fontSize, defaultFontSize });
+  console.log("a : ", fontSize || defaultFontSize);
   const handleOutsideClick = (e) => {
     const isOutside = !e.target.closest("[name=font-size-selector]");
 
@@ -34,7 +35,7 @@ const FontSizeSelector = ({
     let newValue = value > 10 ? value : 10;
 
     inputRef.current.value = newValue;
-    if (newValue === parsedDefaultFontSize) {
+    if (newValue === defaultFontSize) {
       newValue = "";
     } else {
       newValue = newValue + "px";
@@ -52,8 +53,8 @@ const FontSizeSelector = ({
   };
 
   const handleReset = () => {
-    inputRef.current.value = parsedDefaultFontSize;
-    changeFontSize(parsedDefaultFontSize);
+    inputRef.current.value = defaultFontSize;
+    changeFontSize(defaultFontSize);
   };
 
   useEffect(() => {
@@ -81,18 +82,15 @@ const FontSizeSelector = ({
       onMouseEnter={onMouseEnter}
       onClick={handleClick}
     >
-      {fontSize && (
-        <ColorCancelButton name="cancel-button" onClick={handleReset}>
-          <ColorCancelButtonImg
-            src={process.env.PUBLIC_URL + "/images/xmark.svg"}
-          />
-        </ColorCancelButton>
-      )}
-
+      <ColorCancelButton name="cancel-button" onClick={handleReset}>
+        <ColorCancelButtonImg
+          src={process.env.PUBLIC_URL + "/images/xmark.svg"}
+        />
+      </ColorCancelButton>
       <TextSizeWrapper>
         <FontInput
           ref={inputRef}
-          defaultValue={parsedFontSize || parsedDefaultFontSize}
+          defaultValue={fontSize || defaultFontSize}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
         />
