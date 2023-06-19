@@ -1,0 +1,114 @@
+import React, { useEffect, useRef, useState } from "react";
+import styled from "@emotion/styled";
+import ColorPicker from "../../../common/ColorPicker";
+
+const TextColorMenu = ({
+  changeSelectSubMenu,
+  color,
+  handleColorChange,
+  handleColorDelete,
+  children,
+}) => {
+  const [isSketchOpen, setIsSketchOpen] = useState(false);
+  const buttonRef = useRef(null);
+
+  const handleOutsideClick = (e) => {
+    const buttonElement = e.target.closest("[name=menu-button]");
+    const cacelButton = e.target.closest(".cancel-button");
+
+    if (
+      !cacelButton &&
+      (!buttonElement || buttonElement !== buttonRef.current)
+    ) {
+      setIsSketchOpen(false);
+    }
+  };
+
+  const handleClick = (e) => {
+    const isColorPicker = e.target.closest("[name=color-picker]");
+    const cancelButton = e.target.closest("[name=cancel-button]");
+
+    if (!isColorPicker && !cancelButton) {
+      setIsSketchOpen((prev) => !prev);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("click", handleOutsideClick);
+
+    return () => {
+      window.removeEventListener("click", handleOutsideClick);
+    };
+  }, []);
+
+  return (
+    <TextMenu
+      ref={buttonRef}
+      name="menu-button"
+      onMouseEnter={changeSelectSubMenu}
+      onClick={handleClick}
+    >
+      {color && (
+        <ColorCancelButton name="cancel-button" onClick={handleColorDelete}>
+          <ColorCancelButtonImg
+            src={process.env.PUBLIC_URL + "/images/xmark.svg"}
+          />
+        </ColorCancelButton>
+      )}
+
+      {children}
+      <PickerPreview color={color} />
+      {isSketchOpen && (
+        <ColorPicker color={color} handleChange={handleColorChange} />
+      )}
+    </TextMenu>
+  );
+};
+
+export default TextColorMenu;
+
+const TextMenu = styled.div`
+  position: relative;
+  min-width: 4rem;
+  padding: 0 0.5rem;
+  height: 4rem;
+  display: flex;
+  text-align: center;
+  font-size: 1.5rem;
+
+  flex-direction: column;
+  justify-content: center;
+
+  border: ${(props) =>
+    props.isActive ? "0.2rem solid rgba(55, 53, 47, 0.2)" : null};
+
+  border-radius: 0.3rem;
+  :hover {
+    background: rgba(55, 53, 47, 0.1);
+    border-radius: 0.3rem;
+  }
+`;
+
+const ColorCancelButton = styled.div`
+  position: absolute;
+  background: white;
+  right: 0;
+  top: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+`;
+
+const ColorCancelButtonImg = styled.img`
+  width: 100%;
+  height: 100%;
+`;
+
+const PickerPreview = styled.div`
+  width: 3rem;
+  height: 1.2rem;
+  border-radius: 0.2rem;
+  background: ${(props) => props.color};
+  border: 1px solid rgba(55, 53, 47, 0.2);
+`;
