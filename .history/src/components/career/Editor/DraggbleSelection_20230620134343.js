@@ -1,26 +1,23 @@
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { isEqual, throttle } from "lodash";
-import { useCallback } from "react";
-import { createPortal } from "react-dom";
-import useEditorStore from "../../../stores/useEditorStore";
+import { throttle } from "lodash";
 
-const DraggbleSelection = ({ startPointe, currentPoint }) => {
+const DraggbleSelection = ({ pointer, currentPoint }) => {
   const [selection, setSelection] = useState({
     x: 0,
     y: 0,
     width: 0,
     height: 0,
   });
-  const editorStore = useEditorStore();
+  const [selectElements, setSelectElements] = useState([]);
 
-  const updateSelection = useCallback(
-    throttle((point, endPoint) => {
-      if (point && endPoint) {
-        const x = Math.min(point?.x, endPoint?.x);
-        const y = Math.min(point?.y, endPoint?.y);
-        const width = Math.abs(point?.x - endPoint?.x);
-        const height = Math.abs(point?.y - endPoint?.y);
+  useEffect(() => {
+    const updateSelection = throttle((pointer) => {
+      if (pointer && currentPoint) {
+        const x = Math.min(pointer?.x, currentPoint?.x);
+        const y = Math.min(pointer?.y, currentPoint?.y);
+        const width = Math.abs(pointer?.x - currentPoint?.x);
+        const height = Math.abs(pointer?.y - currentPoint?.y);
         const elements = document.querySelectorAll("[data-uuid]");
 
         const insideElements = Array.from(elements).filter((item) => {
@@ -38,22 +35,15 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
           if (overlapX > 0 && overlapY > 0) {
             return true;
           }
-          return false;
         });
 
         setSelection({ x, y, width, height });
-
-        if (!isEqual(editorStore.selectBlocks, insideElements)) {
-          editorStore.setSelectBlocks(insideElements);
-        }
+        setSelectElements(insideElements);
       }
-    }, 30),
-    [editorStore.selectBlocks]
-  );
+    }, 200);
 
-  useEffect(() => {
-    updateSelection(startPointe, currentPoint);
-  }, [startPointe, currentPoint]);
+    updateSelection(pointer, currentPoint);
+  }, [pointer, currentPoint]);
 
   return <SelectionWrapper selection={selection}></SelectionWrapper>;
 };

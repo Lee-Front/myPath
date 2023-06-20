@@ -3,7 +3,6 @@ import styled from "@emotion/styled";
 import { isEqual, throttle } from "lodash";
 import { useCallback } from "react";
 import { createPortal } from "react-dom";
-import useEditorStore from "../../../stores/useEditorStore";
 
 const DraggbleSelection = ({ startPointe, currentPoint }) => {
   const [selection, setSelection] = useState({
@@ -12,7 +11,7 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
     width: 0,
     height: 0,
   });
-  const editorStore = useEditorStore();
+  const [selectElements, setSelectElements] = useState([]);
 
   const updateSelection = useCallback(
     throttle((point, endPoint) => {
@@ -43,19 +42,30 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
 
         setSelection({ x, y, width, height });
 
-        if (!isEqual(editorStore.selectBlocks, insideElements)) {
-          editorStore.setSelectBlocks(insideElements);
+        if (!isEqual(selectElements, insideElements)) {
+          setSelectElements(insideElements);
         }
       }
     }, 30),
-    [editorStore.selectBlocks]
+    [selectElements]
   );
+
+  useEffect(() => {
+    if (selectElements.length > 0) {
+      selectElements.forEach((item) => {});
+    }
+  }, [selectElements]);
 
   useEffect(() => {
     updateSelection(startPointe, currentPoint);
   }, [startPointe, currentPoint]);
 
-  return <SelectionWrapper selection={selection}></SelectionWrapper>;
+  return (
+    <>
+      <SelectionWrapper selection={selection}></SelectionWrapper>
+      {selectElements.map((item) => createPortal(<SelectionHalo />, item))}
+    </>
+  );
 };
 
 export default DraggbleSelection;
@@ -68,5 +78,13 @@ const SelectionWrapper = styled.div`
   width: ${(props) => `${props?.selection.width}px`};
   height: ${(props) => `${props?.selection.height}px`};
 
+  background: rgba(35, 131, 226, 0.14);
+`;
+
+const SelectionHalo = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
   background: rgba(35, 131, 226, 0.14);
 `;

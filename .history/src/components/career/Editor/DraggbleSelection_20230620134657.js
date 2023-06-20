@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { isEqual, throttle } from "lodash";
-import { useCallback } from "react";
-import { createPortal } from "react-dom";
-import useEditorStore from "../../../stores/useEditorStore";
+import { throttle } from "lodash";
 
 const DraggbleSelection = ({ startPointe, currentPoint }) => {
   const [selection, setSelection] = useState({
@@ -12,15 +9,15 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
     width: 0,
     height: 0,
   });
-  const editorStore = useEditorStore();
+  const [selectElements, setSelectElements] = useState([]);
 
-  const updateSelection = useCallback(
-    throttle((point, endPoint) => {
-      if (point && endPoint) {
-        const x = Math.min(point?.x, endPoint?.x);
-        const y = Math.min(point?.y, endPoint?.y);
-        const width = Math.abs(point?.x - endPoint?.x);
-        const height = Math.abs(point?.y - endPoint?.y);
+  useEffect(() => {
+    const updateSelection = throttle((point, endPointe) => {
+      if (point && endPointe) {
+        const x = Math.min(point?.x, endPointe?.x);
+        const y = Math.min(point?.y, endPointe?.y);
+        const width = Math.abs(point?.x - endPointe?.x);
+        const height = Math.abs(point?.y - endPointe?.y);
         const elements = document.querySelectorAll("[data-uuid]");
 
         const insideElements = Array.from(elements).filter((item) => {
@@ -38,20 +35,13 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
           if (overlapX > 0 && overlapY > 0) {
             return true;
           }
-          return false;
         });
 
         setSelection({ x, y, width, height });
-
-        if (!isEqual(editorStore.selectBlocks, insideElements)) {
-          editorStore.setSelectBlocks(insideElements);
-        }
+        setSelectElements(insideElements);
       }
-    }, 30),
-    [editorStore.selectBlocks]
-  );
+    }, 4000);
 
-  useEffect(() => {
     updateSelection(startPointe, currentPoint);
   }, [startPointe, currentPoint]);
 

@@ -44,6 +44,7 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
         setSelection({ x, y, width, height });
 
         if (!isEqual(editorStore.selectBlocks, insideElements)) {
+          console.log("?");
           editorStore.setSelectBlocks(insideElements);
         }
       }
@@ -68,5 +69,13 @@ const SelectionWrapper = styled.div`
   width: ${(props) => `${props?.selection.width}px`};
   height: ${(props) => `${props?.selection.height}px`};
 
+  background: rgba(35, 131, 226, 0.14);
+`;
+
+const SelectionHalo = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
   background: rgba(35, 131, 226, 0.14);
 `;

@@ -36,6 +36,7 @@ const CardEditor = ({ pathId }) => {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
 
+  console.log(editorStore.selectBlocks);
   useEffect(() => {
     editorStore.getBlocks(pathId);
   }, [pathId]);
@@ -925,9 +926,8 @@ const CardEditor = ({ pathId }) => {
           )}
         </OverlayContainer>
       ) : null}
-      {editorStore.selectBlocks.map((item) =>
-        createPortal(<SelectionHalo />, item)
-      )}
+
+      {editorStore.selectBlocks.map((item) => createPortal(<div>1</div>, item))}
     </EditorContainer>
   );
 };
@@ -960,12 +960,4 @@ const OverlayWrapper = styled.div`
   left: ${(props) => props.currentPoint?.x + "px"};
   top: ${(props) => props.currentPoint?.y - 10 + "px"};
   opacity: 0.4;
-`;
-
-const SelectionHalo = styled.div`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  background: rgba(35, 131, 226, 0.14);
 `;

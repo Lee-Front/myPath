@@ -36,6 +36,7 @@ const CardEditor = ({ pathId }) => {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
 
+  console.log(editorStore.selectBlocks);
   useEffect(() => {
     editorStore.getBlocks(pathId);
   }, [pathId]);

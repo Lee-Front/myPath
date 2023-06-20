@@ -70,3 +70,11 @@ const SelectionWrapper = styled.div`
 
   background: rgba(35, 131, 226, 0.14);
 `;
+
+const SelectionHalo = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  background: rgba(35, 131, 226, 0.14);
+`;

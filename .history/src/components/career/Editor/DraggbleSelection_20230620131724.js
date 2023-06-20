@@ -1,0 +1,53 @@
+import React, { useEffect, useState } from "react";
+import styled from "@emotion/styled";
+
+const DraggbleSelection = ({ pointer, currentPoint }) => {
+  const [point, setPoint] = useState({ x: 0, y: 0 });
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [selectElements, setSelectElements] = useState([]);
+
+  useEffect(() => {
+    if (pointer && currentPoint) {
+      const x = Math.min(pointer?.x, currentPoint?.x);
+      const y = Math.min(pointer?.y, currentPoint?.y);
+      const width = Math.abs(pointer?.x - currentPoint?.x);
+      const height = Math.abs(pointer?.y - currentPoint?.y);
+      const elements = document.querySelectorAll("[data-uuid]");
+
+      const insideElements = Array.from(elements).filter((item) => {
+        const rect = item.getBoundingClientRect();
+
+        const overlapX = Math.max(
+          0,
+          Math.min(rect.right, x + width) - Math.max(rect.left, x)
+        );
+        const overlapY = Math.max(
+          0,
+          Math.min(rect.bottom, y + height) - Math.max(rect.top, y)
+        );
+
+        if (overlapX > 0 && overlapY > 0) {
+          return true;
+        }
+      });
+
+      setPoint({ x, y });
+      setSize({ width, height });
+      setSelectElements(insideElements);
+    }
+  }, [pointer, currentPoint]);
+  return <SelectionWrapper point={point} size={size}></SelectionWrapper>;
+};
+
+export default DraggbleSelection;
+
+const SelectionWrapper = styled.div`
+  position: absolute;
+
+  left: ${(props) => `${props?.point.x}px`};
+  top: ${(props) => `${props?.point.y}px`};
+  width: ${(props) => `${props?.size.width}px`};
+  height: ${(props) => `${props?.size.height}px`};
+
+  background: rgba(35, 131, 226, 0.14);
+`;

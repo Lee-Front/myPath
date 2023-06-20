@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { isEqual, throttle } from "lodash";
+import { throttle } from "lodash";
 import { useCallback } from "react";
-import { createPortal } from "react-dom";
-import useEditorStore from "../../../stores/useEditorStore";
 
 const DraggbleSelection = ({ startPointe, currentPoint }) => {
   const [selection, setSelection] = useState({
@@ -12,15 +10,15 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
     width: 0,
     height: 0,
   });
-  const editorStore = useEditorStore();
+  const [selectElements, setSelectElements] = useState([]);
 
   const updateSelection = useCallback(
-    throttle((point, endPoint) => {
-      if (point && endPoint) {
-        const x = Math.min(point?.x, endPoint?.x);
-        const y = Math.min(point?.y, endPoint?.y);
-        const width = Math.abs(point?.x - endPoint?.x);
-        const height = Math.abs(point?.y - endPoint?.y);
+    throttle((point, endPointe) => {
+      if (point && endPointe) {
+        const x = Math.min(point?.x, endPointe?.x);
+        const y = Math.min(point?.y, endPointe?.y);
+        const width = Math.abs(point?.x - endPointe?.x);
+        const height = Math.abs(point?.y - endPointe?.y);
         const elements = document.querySelectorAll("[data-uuid]");
 
         const insideElements = Array.from(elements).filter((item) => {
@@ -42,14 +40,15 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
         });
 
         setSelection({ x, y, width, height });
-
-        if (!isEqual(editorStore.selectBlocks, insideElements)) {
-          editorStore.setSelectBlocks(insideElements);
-        }
+        setSelectElements(insideElements);
       }
     }, 30),
-    [editorStore.selectBlocks]
+    []
   );
+
+  useEffect(() => {
+    console.log("selectElements : ", selectElements);
+  }, [selectElements]);
 
   useEffect(() => {
     updateSelection(startPointe, currentPoint);
