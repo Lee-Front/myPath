@@ -52,23 +52,27 @@ const CardEditor = ({ pathId }) => {
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     getTagList();
+
     const attachWindowEvent = () => {
+      console.log("att");
       window.addEventListener("mousedown", windowMouseDown);
       window.addEventListener("mouseup", windowMouseUp);
       window.addEventListener("mousemove", windowMouseMove);
     };
 
     const detachWindowEvent = () => {
+      console.log("det");
       window.removeEventListener("mousedown", windowMouseDown);
       window.removeEventListener("mouseup", windowMouseUp);
       window.removeEventListener("mousemove", windowMouseMove);
     };
-    document.addEventListener("mouseenter", detachWindowEvent);
-    document.addEventListener("mouseout", attachWindowEvent);
+
+    document.addEventListener("mouseover", detachWindowEvent);
+    document.addEventListener("mouseleave", attachWindowEvent);
 
     return () => {
-      document.removeEventListener("mouseenter", detachWindowEvent);
-      document.removeEventListener("mouseout", attachWindowEvent);
+      document.removeEventListener("mouseover", detachWindowEvent);
+      document.removeEventListener("mouseleave", attachWindowEvent);
     };
   }, []);
 
@@ -945,8 +949,6 @@ export default CardEditor;
 
 const EditorContainer = styled.div`
   display: flex;
-  margin-left: 2.5rem;
-  margin-right: 2.5rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;

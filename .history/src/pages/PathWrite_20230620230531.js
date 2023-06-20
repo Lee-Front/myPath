@@ -17,4 +17,5 @@ export default PathWrite;
 const PathWriteWrapper = styled.div`
   height: 100%;
   overflow: auto;
+  pointer-events: none;
 `;

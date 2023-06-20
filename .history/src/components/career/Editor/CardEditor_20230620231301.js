@@ -49,27 +49,28 @@ const CardEditor = ({ pathId }) => {
     movementSideRef.current = movementSide;
   }, [movementSide]);
 
+  // const attachWindowEvent = () => {
+  //   window.addEventListener("mousedown", windowMouseDown);
+  //   window.addEventListener("mouseup", windowMouseUp);
+  //   window.addEventListener("mousemove", windowMouseMove);
+  // };
+
+  // const detachWindowEvent = () => {
+  //   window.removeEventListener("mousedown", windowMouseDown);
+  //   window.removeEventListener("mouseup", windowMouseUp);
+  //   window.removeEventListener("mousemove", windowMouseMove);
+  // };
+
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     getTagList();
-    const attachWindowEvent = () => {
-      window.addEventListener("mousedown", windowMouseDown);
-      window.addEventListener("mouseup", windowMouseUp);
-      window.addEventListener("mousemove", windowMouseMove);
-    };
+    // document.addEventListener("mouseenter", detachWindowEvent);
+    // document.addEventListener("mouseout", attachWindowEvent);
 
-    const detachWindowEvent = () => {
-      window.removeEventListener("mousedown", windowMouseDown);
-      window.removeEventListener("mouseup", windowMouseUp);
-      window.removeEventListener("mousemove", windowMouseMove);
-    };
-    document.addEventListener("mouseenter", detachWindowEvent);
-    document.addEventListener("mouseout", attachWindowEvent);
-
-    return () => {
-      document.removeEventListener("mouseenter", detachWindowEvent);
-      document.removeEventListener("mouseout", attachWindowEvent);
-    };
+    // return () => {
+    //   document.removeEventListener("mouseenter", detachWindowEvent);
+    //   document.removeEventListener("mouseout", attachWindowEvent);
+    // };
   }, []);
 
   useEffect(() => {
@@ -844,6 +845,16 @@ const CardEditor = ({ pathId }) => {
       onMouseDown={windowMouseDown}
       onMouseMove={windowMouseMove}
       onMouseUp={windowMouseUp}
+      onMouseLeave={(e) => {
+        window.addEventListener("mousedown", windowMouseDown);
+        window.addEventListener("mouseup", windowMouseUp);
+        window.addEventListener("mousemove", windowMouseMove);
+      }}
+      onMouseEnter={(e) => {
+        window.removeEventListener("mousedown", windowMouseDown);
+        window.removeEventListener("mouseup", windowMouseUp);
+        window.removeEventListener("mousemove", windowMouseMove);
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
         const filePopup = e.target.closest(".filePopup");

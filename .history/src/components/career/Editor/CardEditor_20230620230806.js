@@ -48,27 +48,27 @@ const CardEditor = ({ pathId }) => {
   useEffect(() => {
     movementSideRef.current = movementSide;
   }, [movementSide]);
+  const attachWindowEvent = () => {
+    window.addEventListener("mousedown", windowMouseDown);
+    window.addEventListener("mouseup", windowMouseUp);
+    window.addEventListener("mousemove", windowMouseMove);
+  };
+
+  const detachWindowEvent = () => {
+    window.removeEventListener("mousedown", windowMouseDown);
+    window.removeEventListener("mouseup", windowMouseUp);
+    window.removeEventListener("mousemove", windowMouseMove);
+  };
 
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     getTagList();
-    const attachWindowEvent = () => {
-      window.addEventListener("mousedown", windowMouseDown);
-      window.addEventListener("mouseup", windowMouseUp);
-      window.addEventListener("mousemove", windowMouseMove);
-    };
-
-    const detachWindowEvent = () => {
-      window.removeEventListener("mousedown", windowMouseDown);
-      window.removeEventListener("mouseup", windowMouseUp);
-      window.removeEventListener("mousemove", windowMouseMove);
-    };
-    document.addEventListener("mouseenter", detachWindowEvent);
-    document.addEventListener("mouseout", attachWindowEvent);
+    document.addEventListener("mouseover", detachWindowEvent);
+    document.addEventListener("mouseleave", attachWindowEvent);
 
     return () => {
-      document.removeEventListener("mouseenter", detachWindowEvent);
-      document.removeEventListener("mouseout", attachWindowEvent);
+      document.removeEventListener("mouseover", detachWindowEvent);
+      document.removeEventListener("mouseleave", attachWindowEvent);
     };
   }, []);
 
@@ -125,6 +125,7 @@ const CardEditor = ({ pathId }) => {
     const Contents = Array.from(
       editorRef.current.querySelectorAll("[data-uuid]")
     );
+    console.log("Contents: ", Contents);
 
     const filteredContents = Contents.filter((content) => {
       const data = getEditComponentData(content.getAttribute("data-uuid"));
@@ -844,6 +845,7 @@ const CardEditor = ({ pathId }) => {
       onMouseDown={windowMouseDown}
       onMouseMove={windowMouseMove}
       onMouseUp={windowMouseUp}
+      ref={editorRef}
       onContextMenu={(e) => {
         e.preventDefault();
         const filePopup = e.target.closest(".filePopup");
@@ -854,7 +856,6 @@ const CardEditor = ({ pathId }) => {
       }}
     >
       <CardEditorContentWrapper
-        ref={editorRef}
         onMouseUp={(e) => {
           // if (
           //   e.button === 0 &&
@@ -945,8 +946,9 @@ export default CardEditor;
 
 const EditorContainer = styled.div`
   display: flex;
-  margin-left: 2.5rem;
-  margin-right: 2.5rem;
+  pointer-events: auto;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;

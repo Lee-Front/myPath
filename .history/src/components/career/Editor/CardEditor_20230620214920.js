@@ -52,6 +52,7 @@ const CardEditor = ({ pathId }) => {
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     getTagList();
+
     const attachWindowEvent = () => {
       window.addEventListener("mousedown", windowMouseDown);
       window.addEventListener("mouseup", windowMouseUp);
@@ -63,6 +64,7 @@ const CardEditor = ({ pathId }) => {
       window.removeEventListener("mouseup", windowMouseUp);
       window.removeEventListener("mousemove", windowMouseMove);
     };
+
     document.addEventListener("mouseenter", detachWindowEvent);
     document.addEventListener("mouseout", attachWindowEvent);
 
@@ -175,15 +177,10 @@ const CardEditor = ({ pathId }) => {
     if (selectDatas.length > 0 && moveMentSideData?.uuid) {
       moveElementData(selectDatas, moveMentSideData);
     }
-    console.log("target  : ", e.target);
-    console.log("cur : ", e.currentTarget);
+
     if (e.button === 0 && !draggable && !hoverElement.current) {
       const newElement = createElementData({ tagName: "div" });
-
-      modifyDomSave([
-        ...copyObjectArray(editorStoreRef.current.blocks),
-        newElement,
-      ]);
+      modifyDomSave([...copyObjectArray(editorStore.blocks), newElement]);
       setNewUuid(newElement.uuid);
     }
 
@@ -926,12 +923,12 @@ const CardEditor = ({ pathId }) => {
             />
           )}
 
-          {/* {draggable && (
+          {draggable && (
             <DraggbleSelection
               startPointe={selectPoint.current}
               currentPoint={currentPoint}
             />
-          )} */}
+          )}
         </OverlayContainer>
       ) : null}
       {editorStore.selectBlocks.map((item) =>
@@ -945,8 +942,6 @@ export default CardEditor;
 
 const EditorContainer = styled.div`
   display: flex;
-  margin-left: 2.5rem;
-  margin-right: 2.5rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;
@@ -967,7 +962,7 @@ const OverlayContainer = styled.div`
 `;
 const OverlayWrapper = styled.div`
   position: absolute;
-  width: calc(100% - 5rem);
+  width: 100%;
   left: ${(props) => props.currentPoint?.x + "px"};
   top: ${(props) => props.currentPoint?.y - 10 + "px"};
   opacity: 0.4;

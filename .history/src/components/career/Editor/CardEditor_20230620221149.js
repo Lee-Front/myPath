@@ -52,24 +52,26 @@ const CardEditor = ({ pathId }) => {
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     getTagList();
-    const attachWindowEvent = () => {
-      window.addEventListener("mousedown", windowMouseDown);
-      window.addEventListener("mouseup", windowMouseUp);
-      window.addEventListener("mousemove", windowMouseMove);
-    };
 
-    const detachWindowEvent = () => {
-      window.removeEventListener("mousedown", windowMouseDown);
-      window.removeEventListener("mouseup", windowMouseUp);
-      window.removeEventListener("mousemove", windowMouseMove);
-    };
-    document.addEventListener("mouseenter", detachWindowEvent);
-    document.addEventListener("mouseout", attachWindowEvent);
+    // const attachWindowEvent = () => {
+    //   window.addEventListener("mousedown", windowMouseDown);
+    //   window.addEventListener("mouseup", windowMouseUp);
+    //   window.addEventListener("mousemove", windowMouseMove);
+    // };
 
-    return () => {
-      document.removeEventListener("mouseenter", detachWindowEvent);
-      document.removeEventListener("mouseout", attachWindowEvent);
-    };
+    // const detachWindowEvent = () => {
+    //   window.removeEventListener("mousedown", windowMouseDown);
+    //   window.removeEventListener("mouseup", windowMouseUp);
+    //   window.removeEventListener("mousemove", windowMouseMove);
+    // };
+
+    // document.addEventListener("mouseenter", detachWindowEvent);
+    // document.addEventListener("mouseout", attachWindowEvent);
+
+    // return () => {
+    //   document.removeEventListener("mouseenter", detachWindowEvent);
+    //   document.removeEventListener("mouseout", attachWindowEvent);
+    // };
   }, []);
 
   useEffect(() => {
@@ -175,15 +177,14 @@ const CardEditor = ({ pathId }) => {
     if (selectDatas.length > 0 && moveMentSideData?.uuid) {
       moveElementData(selectDatas, moveMentSideData);
     }
-    console.log("target  : ", e.target);
-    console.log("cur : ", e.currentTarget);
+
     if (e.button === 0 && !draggable && !hoverElement.current) {
       const newElement = createElementData({ tagName: "div" });
-
-      modifyDomSave([
-        ...copyObjectArray(editorStoreRef.current.blocks),
+      console.log("[...copyObjectArray(editorStore.blocks), newElement]: ", [
+        ...copyObjectArray(editorStore.blocks),
         newElement,
       ]);
+      modifyDomSave([...copyObjectArray(editorStore.blocks), newElement]);
       setNewUuid(newElement.uuid);
     }
 
@@ -844,6 +845,19 @@ const CardEditor = ({ pathId }) => {
       onMouseDown={windowMouseDown}
       onMouseMove={windowMouseMove}
       onMouseUp={windowMouseUp}
+      onMouseLeave={() => {
+        console.log("levaer");
+        window.addEventListener("mousedown", windowMouseDown);
+        window.addEventListener("mouseup", windowMouseUp);
+        window.addEventListener("mousemove", windowMouseMove);
+      }}
+      onMouseEnter={() => {
+        console.log("enter");
+
+        window.removeEventListener("mousedown", windowMouseDown);
+        window.removeEventListener("mouseup", windowMouseUp);
+        window.removeEventListener("mousemove", windowMouseMove);
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
         const filePopup = e.target.closest(".filePopup");
@@ -945,8 +959,6 @@ export default CardEditor;
 
 const EditorContainer = styled.div`
   display: flex;
-  margin-left: 2.5rem;
-  margin-right: 2.5rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;
@@ -967,7 +979,7 @@ const OverlayContainer = styled.div`
 `;
 const OverlayWrapper = styled.div`
   position: absolute;
-  width: calc(100% - 5rem);
+  width: 100%;
   left: ${(props) => props.currentPoint?.x + "px"};
   top: ${(props) => props.currentPoint?.y - 10 + "px"};
   opacity: 0.4;

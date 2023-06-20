@@ -48,21 +48,23 @@ const CardEditor = ({ pathId }) => {
   useEffect(() => {
     movementSideRef.current = movementSide;
   }, [movementSide]);
+  const attachWindowEvent = () => {
+    console.log("at");
+    window.addEventListener("mousedown", windowMouseDown);
+    window.addEventListener("mouseup", windowMouseUp);
+    window.addEventListener("mousemove", windowMouseMove);
+  };
+
+  const detachWindowEvent = () => {
+    console.log("de");
+    window.removeEventListener("mousedown", windowMouseDown);
+    window.removeEventListener("mouseup", windowMouseUp);
+    window.removeEventListener("mousemove", windowMouseMove);
+  };
 
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     getTagList();
-    const attachWindowEvent = () => {
-      window.addEventListener("mousedown", windowMouseDown);
-      window.addEventListener("mouseup", windowMouseUp);
-      window.addEventListener("mousemove", windowMouseMove);
-    };
-
-    const detachWindowEvent = () => {
-      window.removeEventListener("mousedown", windowMouseDown);
-      window.removeEventListener("mouseup", windowMouseUp);
-      window.removeEventListener("mousemove", windowMouseMove);
-    };
     document.addEventListener("mouseenter", detachWindowEvent);
     document.addEventListener("mouseout", attachWindowEvent);
 
@@ -844,6 +846,16 @@ const CardEditor = ({ pathId }) => {
       onMouseDown={windowMouseDown}
       onMouseMove={windowMouseMove}
       onMouseUp={windowMouseUp}
+      onMouseLeave={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        console.log("lv");
+      }}
+      onMouseEnter={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        console.log("en");
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
         const filePopup = e.target.closest(".filePopup");

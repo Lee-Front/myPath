@@ -48,21 +48,21 @@ const CardEditor = ({ pathId }) => {
   useEffect(() => {
     movementSideRef.current = movementSide;
   }, [movementSide]);
+  const attachWindowEvent = () => {
+    window.addEventListener("mousedown", windowMouseDown);
+    window.addEventListener("mouseup", windowMouseUp);
+    window.addEventListener("mousemove", windowMouseMove);
+  };
+
+  const detachWindowEvent = () => {
+    window.removeEventListener("mousedown", windowMouseDown);
+    window.removeEventListener("mouseup", windowMouseUp);
+    window.removeEventListener("mousemove", windowMouseMove);
+  };
 
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     getTagList();
-    const attachWindowEvent = () => {
-      window.addEventListener("mousedown", windowMouseDown);
-      window.addEventListener("mouseup", windowMouseUp);
-      window.addEventListener("mousemove", windowMouseMove);
-    };
-
-    const detachWindowEvent = () => {
-      window.removeEventListener("mousedown", windowMouseDown);
-      window.removeEventListener("mouseup", windowMouseUp);
-      window.removeEventListener("mousemove", windowMouseMove);
-    };
     document.addEventListener("mouseenter", detachWindowEvent);
     document.addEventListener("mouseout", attachWindowEvent);
 

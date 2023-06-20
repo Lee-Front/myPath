@@ -6,7 +6,11 @@ import styled from "@emotion/styled";
 const PathWrite = () => {
   const { pathId } = useParams();
   return (
-    <PathWriteWrapper>
+    <PathWriteWrapper
+      onMouseLeave={() => {
+        console.log("lv");
+      }}
+    >
       <CardEditor pathId={pathId} />
     </PathWriteWrapper>
   );

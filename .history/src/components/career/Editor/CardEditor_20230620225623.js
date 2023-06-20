@@ -52,23 +52,27 @@ const CardEditor = ({ pathId }) => {
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     getTagList();
+
     const attachWindowEvent = () => {
+      console.log("att");
       window.addEventListener("mousedown", windowMouseDown);
       window.addEventListener("mouseup", windowMouseUp);
       window.addEventListener("mousemove", windowMouseMove);
     };
 
     const detachWindowEvent = () => {
+      console.log("det");
       window.removeEventListener("mousedown", windowMouseDown);
       window.removeEventListener("mouseup", windowMouseUp);
       window.removeEventListener("mousemove", windowMouseMove);
     };
-    document.addEventListener("mouseenter", detachWindowEvent);
-    document.addEventListener("mouseout", attachWindowEvent);
+
+    document.addEventListener("mouseover", detachWindowEvent);
+    document.addEventListener("mouseleave", attachWindowEvent);
 
     return () => {
-      document.removeEventListener("mouseenter", detachWindowEvent);
-      document.removeEventListener("mouseout", attachWindowEvent);
+      document.removeEventListener("mouseover", detachWindowEvent);
+      document.removeEventListener("mouseleave", attachWindowEvent);
     };
   }, []);
 
@@ -187,11 +191,11 @@ const CardEditor = ({ pathId }) => {
       setNewUuid(newElement.uuid);
     }
 
-    selectElements.current = [];
-    selectPoint.current = null;
-    setOverlayList([]);
-    setDraggable(false);
-    setMovementSide(null);
+    // selectElements.current = [];
+    // selectPoint.current = null;
+    // setOverlayList([]);
+    // setDraggable(false);
+    // setMovementSide(null);
   };
 
   const modifyDomSave = async (newEditDom) => {
@@ -945,8 +949,6 @@ export default CardEditor;
 
 const EditorContainer = styled.div`
   display: flex;
-  margin-left: 2.5rem;
-  margin-right: 2.5rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;
@@ -959,6 +961,8 @@ const CardEditorContentWrapper = styled.div`
 `;
 const OverlayContainer = styled.div`
   position: absolute;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
   min-width: 34rem;
   z-index: ${(props) => (props.zindex ? 999 : 0)};
   width: 100%;
@@ -967,7 +971,8 @@ const OverlayContainer = styled.div`
 `;
 const OverlayWrapper = styled.div`
   position: absolute;
-  width: calc(100% - 5rem);
+
+  width: 100%;
   left: ${(props) => props.currentPoint?.x + "px"};
   top: ${(props) => props.currentPoint?.y - 10 + "px"};
   opacity: 0.4;
