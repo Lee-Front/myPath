@@ -14,12 +14,13 @@ const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
   const editorStoreRef = useRef(editorStore);
   const [movementSide, setMovementSide] = useState("");
-  const [isBrowserOut, setIsBrowserOut] = useState(false);
 
   // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
   const nearElement = useRef(null);
   const hoverElement = useRef(null);
+
   const movementSideRef = useRef("");
+
   const selectElements = useRef([]);
   const fileData = useRef(null);
   const selectPoint = useRef(null);
@@ -28,7 +29,6 @@ const CardEditor = ({ pathId }) => {
   const popupRef = useRef();
 
   const [overlayList, setOverlayList] = useState([]);
-  const [isGrabbing, setIsGrabbing] = useState(false);
   const [currentPoint, setCurrentPoint] = useState(null);
   const [popupUuid, setPopupUuid] = useState();
   const [newUuid, setNewUuid] = useState(null);
@@ -53,30 +53,14 @@ const CardEditor = ({ pathId }) => {
   useEffect(() => {
     getTagList();
 
-    const handleMouseEventsOnExit = (e) => {
-      const { clientX, clientY } = e;
-      const isBrowserOut =
-        clientX < 0 ||
-        clientX >= window.innerWidth ||
-        clientY < 0 ||
-        clientY > window.innerHeight;
+    window.addEventListener("mousedown", windowMouseDown);
+    window.addEventListener("mouseup", windowMouseUp);
+    window.addEventListener("mousemove", windowMouseMove);
 
-      if (isBrowserOut) {
-        setIsBrowserOut(true);
-        window.addEventListener("mousedown", windowMouseDown);
-        window.addEventListener("mouseup", windowMouseUp);
-        window.addEventListener("mousemove", windowMouseMove);
-      } else {
-        setIsBrowserOut(false);
-        window.removeEventListener("mousedown", windowMouseDown);
-        window.removeEventListener("mouseup", windowMouseUp);
-        window.removeEventListener("mousemove", windowMouseMove);
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseEventsOnExit);
     return () => {
-      window.removeEventListener("mousemove", handleMouseEventsOnExit);
+      window.removeEventListener("mousedown", windowMouseDown);
+      window.removeEventListener("mouseup", windowMouseUp);
+      window.removeEventListener("mousemove", windowMouseMove);
     };
   }, []);
 
@@ -119,11 +103,9 @@ const CardEditor = ({ pathId }) => {
     ) {
       window.getSelection().removeAllRanges();
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
+
       const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      console.log("blocks: ", blocks);
       selectElements.current = makeTree(blocks, hoverUuid);
-      //editorStore.setSelectBlocks(makeTree(blocks, hoverUuid));
-      setIsGrabbing(true);
     }
 
     selectPoint.current = { x: e.clientX, y: e.clientY };
@@ -185,6 +167,8 @@ const CardEditor = ({ pathId }) => {
     if (selectDatas.length > 0 && moveMentSideData?.uuid) {
       moveElementData(selectDatas, moveMentSideData);
     }
+
+    editorStore.setSelectBlocks([]);
 
     selectElements.current = [];
     selectPoint.current = null;
@@ -839,9 +823,6 @@ const CardEditor = ({ pathId }) => {
   };
 
   const handleEditorClick = (e) => {
-    if (!draggable) {
-      editorStore.setSelectBlocks([]);
-    }
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&
@@ -864,12 +845,7 @@ const CardEditor = ({ pathId }) => {
   };
 
   return (
-    <EditorContainer
-      onContextMenu={handleEditorContextMenu}
-      onMouseDown={windowMouseDown}
-      onMouseMove={windowMouseMove}
-      onMouseUp={windowMouseUp}
-    >
+    <EditorContainer onContextMenu={handleEditorContextMenu}>
       <CardEditorContentWrapper ref={editorRef} onMouseUp={handleEditorClick}>
         {makeTree(editorStore.blocks).map((element) => {
           return (
@@ -928,7 +904,7 @@ const CardEditor = ({ pathId }) => {
               popupData={getEditComponentData(popupUuid)}
             />
           )}
-          {!isGrabbing && draggable && (
+          {draggable && (
             <DraggbleSelection
               startPointe={selectPoint.current}
               currentPoint={currentPoint}
@@ -947,8 +923,8 @@ export default CardEditor;
 
 const EditorContainer = styled.div`
   display: flex;
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
+  margin-left: 2.5rem;
+  margin-right: 2.5rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;
@@ -981,5 +957,4 @@ const SelectionHalo = styled.div`
   height: 100%;
   top: 0;
   background: rgba(35, 131, 226, 0.14);
-  z-index: -1;
 `;

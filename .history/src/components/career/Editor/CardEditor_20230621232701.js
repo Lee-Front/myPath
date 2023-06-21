@@ -19,7 +19,9 @@ const CardEditor = ({ pathId }) => {
   // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
   const nearElement = useRef(null);
   const hoverElement = useRef(null);
+
   const movementSideRef = useRef("");
+
   const selectElements = useRef([]);
   const fileData = useRef(null);
   const selectPoint = useRef(null);
@@ -28,11 +30,11 @@ const CardEditor = ({ pathId }) => {
   const popupRef = useRef();
 
   const [overlayList, setOverlayList] = useState([]);
-  const [isGrabbing, setIsGrabbing] = useState(false);
   const [currentPoint, setCurrentPoint] = useState(null);
   const [popupUuid, setPopupUuid] = useState();
   const [newUuid, setNewUuid] = useState(null);
   const [draggable, setDraggable] = useState(false);
+  const [iseCtrlDown, setIsCtrlDown] = useState(false);
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
 
@@ -74,9 +76,26 @@ const CardEditor = ({ pathId }) => {
       }
     };
 
+    const handleKeyDown = (e) => {
+      if (e.key === "Control") {
+        setIsCtrlDown(true);
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.key === "Control") {
+        setIsCtrlDown(false);
+      }
+    };
+
     window.addEventListener("mousemove", handleMouseEventsOnExit);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
     return () => {
       window.removeEventListener("mousemove", handleMouseEventsOnExit);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
 
@@ -119,11 +138,9 @@ const CardEditor = ({ pathId }) => {
     ) {
       window.getSelection().removeAllRanges();
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
+
       const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      console.log("blocks: ", blocks);
       selectElements.current = makeTree(blocks, hoverUuid);
-      //editorStore.setSelectBlocks(makeTree(blocks, hoverUuid));
-      setIsGrabbing(true);
     }
 
     selectPoint.current = { x: e.clientX, y: e.clientY };
@@ -928,7 +945,7 @@ const CardEditor = ({ pathId }) => {
               popupData={getEditComponentData(popupUuid)}
             />
           )}
-          {!isGrabbing && draggable && (
+          {draggable && (
             <DraggbleSelection
               startPointe={selectPoint.current}
               currentPoint={currentPoint}

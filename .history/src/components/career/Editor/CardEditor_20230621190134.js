@@ -14,12 +14,13 @@ const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
   const editorStoreRef = useRef(editorStore);
   const [movementSide, setMovementSide] = useState("");
-  const [isBrowserOut, setIsBrowserOut] = useState(false);
 
   // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
   const nearElement = useRef(null);
   const hoverElement = useRef(null);
+
   const movementSideRef = useRef("");
+
   const selectElements = useRef([]);
   const fileData = useRef(null);
   const selectPoint = useRef(null);
@@ -28,7 +29,6 @@ const CardEditor = ({ pathId }) => {
   const popupRef = useRef();
 
   const [overlayList, setOverlayList] = useState([]);
-  const [isGrabbing, setIsGrabbing] = useState(false);
   const [currentPoint, setCurrentPoint] = useState(null);
   const [popupUuid, setPopupUuid] = useState();
   const [newUuid, setNewUuid] = useState(null);
@@ -49,35 +49,30 @@ const CardEditor = ({ pathId }) => {
     movementSideRef.current = movementSide;
   }, [movementSide]);
 
+  const attachWindowEvent = () => {
+    console.log("at");
+    window.addEventListener("mousedown", windowMouseDown);
+    window.addEventListener("mouseup", windowMouseUp);
+    window.addEventListener("mousemove", windowMouseMove);
+  };
+
+  const detachWindowEvent = () => {
+    console.log("de");
+    window.removeEventListener("mousedown", windowMouseDown);
+    window.removeEventListener("mouseup", windowMouseUp);
+    window.removeEventListener("mousemove", windowMouseMove);
+  };
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     getTagList();
 
-    const handleMouseEventsOnExit = (e) => {
-      const { clientX, clientY } = e;
-      const isBrowserOut =
-        clientX < 0 ||
-        clientX >= window.innerWidth ||
-        clientY < 0 ||
-        clientY > window.innerHeight;
+    // document.addEventListener("mouseenter", detachWindowEvent);
+    // document.addEventListener("mouseout", attachWindowEvent);
 
-      if (isBrowserOut) {
-        setIsBrowserOut(true);
-        window.addEventListener("mousedown", windowMouseDown);
-        window.addEventListener("mouseup", windowMouseUp);
-        window.addEventListener("mousemove", windowMouseMove);
-      } else {
-        setIsBrowserOut(false);
-        window.removeEventListener("mousedown", windowMouseDown);
-        window.removeEventListener("mouseup", windowMouseUp);
-        window.removeEventListener("mousemove", windowMouseMove);
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseEventsOnExit);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseEventsOnExit);
-    };
+    // return () => {
+    //   document.removeEventListener("mouseenter", detachWindowEvent);
+    //   document.removeEventListener("mouseout", attachWindowEvent);
+    // };
   }, []);
 
   useEffect(() => {
@@ -119,11 +114,9 @@ const CardEditor = ({ pathId }) => {
     ) {
       window.getSelection().removeAllRanges();
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
+
       const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      console.log("blocks: ", blocks);
       selectElements.current = makeTree(blocks, hoverUuid);
-      //editorStore.setSelectBlocks(makeTree(blocks, hoverUuid));
-      setIsGrabbing(true);
     }
 
     selectPoint.current = { x: e.clientX, y: e.clientY };
@@ -184,6 +177,17 @@ const CardEditor = ({ pathId }) => {
     const moveMentSideData = movementSideRef.current;
     if (selectDatas.length > 0 && moveMentSideData?.uuid) {
       moveElementData(selectDatas, moveMentSideData);
+    }
+    console.log("target  : ", e.target);
+    console.log("cur : ", e.currentTarget);
+    if (e.button === 0 && !draggable && !hoverElement.current) {
+      const newElement = createElementData({ tagName: "div" });
+
+      modifyDomSave([
+        ...copyObjectArray(editorStoreRef.current.blocks),
+        newElement,
+      ]);
+      setNewUuid(newElement.uuid);
     }
 
     selectElements.current = [];
@@ -838,39 +842,37 @@ const CardEditor = ({ pathId }) => {
     setIsContextMenuOpen(menuYn);
   };
 
-  const handleEditorClick = (e) => {
-    if (!draggable) {
-      editorStore.setSelectBlocks([]);
-    }
-    if (
-      e.button === 0 &&
-      e.target === e.currentTarget &&
-      !draggable &&
-      !hoverElement.current
-    ) {
-      const newElement = createElementData({ tagName: "div" });
-      modifyDomSave([...copyObjectArray(editorStore.blocks), newElement]);
-      setNewUuid(newElement.uuid);
-    }
-  };
-
-  const handleEditorContextMenu = (e) => {
-    e.preventDefault();
-    const filePopup = e.target.closest(".filePopup");
-    if (!filePopup && hoverElement.current) {
-      setPopupUuid(hoverElement.current?.getAttribute("data-uuid"));
-      toggleContextMenuYn(true);
-    }
-  };
-
   return (
     <EditorContainer
-      onContextMenu={handleEditorContextMenu}
       onMouseDown={windowMouseDown}
       onMouseMove={windowMouseMove}
       onMouseUp={windowMouseUp}
+      onMouseEnter={detachWindowEvent}
+      onMouseLeave={attachWindowEvent}
+      onContextMenu={(e) => {
+        // e.preventDefault();
+        // const filePopup = e.target.closest(".filePopup");
+        // if (!filePopup && hoverElement.current) {
+        //   setPopupUuid(hoverElement.current?.getAttribute("data-uuid"));
+        //   toggleContextMenuYn(true);
+        // }
+      }}
     >
-      <CardEditorContentWrapper ref={editorRef} onMouseUp={handleEditorClick}>
+      <CardEditorContentWrapper
+        ref={editorRef}
+        onMouseUp={(e) => {
+          if (
+            e.button === 0 &&
+            e.target === e.currentTarget &&
+            !draggable &&
+            !hoverElement.current
+          ) {
+            const newElement = createElementData({ tagName: "div" });
+            modifyDomSave([...copyObjectArray(editorStore.blocks), newElement]);
+            setNewUuid(newElement.uuid);
+          }
+        }}
+      >
         {makeTree(editorStore.blocks).map((element) => {
           return (
             <EditBranchComponent
@@ -928,12 +930,13 @@ const CardEditor = ({ pathId }) => {
               popupData={getEditComponentData(popupUuid)}
             />
           )}
-          {!isGrabbing && draggable && (
+
+          {/* {draggable && (
             <DraggbleSelection
               startPointe={selectPoint.current}
               currentPoint={currentPoint}
             />
-          )}
+          )} */}
         </OverlayContainer>
       ) : null}
       {editorStore.selectBlocks.map((item) =>
@@ -947,8 +950,8 @@ export default CardEditor;
 
 const EditorContainer = styled.div`
   display: flex;
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
+  margin-left: 2.5rem;
+  margin-right: 2.5rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;
@@ -981,5 +984,4 @@ const SelectionHalo = styled.div`
   height: 100%;
   top: 0;
   background: rgba(35, 131, 226, 0.14);
-  z-index: -1;
 `;

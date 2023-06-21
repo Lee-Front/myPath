@@ -120,8 +120,8 @@ const CardEditor = ({ pathId }) => {
       window.getSelection().removeAllRanges();
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
       const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      console.log("blocks: ", blocks);
       selectElements.current = makeTree(blocks, hoverUuid);
+      console.log("makeTree(blocks, hoverUuid): ", makeTree(blocks, hoverUuid));
       //editorStore.setSelectBlocks(makeTree(blocks, hoverUuid));
       setIsGrabbing(true);
     }
