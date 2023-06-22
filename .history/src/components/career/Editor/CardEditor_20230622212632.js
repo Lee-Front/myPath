@@ -88,11 +88,11 @@ const CardEditor = ({ pathId }) => {
       window.addEventListener("mousemove", eventRef.move);
     } else {
       window.removeEventListener("mousedown", eventRef.down);
-      window.removeEventListener("mouseup", eventRef.up);
-      window.removeEventListener("mousemove", eventRef.move);
-      mouseEventRef.current.down = null;
-      mouseEventRef.current.move = null;
-      mouseEventRef.current.up = null;
+      window.removeEventListener("mouseup", windowMouseUp);
+      window.removeEventListener("mousemove", windowMouseMove);
+      mouseEventRef.current.down = windowMouseDown;
+      mouseEventRef.current.move = windowMouseMove;
+      mouseEventRef.current.up = windowMouseUp;
     }
   }, [isBrowserOut]);
 
@@ -139,8 +139,7 @@ const CardEditor = ({ pathId }) => {
         .filter((item) => item.getAttribute("data-uuid"));
 
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
-      //const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      const blocks = copyObjectArray(editorStore.blocks);
+      const blocks = copyObjectArray(editorStoreRef.current.blocks);
 
       selectElements.current = makeTree(blocks, hoverUuid);
       if (editorStore.selectBlocks.length <= 0) {
@@ -867,6 +866,9 @@ const CardEditor = ({ pathId }) => {
   };
 
   const handleEditorClick = (e) => {
+    // if (!draggable) {
+    //   editorStore.setSelectBlocks([]);
+    // }
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&
@@ -976,6 +978,7 @@ const EditorContainer = styled.div`
   display: flex;
   padding-left: 2.5rem;
   padding-right: 2.5rem;
+  margin: 0.1rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;

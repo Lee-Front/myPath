@@ -37,7 +37,11 @@ const CardEditor = ({ pathId }) => {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
 
-  const mouseEventRef = useRef({ down: null, move: null, up: null });
+  // const useRefEventListener = (fn)=> {
+  //   const fnRef = React.useRef(fn);
+  //   fnRef.current = fn;
+  //   return fnRef;
+  // }
 
   useEffect(() => {
     editorStore.getBlocks(pathId);
@@ -65,8 +69,15 @@ const CardEditor = ({ pathId }) => {
         clientY > window.innerHeight;
 
       if (isBrowserOut) {
+        // window.addEventListener("mousedown", windowMouseDown);
+        //   window.addEventListener("mouseup", windowMouseUp);
+        //   window.addEventListener("mousemove", windowMouseMove);
+
         setIsBrowserOut(true);
       } else {
+        // window.removeEventListener("mousedown", windowMouseDown);
+        //   window.removeEventListener("mouseup", windowMouseUp);
+        //   window.removeEventListener("mousemove", windowMouseMove);
         setIsBrowserOut(false);
       }
     };
@@ -78,21 +89,14 @@ const CardEditor = ({ pathId }) => {
   }, []);
 
   useEffect(() => {
-    const eventRef = mouseEventRef.current;
     if (isBrowserOut) {
-      eventRef.down = windowMouseDown;
-      eventRef.move = windowMouseMove;
-      eventRef.up = windowMouseUp;
-      window.addEventListener("mousedown", eventRef.down);
-      window.addEventListener("mouseup", eventRef.up);
-      window.addEventListener("mousemove", eventRef.move);
+      window.addEventListener("mousedown", windowMouseDown);
+      window.addEventListener("mouseup", windowMouseUp);
+      window.addEventListener("mousemove", windowMouseMove);
     } else {
-      window.removeEventListener("mousedown", eventRef.down);
-      window.removeEventListener("mouseup", eventRef.up);
-      window.removeEventListener("mousemove", eventRef.move);
-      mouseEventRef.current.down = null;
-      mouseEventRef.current.move = null;
-      mouseEventRef.current.up = null;
+      window.removeEventListener("mousedown", windowMouseDown);
+      window.removeEventListener("mouseup", windowMouseUp);
+      window.removeEventListener("mousemove", windowMouseMove);
     }
   }, [isBrowserOut]);
 
@@ -139,8 +143,7 @@ const CardEditor = ({ pathId }) => {
         .filter((item) => item.getAttribute("data-uuid"));
 
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
-      //const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      const blocks = copyObjectArray(editorStore.blocks);
+      const blocks = copyObjectArray(editorStoreRef.current.blocks);
 
       selectElements.current = makeTree(blocks, hoverUuid);
       if (editorStore.selectBlocks.length <= 0) {
@@ -867,6 +870,9 @@ const CardEditor = ({ pathId }) => {
   };
 
   const handleEditorClick = (e) => {
+    // if (!draggable) {
+    //   editorStore.setSelectBlocks([]);
+    // }
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&
@@ -976,6 +982,7 @@ const EditorContainer = styled.div`
   display: flex;
   padding-left: 2.5rem;
   padding-right: 2.5rem;
+  margin: 0.1rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;

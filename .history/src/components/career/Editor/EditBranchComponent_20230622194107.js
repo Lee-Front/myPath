@@ -47,6 +47,7 @@ const EditBranchComponent = ({
     }
     return styleObject;
   };
+  console.log("overlayWidth: ", overlayWidth);
 
   const movement = movementSide?.uuid === data.uuid ? movementSide : null;
   const style = movement && getMovementStyle(movement);
@@ -122,8 +123,9 @@ const BlockContainer = styled.div`
   position: relative;
   width: ${(props) => props?.overlayWidth + "%"};
   ${(props) =>
-    !props.isOverlay &&
-    `:hover {
+    !props.isOverlay
+      ? `:hover {
     background: rgba(55, 53, 47, 0.1);
-  }`}
+  }`
+      : null}
 `;

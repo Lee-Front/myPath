@@ -139,8 +139,7 @@ const CardEditor = ({ pathId }) => {
         .filter((item) => item.getAttribute("data-uuid"));
 
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
-      //const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      const blocks = copyObjectArray(editorStore.blocks);
+      const blocks = copyObjectArray(editorStoreRef.current.blocks);
 
       selectElements.current = makeTree(blocks, hoverUuid);
       if (editorStore.selectBlocks.length <= 0) {
@@ -867,6 +866,9 @@ const CardEditor = ({ pathId }) => {
   };
 
   const handleEditorClick = (e) => {
+    // if (!draggable) {
+    //   editorStore.setSelectBlocks([]);
+    // }
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&

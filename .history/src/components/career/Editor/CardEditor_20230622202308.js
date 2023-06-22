@@ -37,8 +37,6 @@ const CardEditor = ({ pathId }) => {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
 
-  const mouseEventRef = useRef({ down: null, move: null, up: null });
-
   useEffect(() => {
     editorStore.getBlocks(pathId);
   }, [pathId]);
@@ -65,9 +63,16 @@ const CardEditor = ({ pathId }) => {
         clientY > window.innerHeight;
 
       if (isBrowserOut) {
+        window.addEventListener("mousedown", windowMouseDown);
+        window.addEventListener("mouseup", windowMouseUp);
+        window.addEventListener("mousemove", windowMouseMove);
+
         setIsBrowserOut(true);
       } else {
         setIsBrowserOut(false);
+        window.removeEventListener("mousedown", windowMouseDown);
+        window.removeEventListener("mouseup", windowMouseUp);
+        window.removeEventListener("mousemove", windowMouseMove);
       }
     };
 
@@ -76,25 +81,6 @@ const CardEditor = ({ pathId }) => {
       window.removeEventListener("mousemove", handleMouseEventsOnExit);
     };
   }, []);
-
-  useEffect(() => {
-    const eventRef = mouseEventRef.current;
-    if (isBrowserOut) {
-      eventRef.down = windowMouseDown;
-      eventRef.move = windowMouseMove;
-      eventRef.up = windowMouseUp;
-      window.addEventListener("mousedown", eventRef.down);
-      window.addEventListener("mouseup", eventRef.up);
-      window.addEventListener("mousemove", eventRef.move);
-    } else {
-      window.removeEventListener("mousedown", eventRef.down);
-      window.removeEventListener("mouseup", eventRef.up);
-      window.removeEventListener("mousemove", eventRef.move);
-      mouseEventRef.current.down = null;
-      mouseEventRef.current.move = null;
-      mouseEventRef.current.up = null;
-    }
-  }, [isBrowserOut]);
 
   useEffect(() => {
     const newElement = Array.from(
@@ -139,8 +125,7 @@ const CardEditor = ({ pathId }) => {
         .filter((item) => item.getAttribute("data-uuid"));
 
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
-      //const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      const blocks = copyObjectArray(editorStore.blocks);
+      const blocks = copyObjectArray(editorStoreRef.current.blocks);
 
       selectElements.current = makeTree(blocks, hoverUuid);
       if (editorStore.selectBlocks.length <= 0) {
@@ -209,6 +194,7 @@ const CardEditor = ({ pathId }) => {
       moveElementData(selectDatas, moveMentSideData);
     }
 
+    console.log("draggable: ", draggable);
     if (!draggable) {
       editorStore.setSelectBlocks([]);
     }
@@ -867,6 +853,9 @@ const CardEditor = ({ pathId }) => {
   };
 
   const handleEditorClick = (e) => {
+    // if (!draggable) {
+    //   editorStore.setSelectBlocks([]);
+    // }
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&

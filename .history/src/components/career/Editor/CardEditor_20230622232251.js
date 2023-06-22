@@ -140,7 +140,7 @@ const CardEditor = ({ pathId }) => {
 
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
       //const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      const blocks = copyObjectArray(editorStore.blocks);
+      const blocks = copyObjectArray(editorStore.current.blocks);
 
       selectElements.current = makeTree(blocks, hoverUuid);
       if (editorStore.selectBlocks.length <= 0) {

@@ -15,7 +15,15 @@ function App() {
   return (
     <PageWrapper>
       <SideBar isSideBarOpen={isSideBarOpen} />
-      <ContentWarpper isSideBarOpen={isSideBarOpen}>
+      <ContentWarpper
+        onMouseLeave={(e) => {
+          e.preventDefault();
+        }}
+        onMouseEnter={(e) => {
+          e.preventDefault();
+        }}
+        isSideBarOpen={isSideBarOpen}
+      >
         <Navigator setIsSideBarOpen={setIsSideBarOpen} />
         <Routes>
           <Route path="/" element={<Home />} />

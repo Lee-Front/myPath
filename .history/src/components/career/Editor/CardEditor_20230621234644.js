@@ -24,8 +24,7 @@ const CardEditor = ({ pathId }) => {
   const fileData = useRef(null);
   const selectPoint = useRef(null);
   const contextMenuPoint = useRef(null);
-
-  const contentRef = useRef();
+  const editorRef = useRef();
   const popupRef = useRef();
 
   const [overlayList, setOverlayList] = useState([]);
@@ -36,8 +35,6 @@ const CardEditor = ({ pathId }) => {
   const [draggable, setDraggable] = useState(false);
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
-
-  const mouseEventRef = useRef({ down: null, move: null, up: null });
 
   useEffect(() => {
     editorStore.getBlocks(pathId);
@@ -66,8 +63,14 @@ const CardEditor = ({ pathId }) => {
 
       if (isBrowserOut) {
         setIsBrowserOut(true);
+        window.addEventListener("mousedown", windowMouseDown);
+        window.addEventListener("mouseup", windowMouseUp);
+        window.addEventListener("mousemove", windowMouseMove);
       } else {
         setIsBrowserOut(false);
+        window.removeEventListener("mousedown", windowMouseDown);
+        window.removeEventListener("mouseup", windowMouseUp);
+        window.removeEventListener("mousemove", windowMouseMove);
       }
     };
 
@@ -78,27 +81,8 @@ const CardEditor = ({ pathId }) => {
   }, []);
 
   useEffect(() => {
-    const eventRef = mouseEventRef.current;
-    if (isBrowserOut) {
-      eventRef.down = windowMouseDown;
-      eventRef.move = windowMouseMove;
-      eventRef.up = windowMouseUp;
-      window.addEventListener("mousedown", eventRef.down);
-      window.addEventListener("mouseup", eventRef.up);
-      window.addEventListener("mousemove", eventRef.move);
-    } else {
-      window.removeEventListener("mousedown", eventRef.down);
-      window.removeEventListener("mouseup", eventRef.up);
-      window.removeEventListener("mousemove", eventRef.move);
-      mouseEventRef.current.down = null;
-      mouseEventRef.current.move = null;
-      mouseEventRef.current.up = null;
-    }
-  }, [isBrowserOut]);
-
-  useEffect(() => {
     const newElement = Array.from(
-      contentRef.current.querySelectorAll("[data-uuid]")
+      editorRef.current.querySelectorAll("[data-uuid]")
     ).filter((item) => item.getAttribute("data-uuid") === newUuid);
 
     if (newElement.length > 0) {
@@ -134,18 +118,12 @@ const CardEditor = ({ pathId }) => {
       e.ctrlKey
     ) {
       window.getSelection().removeAllRanges();
-      const elements = document
-        .elementsFromPoint(e.clientX, e.clientY)
-        .filter((item) => item.getAttribute("data-uuid"));
-
+      const hover = 
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
-      //const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      const blocks = copyObjectArray(editorStore.blocks);
-
+      const blocks = copyObjectArray(editorStoreRef.current.blocks);
+      console.log("blocks: ", blocks);
       selectElements.current = makeTree(blocks, hoverUuid);
-      if (editorStore.selectBlocks.length <= 0) {
-        editorStore.setSelectBlocks(elements);
-      }
+      //editorStore.setSelectBlocks(makeTree(blocks, hoverUuid));
       setIsGrabbing(true);
     }
 
@@ -156,7 +134,7 @@ const CardEditor = ({ pathId }) => {
     const { clientX, clientY } = e;
 
     const Contents = Array.from(
-      contentRef.current.querySelectorAll("[data-uuid]")
+      editorRef.current.querySelectorAll("[data-uuid]")
     );
 
     const filteredContents = Contents.filter((content) => {
@@ -209,13 +187,8 @@ const CardEditor = ({ pathId }) => {
       moveElementData(selectDatas, moveMentSideData);
     }
 
-    if (!draggable) {
-      editorStore.setSelectBlocks([]);
-    }
-
     selectElements.current = [];
     selectPoint.current = null;
-    setIsGrabbing(false);
     setOverlayList([]);
     setDraggable(false);
     setMovementSide(null);
@@ -449,7 +422,7 @@ const CardEditor = ({ pathId }) => {
 
     // 체크박스만 예외적으로 추가처리 필요
     if (isSubTextAreaTag && targetElementData.position === "bottom") {
-      const checkboxElement = contentRef.current.querySelector(
+      const checkboxElement = editorRef.current.querySelector(
         `[data-uuid="${targetElementData.uuid}"]`
       );
 
@@ -867,6 +840,9 @@ const CardEditor = ({ pathId }) => {
   };
 
   const handleEditorClick = (e) => {
+    if (!draggable) {
+      editorStore.setSelectBlocks([]);
+    }
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&
@@ -894,8 +870,9 @@ const CardEditor = ({ pathId }) => {
       onMouseDown={windowMouseDown}
       onMouseMove={windowMouseMove}
       onMouseUp={windowMouseUp}
+      ref={editorRef}
     >
-      <ContentWrapper ref={contentRef} onMouseUp={handleEditorClick}>
+      <CardEditorContentWrapper  onMouseUp={handleEditorClick}>
         {makeTree(editorStore.blocks).map((element) => {
           return (
             <EditBranchComponent
@@ -907,7 +884,7 @@ const CardEditor = ({ pathId }) => {
             />
           );
         })}
-      </ContentWrapper>
+      </CardEditorContentWrapper>
       {isFileUploderOpen || isContextMenuOpen || draggable ? (
         <OverlayContainer
           onMouseUp={(e) => {
@@ -926,13 +903,11 @@ const CardEditor = ({ pathId }) => {
               {overlayList?.map((element) => {
                 const selectElement = getEditComponentData(element?.parentId);
                 const overlayWidth = selectElement.width;
-
                 return (
                   <EditBranchComponent
                     key={`${element.uuid}_overlay`}
                     data={element}
                     overlayWidth={overlayWidth}
-                    isOverlay={true}
                   ></EditBranchComponent>
                 );
               })}
@@ -980,7 +955,7 @@ const EditorContainer = styled.div`
   height: 100%;
   font-size: 1.6rem;
 `;
-const ContentWrapper = styled.div`
+const CardEditorContentWrapper = styled.div`
   flex: 1;
   flex-direction: column;
   padding: 1rem 0 10rem 0;

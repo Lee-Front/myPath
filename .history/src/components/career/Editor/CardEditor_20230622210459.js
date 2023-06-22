@@ -37,7 +37,11 @@ const CardEditor = ({ pathId }) => {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
 
-  const mouseEventRef = useRef({ down: null, move: null, up: null });
+  // const useRefEventListener = (fn)=> {
+  //   const fnRef = React.useRef(fn);
+  //   fnRef.current = fn;
+  //   return fnRef;
+  // }
 
   useEffect(() => {
     editorStore.getBlocks(pathId);
@@ -56,45 +60,33 @@ const CardEditor = ({ pathId }) => {
   useEffect(() => {
     getTagList();
 
-    const handleMouseEventsOnExit = (e) => {
-      const { clientX, clientY } = e;
-      const isBrowserOut =
-        clientX < 0 ||
-        clientX >= window.innerWidth ||
-        clientY < 0 ||
-        clientY > window.innerHeight;
+    // const handleMouseEventsOnExit = (e) => {
+    //   const { clientX, clientY } = e;
+    //   const isBrowserOut =
+    //     clientX < 0 ||
+    //     clientX >= window.innerWidth ||
+    //     clientY < 0 ||
+    //     clientY > window.innerHeight;
 
-      if (isBrowserOut) {
-        setIsBrowserOut(true);
-      } else {
-        setIsBrowserOut(false);
-      }
-    };
+    //   if (isBrowserOut) {
+    //     window.addEventListener("mousedown", windowMouseDown);
+    //       window.addEventListener("mouseup", windowMouseUp);
+    //       window.addEventListener("mousemove", windowMouseMove);
 
-    window.addEventListener("mousemove", handleMouseEventsOnExit);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseEventsOnExit);
-    };
+    //     setIsBrowserOut(true);
+    //   } else {
+    //     window.removeEventListener("mousedown", windowMouseDown);
+    //       window.removeEventListener("mouseup", windowMouseUp);
+    //       window.removeEventListener("mousemove", windowMouseMove);
+    //     setIsBrowserOut(false);
+    //   }
+    // };
+
+    // window.addEventListener("mousemove", handleMouseEventsOnExit);
+    // return () => {
+    //   window.removeEventListener("mousemove", handleMouseEventsOnExit);
+    // };
   }, []);
-
-  useEffect(() => {
-    const eventRef = mouseEventRef.current;
-    if (isBrowserOut) {
-      eventRef.down = windowMouseDown;
-      eventRef.move = windowMouseMove;
-      eventRef.up = windowMouseUp;
-      window.addEventListener("mousedown", eventRef.down);
-      window.addEventListener("mouseup", eventRef.up);
-      window.addEventListener("mousemove", eventRef.move);
-    } else {
-      window.removeEventListener("mousedown", eventRef.down);
-      window.removeEventListener("mouseup", eventRef.up);
-      window.removeEventListener("mousemove", eventRef.move);
-      mouseEventRef.current.down = null;
-      mouseEventRef.current.move = null;
-      mouseEventRef.current.up = null;
-    }
-  }, [isBrowserOut]);
 
   useEffect(() => {
     const newElement = Array.from(
@@ -125,6 +117,30 @@ const CardEditor = ({ pathId }) => {
     return arr.map((element) => Object.assign({}, element));
   };
 
+  const windowMouseDown2 = useRef((e) => {
+    if (
+      !isFileUploderOpen &&
+      !isContextMenuOpen &&
+      hoverElement.current &&
+      e.ctrlKey
+    ) {
+      window.getSelection().removeAllRanges();
+      const elements = document
+        .elementsFromPoint(e.clientX, e.clientY)
+        .filter((item) => item.getAttribute("data-uuid"));
+
+      const hoverUuid = hoverElement.current.getAttribute("data-uuid");
+      const blocks = copyObjectArray(editorStoreRef.current.blocks);
+
+      selectElements.current = makeTree(blocks, hoverUuid);
+      if (editorStore.selectBlocks.length <= 0) {
+        editorStore.setSelectBlocks(elements);
+      }
+      setIsGrabbing(true);
+    }
+
+    selectPoint.current = { x: e.clientX, y: e.clientY };
+  });
   // 마우스 이동에 따른 데이터 수정을 위한 이벤트
   const windowMouseDown = (e) => {
     if (
@@ -139,8 +155,7 @@ const CardEditor = ({ pathId }) => {
         .filter((item) => item.getAttribute("data-uuid"));
 
       const hoverUuid = hoverElement.current.getAttribute("data-uuid");
-      //const blocks = copyObjectArray(editorStoreRef.current.blocks);
-      const blocks = copyObjectArray(editorStore.blocks);
+      const blocks = copyObjectArray(editorStoreRef.current.blocks);
 
       selectElements.current = makeTree(blocks, hoverUuid);
       if (editorStore.selectBlocks.length <= 0) {
@@ -209,6 +224,7 @@ const CardEditor = ({ pathId }) => {
       moveElementData(selectDatas, moveMentSideData);
     }
 
+    console.log("draggable: ", draggable);
     if (!draggable) {
       editorStore.setSelectBlocks([]);
     }
@@ -867,6 +883,9 @@ const CardEditor = ({ pathId }) => {
   };
 
   const handleEditorClick = (e) => {
+    // if (!draggable) {
+    //   editorStore.setSelectBlocks([]);
+    // }
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&
@@ -890,6 +909,18 @@ const CardEditor = ({ pathId }) => {
 
   return (
     <EditorContainer
+      onMouseLeave={(e) => {
+        console.log("lev");
+        window.addEventListener("mousedown", windowMouseDown2);
+        window.addEventListener("mouseup", windowMouseUp);
+        window.addEventListener("mousemove", windowMouseMove);
+      }}
+      onMouseEnter={(e) => {
+        console.log("enter");
+        window.removeEventListener("mousedown", windowMouseDown2);
+        window.removeEventListener("mouseup", windowMouseUp);
+        window.removeEventListener("mousemove", windowMouseMove);
+      }}
       onContextMenu={handleEditorContextMenu}
       onMouseDown={windowMouseDown}
       onMouseMove={windowMouseMove}
@@ -976,6 +1007,7 @@ const EditorContainer = styled.div`
   display: flex;
   padding-left: 2.5rem;
   padding-right: 2.5rem;
+  margin: 0.1rem;
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;

@@ -13,8 +13,8 @@ const EditBranchComponent = ({
   changeShowFileUploader,
   data,
   overlayWidth,
-  isOverlay,
 }) => {
+  const [isHover, setIsHover] = useState(false);
   const getMovementStyle = (movementData) => {
     const side = movementData.position;
 
@@ -108,7 +108,7 @@ const EditBranchComponent = ({
           style={style}
         />
       ) : (
-        <BlockContainer data-uuid={data.uuid} isOverlay={isOverlay}>
+        <BlockContainer data-uuid={data.uuid} overlayWidth={overlayWidth}>
           {BranchTab()}
         </BlockContainer>
       )}
@@ -121,9 +121,8 @@ export default EditBranchComponent;
 const BlockContainer = styled.div`
   position: relative;
   width: ${(props) => props?.overlayWidth + "%"};
-  ${(props) =>
-    !props.isOverlay &&
-    `:hover {
+  ${(props) => props.overlayWidth ? :hover {
     background: rgba(55, 53, 47, 0.1);
-  }`}
+  } : null}
+  
 `;

@@ -42,4 +42,5 @@ const ContentWarpper = styled.div`
   flex: 1;
   background-color: white;
   border-radius: 5rem 0 0 5rem;
+  padding: 0.1rem;
 `;

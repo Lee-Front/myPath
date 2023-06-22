@@ -47,6 +47,7 @@ const EditBranchComponent = ({
     }
     return styleObject;
   };
+  console.log("overlayWidth: ", overlayWidth);
 
   const movement = movementSide?.uuid === data.uuid ? movementSide : null;
   const style = movement && getMovementStyle(movement);
