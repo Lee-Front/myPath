@@ -108,10 +108,7 @@ const EditBranchComponent = ({
   };
 
   return (
-    <BlockContainer
-      data-uuid={!isOverlay ? data.uuid : null}
-      isOverlay={isOverlay}
-    >
+    <BlockContainer data-uuid={data.uuid} isOverlay={isOverlay}>
       {BranchTab()}
     </BlockContainer>
   );

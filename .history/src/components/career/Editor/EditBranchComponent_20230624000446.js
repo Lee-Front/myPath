@@ -108,12 +108,30 @@ const EditBranchComponent = ({
   };
 
   return (
-    <BlockContainer
-      data-uuid={!isOverlay ? data.uuid : null}
-      isOverlay={isOverlay}
-    >
-      {BranchTab()}
-    </BlockContainer>
+    <>
+      <BlockContainer
+        data-uuid={!isOverlay ? data.uuid : null}
+        isOverlay={isOverlay}
+      >
+        {BranchTab()}
+      </BlockContainer>
+      {/* {data.tagName === "multiple" ? (
+        <MultipleBlock
+          data={data}
+          updateElement={updateElement}
+          movementSide={movementSide}
+          changeShowFileUploader={changeShowFileUploader}
+          style={style}
+        />
+      ) : (
+        <BlockContainer
+          data-uuid={!isOverlay ? data.uuid : null}
+          isOverlay={isOverlay}
+        >
+          {BranchTab()}
+        </BlockContainer>
+      )} */}
+    </>
   );
 };
 

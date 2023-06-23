@@ -143,12 +143,7 @@ const CardEditor = ({ pathId }) => {
       window.getSelection().removeAllRanges();
       const elements = document
         .elementsFromPoint(e.clientX, e.clientY)
-        .filter((item) => {
-          const blockUuid = item.getAttribute("data-uuid");
-          if (!blockUuid) return false;
-          const blockData = editorStore.findBlock(blockUuid);
-          return blockData?.tagName !== "multiple";
-        });
+        .filter((item) => item.getAttribute("data-uuid"));
 
       if (editorStore.selectBlocks.length <= 0) {
         editorStore.setSelectBlocks(elements);
@@ -506,7 +501,7 @@ const CardEditor = ({ pathId }) => {
   // 공통 함수
 
   const getEditComponentData = (uuid) => {
-    const elements = copyObjectArray(editorStore.blocks);
+    const elements = copyObjectArray(editorStoreRef.blocks);
     const findData = elements.find((element) => {
       return uuid === element.uuid;
     });
@@ -940,6 +935,7 @@ const CardEditor = ({ pathId }) => {
                 const selectData = getEditComponentData(
                   element.getAttribute("data-uuid")
                 );
+                //console.log("selectData: ", selectData);
                 const overlayWidth = selectData.width;
 
                 return (

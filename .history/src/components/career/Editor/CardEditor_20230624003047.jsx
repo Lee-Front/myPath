@@ -143,12 +143,7 @@ const CardEditor = ({ pathId }) => {
       window.getSelection().removeAllRanges();
       const elements = document
         .elementsFromPoint(e.clientX, e.clientY)
-        .filter((item) => {
-          const blockUuid = item.getAttribute("data-uuid");
-          if (!blockUuid) return false;
-          const blockData = editorStore.findBlock(blockUuid);
-          return blockData?.tagName !== "multiple";
-        });
+        .filter((item) => item.getAttribute("data-uuid"));
 
       if (editorStore.selectBlocks.length <= 0) {
         editorStore.setSelectBlocks(elements);

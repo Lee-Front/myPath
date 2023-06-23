@@ -146,9 +146,11 @@ const CardEditor = ({ pathId }) => {
         .filter((item) => {
           const blockUuid = item.getAttribute("data-uuid");
           if (!blockUuid) return false;
+
           const blockData = editorStore.findBlock(blockUuid);
           return blockData?.tagName !== "multiple";
         });
+      console.log("elements: ", elements);
 
       if (editorStore.selectBlocks.length <= 0) {
         editorStore.setSelectBlocks(elements);
@@ -941,6 +943,7 @@ const CardEditor = ({ pathId }) => {
                   element.getAttribute("data-uuid")
                 );
                 const overlayWidth = selectData.width;
+                console.log("selectData : ", selectData);
 
                 return (
                   <EditBranchComponent

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "@emotion/styled";
 
 import ImageBlock from "./Blocks/ImageBlock";
@@ -54,17 +54,7 @@ const EditBranchComponent = ({
   const BranchTab = () => {
     let returnComponent;
 
-    if (data?.tagName === "multiple") {
-      returnComponent = (
-        <MultipleBlock
-          data={data}
-          updateElement={updateElement}
-          movementSide={movementSide}
-          changeShowFileUploader={changeShowFileUploader}
-          style={style}
-        />
-      );
-    } else if (data?.tagName === "image") {
+    if (data?.tagName === "image") {
       returnComponent = (
         <ImageBlock
           data={data}
@@ -108,12 +98,24 @@ const EditBranchComponent = ({
   };
 
   return (
-    <BlockContainer
-      data-uuid={!isOverlay ? data.uuid : null}
-      isOverlay={isOverlay}
-    >
-      {BranchTab()}
-    </BlockContainer>
+    <>
+      {data.tagName === "multiple" ? (
+        <MultipleBlock
+          data={data}
+          updateElement={updateElement}
+          movementSide={movementSide}
+          changeShowFileUploader={changeShowFileUploader}
+          style={style}
+        />
+      ) : (
+        <BlockContainer
+          data-uuid={!isOverlay && data.uuid}
+          isOverlay={isOverlay}
+        >
+          {BranchTab()}
+        </BlockContainer>
+      )}
+    </>
   );
 };
 

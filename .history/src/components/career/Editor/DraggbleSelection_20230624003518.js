@@ -37,6 +37,8 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
           if (overlapX > 0 && overlapY > 0) {
             const uuid = item.getAttribute("data-uuid");
             const blockData = editorStore.findBlock(uuid);
+            console.log("blockData: ", blockData);
+            console.log("eq : ", blockData.tagName !== "multiple");
 
             return blockData.tagName !== "multiple";
           }

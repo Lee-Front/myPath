@@ -25,6 +25,10 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
         const insideElements = Array.from(elements).filter((item) => {
           const rect = item.getBoundingClientRect();
 
+          const uuid = item.getAttribute("data-uuid");
+          const blockData = editorStore.findBlock(uuid);
+          console.log("blockData: ", blockData);
+
           const overlapX = Math.max(
             0,
             Math.min(rect.right, x + width) - Math.max(rect.left, x)
@@ -35,10 +39,7 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
           );
 
           if (overlapX > 0 && overlapY > 0) {
-            const uuid = item.getAttribute("data-uuid");
-            const blockData = editorStore.findBlock(uuid);
-
-            return blockData.tagName !== "multiple";
+            return true;
           }
           return false;
         });

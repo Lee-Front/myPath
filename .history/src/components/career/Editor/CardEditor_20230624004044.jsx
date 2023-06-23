@@ -941,6 +941,7 @@ const CardEditor = ({ pathId }) => {
                   element.getAttribute("data-uuid")
                 );
                 const overlayWidth = selectData.width;
+                console.log("selectData : ", selectData);
 
                 return (
                   <EditBranchComponent

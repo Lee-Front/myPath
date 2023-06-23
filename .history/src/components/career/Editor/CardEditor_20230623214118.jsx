@@ -127,13 +127,8 @@ const CardEditor = ({ pathId }) => {
 
   // 마우스 이동에 따른 데이터 수정을 위한 이벤트
   const windowMouseDown = (e) => {
-    if (
-      !hoverElement.current ||
-      !editorStore.selectBlocks.includes(hoverElement.current)
-    ) {
-      editorStore.setSelectBlocks([]);
-    }
-
+    console.log("editorStore) : ", editorStore.selectBlocks);
+    console.log("hoverElement.current: ", hoverElement.current);
     if (
       !isFileUploderOpen &&
       !isContextMenuOpen &&
@@ -143,12 +138,13 @@ const CardEditor = ({ pathId }) => {
       window.getSelection().removeAllRanges();
       const elements = document
         .elementsFromPoint(e.clientX, e.clientY)
-        .filter((item) => {
-          const blockUuid = item.getAttribute("data-uuid");
-          if (!blockUuid) return false;
-          const blockData = editorStore.findBlock(blockUuid);
-          return blockData?.tagName !== "multiple";
-        });
+        .filter((item) => item.getAttribute("data-uuid"));
+
+      //const hoverUuid = hoverElement.current.getAttribute("data-uuid");
+      //const blocks = copyObjectArray(editorStoreRef.current.blocks);
+      //const blocks = copyObjectArray(editorStore.blocks);
+
+      //selectElements.current = makeTree(blocks, hoverUuid);
 
       if (editorStore.selectBlocks.length <= 0) {
         editorStore.setSelectBlocks(elements);
@@ -196,13 +192,13 @@ const CardEditor = ({ pathId }) => {
     // 선택된 Element가 있을경우 드래그 이벤트
     if (isGrabbing && editorStore.selectBlocks.length > 0) {
       window.getSelection().removeAllRanges();
+      //setOverlayList(editorStore.selectBlocks);
       decideMovementSide(clientX, clientY);
     }
   };
 
   const windowMouseUp = (e) => {
     const contextMenu = e.target.closest(".contextMenu");
-
     if (hoverElement.current && !contextMenu && e.button === 2) {
       const { clientX, clientY } = e;
       contextMenuPoint.current = { x: clientX, y: clientY };
@@ -210,18 +206,10 @@ const CardEditor = ({ pathId }) => {
     }
 
     // Element를 옮기는 중이고, 선택된 Element가 있음
-
-    const selectDatas = editorStore.selectBlocks.map((block) => {
-      const uuid = block.getAttribute("data-uuid");
-      return getEditComponentData(uuid);
-    });
+    const selectDatas = selectElements.current;
     const moveMentSideData = movementSideRef.current;
     if (selectDatas.length > 0 && moveMentSideData?.uuid) {
       moveElementData(selectDatas, moveMentSideData);
-    }
-
-    if (!draggable) {
-      editorStore.setSelectBlocks([]);
     }
 
     selectElements.current = [];
@@ -506,7 +494,7 @@ const CardEditor = ({ pathId }) => {
   // 공통 함수
 
   const getEditComponentData = (uuid) => {
-    const elements = copyObjectArray(editorStore.blocks);
+    const elements = copyObjectArray(editorStoreRef.current.blocks);
     const findData = elements.find((element) => {
       return uuid === element.uuid;
     });
@@ -940,6 +928,7 @@ const CardEditor = ({ pathId }) => {
                 const selectData = getEditComponentData(
                   element.getAttribute("data-uuid")
                 );
+                //console.log("selectData: ", selectData);
                 const overlayWidth = selectData.width;
 
                 return (

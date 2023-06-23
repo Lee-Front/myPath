@@ -143,12 +143,7 @@ const CardEditor = ({ pathId }) => {
       window.getSelection().removeAllRanges();
       const elements = document
         .elementsFromPoint(e.clientX, e.clientY)
-        .filter((item) => {
-          const blockUuid = item.getAttribute("data-uuid");
-          if (!blockUuid) return false;
-          const blockData = editorStore.findBlock(blockUuid);
-          return blockData?.tagName !== "multiple";
-        });
+        .filter((item) => item.getAttribute("data-uuid"));
 
       if (editorStore.selectBlocks.length <= 0) {
         editorStore.setSelectBlocks(elements);
@@ -202,7 +197,6 @@ const CardEditor = ({ pathId }) => {
 
   const windowMouseUp = (e) => {
     const contextMenu = e.target.closest(".contextMenu");
-
     if (hoverElement.current && !contextMenu && e.button === 2) {
       const { clientX, clientY } = e;
       contextMenuPoint.current = { x: clientX, y: clientY };
@@ -210,11 +204,7 @@ const CardEditor = ({ pathId }) => {
     }
 
     // Element를 옮기는 중이고, 선택된 Element가 있음
-
-    const selectDatas = editorStore.selectBlocks.map((block) => {
-      const uuid = block.getAttribute("data-uuid");
-      return getEditComponentData(uuid);
-    });
+    const selectDatas = selectElements.current;
     const moveMentSideData = movementSideRef.current;
     if (selectDatas.length > 0 && moveMentSideData?.uuid) {
       moveElementData(selectDatas, moveMentSideData);
@@ -506,7 +496,7 @@ const CardEditor = ({ pathId }) => {
   // 공통 함수
 
   const getEditComponentData = (uuid) => {
-    const elements = copyObjectArray(editorStore.blocks);
+    const elements = copyObjectArray(editorStoreRef.current.blocks);
     const findData = elements.find((element) => {
       return uuid === element.uuid;
     });
@@ -940,6 +930,7 @@ const CardEditor = ({ pathId }) => {
                 const selectData = getEditComponentData(
                   element.getAttribute("data-uuid")
                 );
+                //console.log("selectData: ", selectData);
                 const overlayWidth = selectData.width;
 
                 return (
