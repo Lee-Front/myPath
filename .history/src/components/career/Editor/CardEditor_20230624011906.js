@@ -709,8 +709,10 @@ const CardEditor = ({ pathId }) => {
 
   const removeColumnAndRowIfEmpty = (elements) => {
     let copyElements = copyObjectArray(elements);
+    console.log("copyElements: ", copyElements);
 
     const columns = filterByKey(copyElements, "direction", "column");
+    console.log("columns: ", columns);
     if (columns.length > 0) {
       columns.forEach((column) => {
         const columnChildren = filterByKey(

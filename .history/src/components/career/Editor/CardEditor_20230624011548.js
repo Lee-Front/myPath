@@ -709,8 +709,10 @@ const CardEditor = ({ pathId }) => {
 
   const removeColumnAndRowIfEmpty = (elements) => {
     let copyElements = copyObjectArray(elements);
+    console.log("copyElements: ", copyElements);
 
     const columns = filterByKey(copyElements, "direction", "column");
+    console.log("columns: ", columns);
     if (columns.length > 0) {
       columns.forEach((column) => {
         const columnChildren = filterByKey(
@@ -734,16 +736,23 @@ const CardEditor = ({ pathId }) => {
     }
 
     const rows = filterByKey(copyElements, "direction", "row");
+    console.log("rows: ", rows);
+
     if (rows.length > 0) {
       rows.forEach((element) => {
+        console.log("copyElements: ", copyElements);
         const rowChildren = filterByKey(copyElements, "parentId", element.uuid);
+        console.log("rowChildren: ", !rowChildren);
 
-        if (rowChildren.length <= 1) {
-          const rowUuid = element?.uuid;
-          const columnUuid = rowChildren[0]?.uuid;
+        //if (rowChildren.length === 1) {
+        if (!rowChildren) {
+          const rowUuid = element.uuid;
+          const columnUuid = rowChildren[0].uuid;
 
           copyElements = filterByKey(copyElements, "!uuid", rowUuid);
+          console.log("copyElements1: ", copyElements);
           copyElements = filterByKey(copyElements, "!uuid", columnUuid);
+          console.log("copyElements2: ", copyElements);
           copyElements.forEach((obj) => {
             if (obj.parentId === columnUuid) {
               obj.parentId = null;
