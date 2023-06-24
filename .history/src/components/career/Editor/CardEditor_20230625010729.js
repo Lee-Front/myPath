@@ -928,6 +928,8 @@ const CardEditor = ({ pathId }) => {
           {isGrabbing && editorStore.selectBlocks.length > 0 && (
             <OverlayWrapper currentPoint={currentPoint}>
               {makeTree(editorStore.selectBlocks).map((item) => {
+                console.log("item: ", item);
+
                 const overlayWidth = item.width;
                 return (
                   <EditBranchComponent

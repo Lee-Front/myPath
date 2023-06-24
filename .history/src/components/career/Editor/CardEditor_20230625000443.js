@@ -148,7 +148,8 @@ const CardEditor = ({ pathId }) => {
         });
 
       if (editorStore.selectBlocks.length <= 0) {
-        editorStore.setSelectBlocks(elements);
+        const blockTree = makeTree(elements);
+        editorStore.setSelectBlocks(blockTree);
       }
       setIsGrabbing(true);
     }
@@ -927,12 +928,12 @@ const CardEditor = ({ pathId }) => {
         >
           {isGrabbing && editorStore.selectBlocks.length > 0 && (
             <OverlayWrapper currentPoint={currentPoint}>
-              {makeTree(editorStore.selectBlocks).map((item) => {
-                const overlayWidth = item.width;
+              {editorStore.selectBlocks.map((element) => {
+                const overlayWidth = element.width;
                 return (
                   <EditBranchComponent
-                    key={`${item.uuid}_overlay`}
-                    data={item}
+                    key={`${element.uuid}_overlay`}
+                    data={element}
                     overlayWidth={overlayWidth}
                     isOverlay={true}
                   ></EditBranchComponent>

@@ -35,11 +35,10 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
           );
 
           if (overlapX > 0 && overlapY > 0) {
-            return true;
-            // const uuid = item.getAttribute("data-uuid");
-            // const blockData = editorStore.findBlock(uuid);
+            const uuid = item.getAttribute("data-uuid");
+            const blockData = editorStore.findBlock(uuid);
 
-            // return blockData.tagName !== "multiple";
+            return blockData.tagName !== "multiple";
           }
           return false;
         });

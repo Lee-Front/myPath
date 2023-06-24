@@ -220,12 +220,12 @@ const CardEditor = ({ pathId }) => {
       editorStore.setSelectBlocks([]);
     }
 
-    selectElements.current = [];
-    selectPoint.current = null;
-    setIsGrabbing(false);
-    setOverlayList([]);
-    setDraggable(false);
-    setMovementSide(null);
+    // selectElements.current = [];
+    // selectPoint.current = null;
+    // setIsGrabbing(false);
+    // setOverlayList([]);
+    // setDraggable(false);
+    // setMovementSide(null);
   };
 
   const modifyDomSave = async (newEditDom) => {

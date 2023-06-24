@@ -148,7 +148,8 @@ const CardEditor = ({ pathId }) => {
         });
 
       if (editorStore.selectBlocks.length <= 0) {
-        editorStore.setSelectBlocks(elements);
+        const blockTree = makeTree(elements);
+        editorStore.setSelectBlocks(blockTree);
       }
       setIsGrabbing(true);
     }
@@ -271,6 +272,7 @@ const CardEditor = ({ pathId }) => {
   const makeTree = (list, targetUuid) => {
     // 원본 state 유지를 위해 복사하여 사용
     const copyList = copyObjectArray(list);
+    console.log("copyList: ", copyList);
     const map = {};
     const roots = [];
     // 모든 노드에 대한 빈 데이터를 만들어줌
@@ -291,6 +293,10 @@ const CardEditor = ({ pathId }) => {
     if (targetUuid) {
       return roots.concat(copyList.filter((node) => node.uuid === targetUuid));
     }
+    console.log(
+      "data : ",
+      copyList.filter((node) => !node.parentId)
+    );
     return copyList.filter((node) => !node.parentId);
   };
 
@@ -915,6 +921,7 @@ const CardEditor = ({ pathId }) => {
       </ContentWrapper>
       {isFileUploderOpen || isContextMenuOpen || draggable ? (
         <OverlayContainer
+          className="overlayContainer"
           onMouseUp={(e) => {
             const contextMenu = e.target.closest(".contextMenu");
             const filePopup = e.target.closest(".filePopup");
@@ -927,12 +934,13 @@ const CardEditor = ({ pathId }) => {
         >
           {isGrabbing && editorStore.selectBlocks.length > 0 && (
             <OverlayWrapper currentPoint={currentPoint}>
-              {makeTree(editorStore.selectBlocks).map((item) => {
-                const overlayWidth = item.width;
+              {editorStore.selectBlocks?.map((element) => {
+                const overlayWidth = element.width;
+
                 return (
                   <EditBranchComponent
-                    key={`${item.uuid}_overlay`}
-                    data={item}
+                    key={`${element.uuid}_overlay`}
+                    data={element}
                     overlayWidth={overlayWidth}
                     isOverlay={true}
                   ></EditBranchComponent>

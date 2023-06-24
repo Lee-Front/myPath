@@ -127,27 +127,32 @@ const CardEditor = ({ pathId }) => {
 
   // 마우스 이동에 따른 데이터 수정을 위한 이벤트
   const windowMouseDown = (e) => {
-    const hoverData = editorStore.findBlock(
-      hoverElement.current?.getAttribute("data-uuid")
-    );
     if (
-      !hoverData ||
-      (hoverData && !editorStore.selectBlocks.includes(hoverData))
+      !hoverElement.current ||
+      !editorStore.selectBlocks.includes(hoverElement.current)
     ) {
       editorStore.setSelectBlocks([]);
     }
 
-    if (!isFileUploderOpen && !isContextMenuOpen && hoverData && e.ctrlKey) {
+    if (
+      !isFileUploderOpen &&
+      !isContextMenuOpen &&
+      hoverElement.current &&
+      e.ctrlKey
+    ) {
       window.getSelection().removeAllRanges();
       const elements = document
         .elementsFromPoint(e.clientX, e.clientY)
-        .filter((item) => item.getAttribute("data-uuid"))
-        .map((item) => {
+        .filter((item) => {
           const blockUuid = item.getAttribute("data-uuid");
-          return editorStore.findBlock(blockUuid);
+          if (!blockUuid) return false;
+          const blockData = editorStore.findBlock(blockUuid);
+          return blockData?.tagName !== "multiple";
         });
 
       if (editorStore.selectBlocks.length <= 0) {
+        const test = makeTree(elements);
+        console.log("test : ", test);
         editorStore.setSelectBlocks(elements);
       }
       setIsGrabbing(true);
@@ -207,13 +212,14 @@ const CardEditor = ({ pathId }) => {
     }
 
     // Element를 옮기는 중이고, 선택된 Element가 있음
-    // const selectDatas = editorStore.selectBlocks.map((block) => {
-    //   const uuid = block.getAttribute("data-uuid");
-    //   return getEditComponentData(uuid);
-    // });
+
+    const selectDatas = editorStore.selectBlocks.map((block) => {
+      const uuid = block.getAttribute("data-uuid");
+      return getEditComponentData(uuid);
+    });
     const moveMentSideData = movementSideRef.current;
-    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
-      moveElementData(editorStore.selectBlocks, moveMentSideData);
+    if (selectDatas.length > 0 && moveMentSideData?.uuid) {
+      moveElementData(selectDatas, moveMentSideData);
     }
 
     if (!draggable) {
@@ -273,6 +279,7 @@ const CardEditor = ({ pathId }) => {
     const copyList = copyObjectArray(list);
     const map = {};
     const roots = [];
+
     // 모든 노드에 대한 빈 데이터를 만들어줌
     copyList.forEach((node, index) => {
       // map에 uuid가 몇번째인지 넣어줌
@@ -291,6 +298,7 @@ const CardEditor = ({ pathId }) => {
     if (targetUuid) {
       return roots.concat(copyList.filter((node) => node.uuid === targetUuid));
     }
+    console.log("copyList: ", copyList);
     return copyList.filter((node) => !node.parentId);
   };
 
@@ -893,6 +901,7 @@ const CardEditor = ({ pathId }) => {
     }
   };
 
+  const testRef = useRef(null);
   return (
     <EditorContainer
       onContextMenu={handleEditorContextMenu}
@@ -915,6 +924,8 @@ const CardEditor = ({ pathId }) => {
       </ContentWrapper>
       {isFileUploderOpen || isContextMenuOpen || draggable ? (
         <OverlayContainer
+          className="overlayContainer"
+          ref={testRef}
           onMouseUp={(e) => {
             const contextMenu = e.target.closest(".contextMenu");
             const filePopup = e.target.closest(".filePopup");
@@ -927,12 +938,16 @@ const CardEditor = ({ pathId }) => {
         >
           {isGrabbing && editorStore.selectBlocks.length > 0 && (
             <OverlayWrapper currentPoint={currentPoint}>
-              {makeTree(editorStore.selectBlocks).map((item) => {
-                const overlayWidth = item.width;
+              {editorStore.selectBlocks?.map((element) => {
+                const selectData = getEditComponentData(
+                  element.getAttribute("data-uuid")
+                );
+                const overlayWidth = selectData.width;
+
                 return (
                   <EditBranchComponent
-                    key={`${item.uuid}_overlay`}
-                    data={item}
+                    key={`${selectData.uuid}_overlay`}
+                    data={selectData}
                     overlayWidth={overlayWidth}
                     isOverlay={true}
                   ></EditBranchComponent>
@@ -965,11 +980,9 @@ const CardEditor = ({ pathId }) => {
           )}
         </OverlayContainer>
       ) : null}
-      {editorStore.selectBlocks.map((item) => {
-        if (item.tagName === "multiple") return null;
-        const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
-        return createPortal(<SelectionHalo />, element);
-      })}
+      {editorStore.selectBlocks.map((item) =>
+        createPortal(<SelectionHalo />, item)
+      )}
     </EditorContainer>
   );
 };

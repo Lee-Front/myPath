@@ -53,6 +53,7 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
 
             return blockData;
           });
+          console.log("elementsData: ", elementsData);
           editorStore.setSelectBlocks(elementsData);
         }
       }

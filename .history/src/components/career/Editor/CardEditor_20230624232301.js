@@ -148,7 +148,9 @@ const CardEditor = ({ pathId }) => {
         });
 
       if (editorStore.selectBlocks.length <= 0) {
-        editorStore.setSelectBlocks(elements);
+        const blockTree = makeTree(elements);
+        console.log("blockTree: ", blockTree);
+        editorStore.setSelectBlocks(blockTree);
       }
       setIsGrabbing(true);
     }
@@ -915,6 +917,7 @@ const CardEditor = ({ pathId }) => {
       </ContentWrapper>
       {isFileUploderOpen || isContextMenuOpen || draggable ? (
         <OverlayContainer
+          className="overlayContainer"
           onMouseUp={(e) => {
             const contextMenu = e.target.closest(".contextMenu");
             const filePopup = e.target.closest(".filePopup");
@@ -927,12 +930,13 @@ const CardEditor = ({ pathId }) => {
         >
           {isGrabbing && editorStore.selectBlocks.length > 0 && (
             <OverlayWrapper currentPoint={currentPoint}>
-              {makeTree(editorStore.selectBlocks).map((item) => {
-                const overlayWidth = item.width;
+              {editorStore.selectBlocks?.map((element) => {
+                const overlayWidth = element.width;
+
                 return (
                   <EditBranchComponent
-                    key={`${item.uuid}_overlay`}
-                    data={item}
+                    key={`${element.uuid}_overlay`}
+                    data={element}
                     overlayWidth={overlayWidth}
                     isOverlay={true}
                   ></EditBranchComponent>

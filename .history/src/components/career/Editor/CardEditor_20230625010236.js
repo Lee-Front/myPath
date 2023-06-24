@@ -927,12 +927,17 @@ const CardEditor = ({ pathId }) => {
         >
           {isGrabbing && editorStore.selectBlocks.length > 0 && (
             <OverlayWrapper currentPoint={currentPoint}>
+              {console.log("dat : ", editorStore.selectBlocks)}
               {makeTree(editorStore.selectBlocks).map((item) => {
+                const element = document.querySelector(
+                  `[data-uuid="${item.uuid}"]`
+                );
+
                 const overlayWidth = item.width;
                 return (
                   <EditBranchComponent
-                    key={`${item.uuid}_overlay`}
-                    data={item}
+                    key={`${element.uuid}_overlay`}
+                    data={element}
                     overlayWidth={overlayWidth}
                     isOverlay={true}
                   ></EditBranchComponent>

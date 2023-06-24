@@ -7,8 +7,8 @@ const MultipleBlock = ({
   data,
   changeShowFileUploader,
   style,
-  isOverlay,
 }) => {
+  console.log("data : ", data);
   return (
     <div
       style={{
@@ -35,7 +35,6 @@ const MultipleBlock = ({
             updateElement={updateElement}
             movementSide={movementSide}
             changeShowFileUploader={changeShowFileUploader}
-            isOverlay={isOverlay}
           />
         </div>
       ))}

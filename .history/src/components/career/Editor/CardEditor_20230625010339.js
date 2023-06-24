@@ -220,12 +220,12 @@ const CardEditor = ({ pathId }) => {
       editorStore.setSelectBlocks([]);
     }
 
-    selectElements.current = [];
-    selectPoint.current = null;
-    setIsGrabbing(false);
-    setOverlayList([]);
-    setDraggable(false);
-    setMovementSide(null);
+    // selectElements.current = [];
+    // selectPoint.current = null;
+    // setIsGrabbing(false);
+    // setOverlayList([]);
+    // setDraggable(false);
+    // setMovementSide(null);
   };
 
   const modifyDomSave = async (newEditDom) => {
@@ -928,11 +928,16 @@ const CardEditor = ({ pathId }) => {
           {isGrabbing && editorStore.selectBlocks.length > 0 && (
             <OverlayWrapper currentPoint={currentPoint}>
               {makeTree(editorStore.selectBlocks).map((item) => {
+                console.log("item: ", item);
+                const element = document.querySelector(
+                  `[data-uuid="${item.uuid}"]`
+                );
+
                 const overlayWidth = item.width;
                 return (
                   <EditBranchComponent
-                    key={`${item.uuid}_overlay`}
-                    data={item}
+                    key={`${element.uuid}_overlay`}
+                    data={element}
                     overlayWidth={overlayWidth}
                     isOverlay={true}
                   ></EditBranchComponent>

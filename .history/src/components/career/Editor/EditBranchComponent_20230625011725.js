@@ -8,10 +8,10 @@ import BulletPointBlock from "./Blocks/BulletPointBlock";
 import EditableBlock from "./Blocks/EditableBlock";
 
 const EditBranchComponent = ({
-  data,
   updateElement,
   movementSide,
   changeShowFileUploader,
+  data,
   overlayWidth,
   isOverlay,
 }) => {
