@@ -618,6 +618,7 @@ const CardEditor = ({ pathId }) => {
         );
       }
     } else {
+      console.log("2");
       //left, right의 경에우 multiple로 나눠줘야됨
       if (
         movementData.position === "left" ||
@@ -695,7 +696,9 @@ const CardEditor = ({ pathId }) => {
         return;
       }
     }
-
+    console.log("filteredElements: ", filteredElements);
+    const remainingElements = removeColumnAndRowIfEmpty(filteredElements);
+    console.log("remainingElements: ", remainingElements);
     modifyDomSave(filteredElements);
   };
 
@@ -744,25 +747,13 @@ const CardEditor = ({ pathId }) => {
           const rowUuid = element?.uuid;
           const columnUuid = rowChildren[0]?.uuid;
 
-          // 여기서 comumn의 자식들을 row의 위치로 옮겨주면 되지 않을까?
-          const rowIndex = findIndexByKey(copyElements, "uuid", rowUuid);
-
           copyElements = filterByKey(copyElements, "!uuid", rowUuid);
           copyElements = filterByKey(copyElements, "!uuid", columnUuid);
-          const columnChildren = filterByKey(
-            copyElements,
-            "parentId",
-            columnUuid
-          );
-
-          copyElements = filterByKey(copyElements, "!parentId", columnUuid);
-          columnChildren.forEach((obj) => {
+          copyElements.forEach((obj) => {
             if (obj.parentId === columnUuid) {
               obj.parentId = null;
             }
           });
-
-          copyElements.splice(rowIndex, 0, ...columnChildren);
         }
       });
     }

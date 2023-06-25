@@ -216,6 +216,7 @@ const CardEditor = ({ pathId }) => {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
+      console.log({ filteredBlocks, moveMentSideData });
       moveElementData(filteredBlocks, moveMentSideData);
     }
 
@@ -543,19 +544,18 @@ const CardEditor = ({ pathId }) => {
     const targetData = getEditComponentData(movementData.uuid);
     const fromDatas = [];
 
-    const filteredElements = copyObjectArray(editorStore.blocks).filter(
-      (element) => {
-        if (selectDatas.some((obj) => element.uuid === obj.uuid)) {
-          fromDatas.push(element);
-          return false;
-        }
-        return true;
+    const filteredElements = copyObjectArray(
+      editorStoreRef.current.blocks
+    ).filter((element) => {
+      if (selectDatas.some((obj) => element.uuid === obj.uuid)) {
+        fromDatas.push(element);
+        return false;
       }
-    );
+      return true;
+    });
 
     const toIndex = findIndexByKey(filteredElements, "uuid", targetData.uuid);
     const findToData = filteredElements[toIndex];
-
     // 여기까지 수정했음
 
     // 해당 데이터들이 없으면 실행되지 않아야함
@@ -689,7 +689,6 @@ const CardEditor = ({ pathId }) => {
         fromParentData.tagName !== "bullet"
       ) {
         const remainingElements = removeColumnAndRowIfEmpty(filteredElements);
-        console.log("remainingElements: ", remainingElements);
 
         modifyDomSave(remainingElements);
         return;
@@ -719,8 +718,7 @@ const CardEditor = ({ pathId }) => {
           column.uuid
         ).length;
 
-        // 해당 컬럼에 자식이 없는경우 컬럼 삭제처리
-        if (columnChildren <= 0) {
+        if (!columnChildren) {
           copyElements = filterByKey(copyElements, "!uuid", column.uuid);
 
           // 여기가 column이 삭제된것
@@ -739,30 +737,17 @@ const CardEditor = ({ pathId }) => {
       rows.forEach((element) => {
         const rowChildren = filterByKey(copyElements, "parentId", element.uuid);
 
-        // row에 column이 1개 뿐이면 row는 필요없어짐 삭제처리
         if (rowChildren.length <= 1) {
           const rowUuid = element?.uuid;
           const columnUuid = rowChildren[0]?.uuid;
 
-          // 여기서 comumn의 자식들을 row의 위치로 옮겨주면 되지 않을까?
-          const rowIndex = findIndexByKey(copyElements, "uuid", rowUuid);
-
           copyElements = filterByKey(copyElements, "!uuid", rowUuid);
           copyElements = filterByKey(copyElements, "!uuid", columnUuid);
-          const columnChildren = filterByKey(
-            copyElements,
-            "parentId",
-            columnUuid
-          );
-
-          copyElements = filterByKey(copyElements, "!parentId", columnUuid);
-          columnChildren.forEach((obj) => {
+          copyElements.forEach((obj) => {
             if (obj.parentId === columnUuid) {
               obj.parentId = null;
             }
           });
-
-          copyElements.splice(rowIndex, 0, ...columnChildren);
         }
       });
     }

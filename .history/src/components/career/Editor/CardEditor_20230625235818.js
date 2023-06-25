@@ -754,15 +754,11 @@ const CardEditor = ({ pathId }) => {
             "parentId",
             columnUuid
           );
-
-          copyElements = filterByKey(copyElements, "!parentId", columnUuid);
           columnChildren.forEach((obj) => {
             if (obj.parentId === columnUuid) {
               obj.parentId = null;
             }
           });
-
-          copyElements.splice(rowIndex, 0, ...columnChildren);
         }
       });
     }

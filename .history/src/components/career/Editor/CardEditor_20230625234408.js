@@ -746,23 +746,16 @@ const CardEditor = ({ pathId }) => {
 
           // 여기서 comumn의 자식들을 row의 위치로 옮겨주면 되지 않을까?
           const rowIndex = findIndexByKey(copyElements, "uuid", rowUuid);
+          console.log("rowIndex: ", rowIndex);
 
           copyElements = filterByKey(copyElements, "!uuid", rowUuid);
           copyElements = filterByKey(copyElements, "!uuid", columnUuid);
-          const columnChildren = filterByKey(
-            copyElements,
-            "parentId",
-            columnUuid
-          );
-
-          copyElements = filterByKey(copyElements, "!parentId", columnUuid);
-          columnChildren.forEach((obj) => {
+          copyElements.forEach((obj) => {
             if (obj.parentId === columnUuid) {
+              copyElements.splice(rowIndex, 0, obj);
               obj.parentId = null;
             }
           });
-
-          copyElements.splice(rowIndex, 0, ...columnChildren);
         }
       });
     }
