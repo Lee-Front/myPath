@@ -22,7 +22,6 @@ const MultipleBlock = ({
         <div
           key={index}
           style={{
-            padding: data.direction === "row" ? "0.5rem 0" : null,
             width:
               data.direction === "row" && element.width
                 ? `calc(100% * ${element.width} / 100)`
