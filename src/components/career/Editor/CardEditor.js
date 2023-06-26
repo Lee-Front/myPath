@@ -130,6 +130,7 @@ const CardEditor = ({ pathId }) => {
     const hoverData = editorStore.findBlock(
       hoverElement.current?.getAttribute("data-uuid")
     );
+
     if (
       !hoverData ||
       (hoverData && !editorStore.selectBlocks.includes(hoverData))

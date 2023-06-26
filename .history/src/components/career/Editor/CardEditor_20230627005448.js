@@ -4,41 +4,49 @@ import { v4 as uuidv4 } from "uuid";
 import { useState, useEffect, useRef } from "react";
 import EditBranchComponent from "./EditBranchComponent";
 import axios from "axios";
-import PopupMenu from "../../common/PopupMenu";
-import ContextMenuPopup from "../../common/ContextMenuPopup";
+import PopupMenu from "./Popup/PopupMenu";
+import ContextMenuPopup from "./Popup/ContextMenuPopup";
 import useEditorStore from "../../../stores/useEditorStore";
+import DraggbleSelection from "./DraggbleSelection";
+import { createPortal } from "react-dom";
 
 const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
-  const [editDom, setEditDom] = useState(editorStore.blocks);
-
+  const editorStoreRef = useRef(editorStore);
   const [movementSide, setMovementSide] = useState("");
+  const [isBrowserOut, setIsBrowserOut] = useState(false);
 
-  // 이벤트에서 실시간으로 참조하기 위한 Ref
-  const editDomRef = useRef([]);
-  const movementSideRef = useRef("");
+  // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
   const nearElement = useRef(null);
   const hoverElement = useRef(null);
+  const movementSideRef = useRef("");
   const selectElements = useRef([]);
   const fileData = useRef(null);
   const selectPoint = useRef(null);
   const contextMenuPoint = useRef(null);
 
+  const contentRef = useRef();
+  const popupRef = useRef();
+
   const [overlayList, setOverlayList] = useState([]);
+  const [isGrabbing, setIsGrabbing] = useState(false);
   const [currentPoint, setCurrentPoint] = useState(null);
   const [popupUuid, setPopupUuid] = useState();
   const [newUuid, setNewUuid] = useState(null);
   const [draggable, setDraggable] = useState(false);
-  const [contextMenuYn, setContextMenuYn] = useState();
-  const [showFileUploder, setShowFileUploder] = useState(false);
+  const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
+  const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
 
-  const editorRef = useRef();
-  const popupRef = useRef();
+  const mouseEventRef = useRef({ down: null, move: null, up: null });
+
+  useEffect(() => {
+    editorStore.getBlocks(pathId);
+  }, [pathId]);
 
   // 마우스 이벤트에서 state를 실시간으로 참조하기 위한 ref
   useEffect(() => {
-    editDomRef.current = editDom;
-  }, [editDom, movementSide]);
+    editorStoreRef.current = editorStore;
+  }, [editorStore]);
 
   useEffect(() => {
     movementSideRef.current = movementSide;
@@ -48,21 +56,50 @@ const CardEditor = ({ pathId }) => {
   useEffect(() => {
     getTagList();
 
-    window.addEventListener("mousedown", windowMouseDown);
-    window.addEventListener("mouseup", windowMouseUp);
-    window.addEventListener("mousemove", windowMouseMove);
+    const handleMouseEventsOnExit = (e) => {
+      const { clientX, clientY } = e;
+      const isBrowserOut =
+        clientX < 0 ||
+        clientX >= window.innerWidth ||
+        clientY < 0 ||
+        clientY > window.innerHeight;
+
+      if (isBrowserOut) {
+        setIsBrowserOut(true);
+      } else {
+        setIsBrowserOut(false);
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseEventsOnExit);
     return () => {
-      window.removeEventListener("mousedown", windowMouseDown);
-      window.removeEventListener("mouseup", windowMouseUp);
-      window.removeEventListener("mousemove", windowMouseMove);
-      editorStore.setBlocks([]);
+      window.removeEventListener("mousemove", handleMouseEventsOnExit);
     };
   }, []);
 
   useEffect(() => {
+    const eventRef = mouseEventRef.current;
+    if (isBrowserOut) {
+      eventRef.down = windowMouseDown;
+      eventRef.move = windowMouseMove;
+      eventRef.up = windowMouseUp;
+      window.addEventListener("mousedown", eventRef.down);
+      window.addEventListener("mouseup", eventRef.up);
+      window.addEventListener("mousemove", eventRef.move);
+    } else {
+      window.removeEventListener("mousedown", eventRef.down);
+      window.removeEventListener("mouseup", eventRef.up);
+      window.removeEventListener("mousemove", eventRef.move);
+      mouseEventRef.current.down = null;
+      mouseEventRef.current.move = null;
+      mouseEventRef.current.up = null;
+    }
+  }, [isBrowserOut]);
+
+  useEffect(() => {
     const newElement = Array.from(
-      editorRef.current.querySelectorAll("[uuid]")
-    ).filter((item) => item.getAttribute("uuid") === newUuid);
+      contentRef.current.querySelectorAll("[data-uuid]")
+    ).filter((item) => item.getAttribute("data-uuid") === newUuid);
 
     if (newElement.length > 0) {
       newElement[0].children[0].focus();
@@ -71,7 +108,7 @@ const CardEditor = ({ pathId }) => {
 
   // 서버에서 해당 Path의 모든 Tag를 조회
   const getTagList = async () => {
-    const response = await axios.get("/api/editor/getList", {
+    const response = await axios.get("/api/editor", {
       params: { pathId },
     });
     const tagList = response.data;
@@ -81,31 +118,41 @@ const CardEditor = ({ pathId }) => {
     });
 
     editorStore.setBlocks(tagList);
-
-    setEditDom(tagList);
   };
 
   // 현시점 editDom 데이터를 원본과 분리하기 위해 복사해서 리턴해주는 함수
   const copyObjectArray = (arr) => {
-    // 마우스 이벤트에서 실행되는 경우를 위해서 렌더링에 사용할 데이터를 제외하고는
-    // ref를 사용
-
-    // 아 근데 이게 맞나?.. 일단 보류 현시점에서 복사를 해오는거니까 괜찮을거 같긴한데
     return arr.map((element) => Object.assign({}, element));
   };
 
   // 마우스 이동에 따른 데이터 수정을 위한 이벤트
   const windowMouseDown = (e) => {
-    if (
-      !showFileUploder &&
-      !contextMenuYn &&
-      hoverElement.current &&
-      e.ctrlKey
-    ) {
-      window.getSelection().removeAllRanges();
+    const hoverData = editorStore.findBlock(
+      hoverElement.current?.getAttribute("data-uuid")
+    );
 
-      const hoverUuid = hoverElement.current.getAttribute("uuid");
-      selectElements.current = makeTree(editDomRef.current, hoverUuid);
+    if (
+      !hoverData ||
+      (hoverData && !editorStore.selectBlocks.includes(hoverData))
+    ) {
+      editorStore.setSelectBlocks([]);
+    }
+
+    if (!isFileUploderOpen && !isContextMenuOpen && hoverData && e.ctrlKey) {
+      window.getSelection().removeAllRanges();
+      const elements = document
+        .elementsFromPoint(e.clientX, e.clientY)
+        .filter((item) => item.getAttribute("data-uuid"))
+        .map((item) => {
+          const blockUuid = item.getAttribute("data-uuid");
+          return editorStore.findBlock(blockUuid);
+        });
+        console.log("elements : ",elements)
+
+      if (editorStore.selectBlocks.length <= 0) {
+        editorStore.setSelectBlocks(elements);
+      }
+      setIsGrabbing(true);
     }
 
     selectPoint.current = { x: e.clientX, y: e.clientY };
@@ -113,9 +160,13 @@ const CardEditor = ({ pathId }) => {
 
   const windowMouseMove = (e) => {
     const { clientX, clientY } = e;
-    const Contents = Array.from(editorRef.current.querySelectorAll("[uuid]"));
+
+    const Contents = Array.from(
+      contentRef.current.querySelectorAll("[data-uuid]")
+    );
+
     const filteredContents = Contents.filter((content) => {
-      const data = getEditComponentData(content.getAttribute("uuid"));
+      const data = getEditComponentData(content.getAttribute("data-uuid"));
       return data.tagName !== "multiple";
     });
 
@@ -137,58 +188,53 @@ const CardEditor = ({ pathId }) => {
       if (!draggable && distance < 5) {
         return;
       }
-
+      setCurrentPoint({ x: clientX, y: clientY });
       setDraggable(true);
     }
 
     // 선택된 Element가 있을경우 드래그 이벤트
-    if (selectElements.current.length > 0) {
+    if (isGrabbing && editorStore.selectBlocks.length > 0) {
       window.getSelection().removeAllRanges();
-      setCurrentPoint({ x: clientX, y: clientY });
-      setOverlayList(selectElements.current);
       decideMovementSide(clientX, clientY);
     }
   };
 
   const windowMouseUp = (e) => {
     const contextMenu = e.target.closest(".contextMenu");
+
     if (hoverElement.current && !contextMenu && e.button === 2) {
       const { clientX, clientY } = e;
-      const popupRight = clientX + 300;
-      const popupBottom = clientY + 120;
-
-      let popupX = clientX;
-      let popupY = clientY;
-
-      if (popupRight > window.innerWidth) {
-        popupX = window.innerWidth - 310;
-      }
-
-      if (popupBottom > window.innerHeight) {
-        popupY = window.innerHeight - 130;
-      }
-      contextMenuPoint.current = { x: popupX, y: popupY };
-      // 한번 닫았다 열어줘서 열려있는 스크롤같은걸 닫아줌
-      setContextMenuYn(false);
+      contextMenuPoint.current = { x: clientX, y: clientY };
+      setIsContextMenuOpen(false);
     }
 
     // Element를 옮기는 중이고, 선택된 Element가 있음
-    const selectDatas = selectElements.current;
+    // const selectDatas = editorStore.selectBlocks.map((block) => {
+    //   const uuid = block.getAttribute("data-uuid");
+    //   return getEditComponentData(uuid);
+    // });
     const moveMentSideData = movementSideRef.current;
-    if (selectDatas.length > 0 && moveMentSideData?.uuid) {
-      moveElementData(selectDatas, moveMentSideData);
+    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
+      const filteredBlocks = editorStore.selectBlocks.filter(
+        (item) => item.tagName !== "multiple"
+      );
+      moveElementData(filteredBlocks, moveMentSideData);
+    }
+
+    if (!draggable) {
+      editorStore.setSelectBlocks([]);
     }
 
     selectElements.current = [];
     selectPoint.current = null;
+    setIsGrabbing(false);
     setOverlayList([]);
     setDraggable(false);
     setMovementSide(null);
   };
 
-  // modifyDomSave함수를 개선해줘
   const modifyDomSave = async (newEditDom) => {
-    const editDomList = editDomRef.current;
+    const editDomList = copyObjectArray(editorStoreRef.current.blocks);
     // 변경된 위치대로 sort를 다시 부여
     newEditDom.map((element, index) => {
       element.sort = index;
@@ -209,7 +255,7 @@ const CardEditor = ({ pathId }) => {
       });
 
     const modifyList = [];
-    editDomList.map((element) => {
+    editDomList.forEach((element) => {
       const sameElement = newEditDom.find((x) => x.uuid === element.uuid);
       if (
         sameElement &&
@@ -223,9 +269,8 @@ const CardEditor = ({ pathId }) => {
     // 3개 배열 합치기
     modifyList.splice(0, 0, ...createList, ...deleteList);
 
-    setEditDom(newEditDom);
-    console.log("modifyList: ", modifyList);
-    await axios.post("/api/editor/save", modifyList);
+    editorStore.setBlocks(newEditDom);
+    await axios.post("/api/editor", modifyList);
   };
 
   const makeTree = (list, targetUuid) => {
@@ -233,7 +278,6 @@ const CardEditor = ({ pathId }) => {
     const copyList = copyObjectArray(list);
     const map = {};
     const roots = [];
-
     // 모든 노드에 대한 빈 데이터를 만들어줌
     copyList.forEach((node, index) => {
       // map에 uuid가 몇번째인지 넣어줌
@@ -255,7 +299,7 @@ const CardEditor = ({ pathId }) => {
     return copyList.filter((node) => !node.parentId);
   };
 
-  const getClosestElement = (elements, pos, axis) => {
+  const findClosestElementByAxis = (elements, pos, axis) => {
     if (!elements || elements.length === 0) {
       nearElement.current = null;
       hoverElement.current = null;
@@ -285,8 +329,7 @@ const CardEditor = ({ pathId }) => {
         : prev;
     }, elements[0]);
 
-    nearElement.current = nearEl;
-    hoverElement.current = hoverEl;
+    return { nearEl, hoverEl };
   };
 
   const findNearElementByPointer = (Contents, x, y) => {
@@ -296,33 +339,36 @@ const CardEditor = ({ pathId }) => {
         return left <= x && x <= right;
       });
 
-      getClosestElement(equalXElements, y, "y");
+      const closestDataByY = findClosestElementByAxis(equalXElements, y, "y");
 
-      if (!nearElement.current) {
+      if (!closestDataByY?.nearEl) {
         const equalYElements = Contents.filter((element) => {
           const { top, bottom } = element.getBoundingClientRect();
           return top <= y && y <= bottom;
         });
 
-        getClosestElement(equalYElements, x, "x");
+        const closestDataByX = findClosestElementByAxis(equalYElements, x, "x");
+        nearElement.current = closestDataByX?.nearEl;
+        hoverElement.current = closestDataByX?.hoverEl;
+      } else {
+        nearElement.current = closestDataByY?.nearEl;
+        hoverElement.current = closestDataByY?.hoverEl;
       }
     }
   };
 
   const decideMovementSide = (x1, y1) => {
     const targetElement = hoverElement.current || nearElement.current;
-
     if (!targetElement) {
       setMovementSide(null);
       return;
     }
 
-    const clonedEditDom = copyObjectArray(editDomRef.current);
-    const targetUuid = targetElement.getAttribute("uuid");
+    const clonedEditDom = copyObjectArray(editorStoreRef.current.blocks);
+    const targetUuid = targetElement.getAttribute("data-uuid");
     const targetData = getEditComponentData(targetUuid);
     const parentData =
       targetData?.parentId && getEditComponentData(targetData.parentId);
-
     const { top, bottom, left, right } = targetElement.getBoundingClientRect();
     const distanceList = [];
 
@@ -414,11 +460,12 @@ const CardEditor = ({ pathId }) => {
 
     // 체크박스만 예외적으로 추가처리 필요
     if (isSubTextAreaTag && targetElementData.position === "bottom") {
-      const checkboxElement = editorRef.current.querySelector(
-        `[uuid="${targetElementData.uuid}"]`
+      const checkboxElement = contentRef.current.querySelector(
+        `[data-uuid="${targetElementData.uuid}"]`
       );
 
-      const checkboxTextElement = checkboxElement.querySelector(".text-area");
+      const checkboxTextElement =
+        checkboxElement.querySelector(`[name="text-area"]`);
 
       const { left, right } = checkboxTextElement.getBoundingClientRect();
 
@@ -459,7 +506,7 @@ const CardEditor = ({ pathId }) => {
   // 공통 함수
 
   const getEditComponentData = (uuid) => {
-    const elements = copyObjectArray(editDomRef.current);
+    const elements = copyObjectArray(editorStore.blocks);
     const findData = elements.find((element) => {
       return uuid === element.uuid;
     });
@@ -498,7 +545,7 @@ const CardEditor = ({ pathId }) => {
     const targetData = getEditComponentData(movementData.uuid);
     const fromDatas = [];
 
-    const filteredElements = copyObjectArray(editDomRef.current).filter(
+    const filteredElements = copyObjectArray(editorStore.blocks).filter(
       (element) => {
         if (selectDatas.some((obj) => element.uuid === obj.uuid)) {
           fromDatas.push(element);
@@ -510,6 +557,7 @@ const CardEditor = ({ pathId }) => {
 
     const toIndex = findIndexByKey(filteredElements, "uuid", targetData.uuid);
     const findToData = filteredElements[toIndex];
+
     // 여기까지 수정했음
 
     // 해당 데이터들이 없으면 실행되지 않아야함
@@ -643,6 +691,7 @@ const CardEditor = ({ pathId }) => {
         fromParentData.tagName !== "bullet"
       ) {
         const remainingElements = removeColumnAndRowIfEmpty(filteredElements);
+        console.log("remainingElements: ", remainingElements);
 
         modifyDomSave(remainingElements);
         return;
@@ -664,7 +713,7 @@ const CardEditor = ({ pathId }) => {
     let copyElements = copyObjectArray(elements);
 
     const columns = filterByKey(copyElements, "direction", "column");
-    if (columns.length) {
+    if (columns.length > 0) {
       columns.forEach((column) => {
         const columnChildren = filterByKey(
           copyElements,
@@ -672,7 +721,8 @@ const CardEditor = ({ pathId }) => {
           column.uuid
         ).length;
 
-        if (!columnChildren) {
+        // 해당 컬럼에 자식이 없는경우 컬럼 삭제처리
+        if (columnChildren <= 0) {
           copyElements = filterByKey(copyElements, "!uuid", column.uuid);
 
           // 여기가 column이 삭제된것
@@ -687,22 +737,34 @@ const CardEditor = ({ pathId }) => {
     }
 
     const rows = filterByKey(copyElements, "direction", "row");
-
-    if (rows.length) {
+    if (rows.length > 0) {
       rows.forEach((element) => {
         const rowChildren = filterByKey(copyElements, "parentId", element.uuid);
 
-        if (rowChildren.length === 1) {
-          const rowUuid = element.uuid;
-          const columnUuid = rowChildren[0].uuid;
+        // row에 column이 1개 뿐이면 row는 필요없어짐 삭제처리
+        if (rowChildren.length <= 1) {
+          const rowUuid = element?.uuid;
+          const columnUuid = rowChildren[0]?.uuid;
+
+          // 여기서 comumn의 자식들을 row의 위치로 옮겨주면 되지 않을까?
+          const rowIndex = findIndexByKey(copyElements, "uuid", rowUuid);
 
           copyElements = filterByKey(copyElements, "!uuid", rowUuid);
           copyElements = filterByKey(copyElements, "!uuid", columnUuid);
-          copyElements.forEach((obj) => {
+          const columnChildren = filterByKey(
+            copyElements,
+            "parentId",
+            columnUuid
+          );
+
+          copyElements = filterByKey(copyElements, "!parentId", columnUuid);
+          columnChildren.forEach((obj) => {
             if (obj.parentId === columnUuid) {
               obj.parentId = null;
             }
           });
+
+          copyElements.splice(rowIndex, 0, ...columnChildren);
         }
       });
     }
@@ -720,11 +782,10 @@ const CardEditor = ({ pathId }) => {
       pathId,
       uuid,
       tagName,
-      html: "",
+      style: {},
       parentId: null,
       direction,
-      checkYn: false,
-      width: width ? width : 100,
+      width,
     };
 
     return newElement;
@@ -759,7 +820,7 @@ const CardEditor = ({ pathId }) => {
   // =================여기까지 수정완료======================= //
 
   const deleteElement = (uuid) => {
-    let editElements = copyObjectArray(editDomRef.current);
+    let editElements = copyObjectArray(editorStoreRef.current.blocks);
 
     const childList = findAllChildUuids(editElements, uuid);
     childList.push(uuid);
@@ -770,19 +831,8 @@ const CardEditor = ({ pathId }) => {
     modifyDomSave(remainingElements);
   };
 
-  const changeElementStyle = (uuid, styleData) => {
-    const editElements = copyObjectArray(editDomRef.current).map((element) => {
-      if (element.uuid === uuid) {
-        return { ...element, styleData };
-      }
-      return element;
-    });
-
-    setEditDom(editElements);
-  };
-
   const updateElement = (uuid, data) => {
-    let editElements = copyObjectArray(editDomRef.current);
+    let editElements = copyObjectArray(editorStoreRef.current.blocks);
     const keys = Object.keys(data);
 
     editElements.forEach((element) => {
@@ -797,12 +847,11 @@ const CardEditor = ({ pathId }) => {
     modifyDomSave(editElements);
   };
 
-  const changeShowFileUploader = (e) => {
-    e.stopPropagation();
-    console.log("e", e.target);
+  const toggleFileUploader = (e) => {
     const hoverData = getEditComponentData(
-      hoverElement.current?.getAttribute("uuid")
+      hoverElement.current?.getAttribute("data-uuid")
     );
+
     const filePopup = e.target.closest(".filePopup");
 
     if (e.type === "mouseup" && filePopup) {
@@ -810,7 +859,7 @@ const CardEditor = ({ pathId }) => {
     }
 
     if (e.button === 0 && hoverData.tagName === "image") {
-      if (!showFileUploder) {
+      if (!isFileUploderOpen) {
         const { bottom, left, width } =
           hoverElement.current?.getBoundingClientRect();
         let popupY = 0;
@@ -834,143 +883,156 @@ const CardEditor = ({ pathId }) => {
 
         fileData.current = { uuid: hoverData.uuid, y: popupY, x: popupX };
       }
-      setShowFileUploder(!showFileUploder);
+      setIsFileUploderOpen(!isFileUploderOpen);
     } else {
-      setShowFileUploder(false);
+      setIsFileUploderOpen(false);
     }
   };
 
-  const changeContextMenuYn = (menuYn) => {
-    setContextMenuYn(menuYn);
+  const toggleContextMenuYn = (menuYn) => {
+    setIsContextMenuOpen(menuYn);
+  };
+
+  const handleEditorClick = (e) => {
+    if (
+      e.button === 0 &&
+      e.target === e.currentTarget &&
+      !draggable &&
+      !hoverElement.current
+    ) {
+      const newElement = createElementData({ tagName: "div" });
+      modifyDomSave([...copyObjectArray(editorStore.blocks), newElement]);
+      setNewUuid(newElement.uuid);
+    }
+  };
+
+  const handleEditorContextMenu = (e) => {
+    e.preventDefault();
+    const filePopup = e.target.closest(".filePopup");
+    if (!filePopup && hoverElement.current) {
+      setPopupUuid(hoverElement.current?.getAttribute("data-uuid"));
+      toggleContextMenuYn(true);
+    }
   };
 
   return (
-    <EditorWrapper
-      onContextMenu={(e) => {
-        e.preventDefault();
-        if (hoverElement.current) {
-          setPopupUuid(hoverElement.current?.getAttribute("uuid"));
-          setContextMenuYn(true);
-        }
-      }}
+    <EditorContainer
+      onContextMenu={handleEditorContextMenu}
+      onMouseDown={windowMouseDown}
+      onMouseMove={windowMouseMove}
+      onMouseUp={windowMouseUp}
     >
-      <CardEditorContentWrapper
-        ref={editorRef}
-        onMouseUp={(e) => {
-          if (
-            e.button === 0 &&
-            e.target === e.currentTarget &&
-            !draggable &&
-            !hoverElement.current
-          ) {
-            const newElement = createElementData({ tagName: "div" });
-            modifyDomSave([...editDom, newElement]);
-            setNewUuid(newElement.uuid);
-          }
-        }}
-      >
-        {makeTree(editDom).map((element) => {
+      <ContentWrapper ref={contentRef} onMouseUp={handleEditorClick}>
+        {makeTree(editorStore.blocks).map((element) => {
           return (
             <EditBranchComponent
               key={element.uuid}
               data={element}
               updateElement={updateElement}
               movementSide={movementSide}
-              changeShowFileUploader={changeShowFileUploader}
+              changeShowFileUploader={toggleFileUploader}
             />
           );
         })}
-      </CardEditorContentWrapper>
-      <OverlayWrapper
-        onClick={(e) => {
-          const contextMenu = e.target.closest(".contextMenu");
-          if (!contextMenu && !draggable) {
-            setContextMenuYn(false);
-            console.log("asd");
-            changeShowFileUploader(e);
-          }
-        }}
-        zindex={
-          showFileUploder ||
-          contextMenuYn ||
-          (overlayList.length > 0 && draggable)
-        }
-      >
-        {overlayList.length > 0 && (
-          <div
-            style={{
-              position: "absolute",
-              width: "100%",
-              left: currentPoint?.x + "px",
-              top: currentPoint?.y - 10 + "px",
-              opacity: "0.4",
-            }}
-          >
-            {overlayList?.map((element) => {
-              const selectElement = getEditComponentData(element?.parentId);
-              const overlayWidth = selectElement.width;
-              return (
-                <EditBranchComponent
-                  key={`${element.uuid}_overlay`}
-                  data={element}
-                  overlayWidth={overlayWidth}
-                ></EditBranchComponent>
-              );
-            })}
-          </div>
-        )}
-        {showFileUploder ? (
-          <div
-            onContextMenu={(e) => {
-              e.preventDefault();
-            }}
-            style={{ display: "flex", justifyContent: "center" }}
-          >
+      </ContentWrapper>
+      {isFileUploderOpen || isContextMenuOpen || draggable ? (
+        <OverlayContainer
+          onMouseUp={(e) => {
+            const contextMenu = e.target.closest(".contextMenu");
+            const filePopup = e.target.closest(".filePopup");
+            if (!filePopup && !contextMenu && !draggable) {
+              toggleContextMenuYn(false);
+              toggleFileUploader(e);
+            }
+          }}
+          zindex={isFileUploderOpen || isContextMenuOpen || draggable}
+        >
+          {isGrabbing && editorStore.selectBlocks.length > 0 && (
+            <OverlayWrapper currentPoint={currentPoint}>
+              {makeTree(editorStore.selectBlocks).map((item) => {
+                const overlayWidth = item.width;
+                return (
+                  <EditBranchComponent
+                    key={`${item.uuid}_overlay`}
+                    data={item}
+                    overlayWidth={overlayWidth}
+                    isOverlay={true}
+                  ></EditBranchComponent>
+                );
+              })}
+            </OverlayWrapper>
+          )}
+          {isFileUploderOpen && (
             <PopupMenu
               popupRef={popupRef}
-              changeShowFileUploader={changeShowFileUploader}
+              changeShowFileUploader={toggleFileUploader}
               fileData={fileData.current}
               updateElement={updateElement}
             />
-          </div>
-        ) : null}
-
-        {contextMenuYn ? (
-          <ContextMenuPopup
-            pointer={contextMenuPoint.current}
-            changeContextMenuYn={changeContextMenuYn}
-            deleteElement={deleteElement}
-            updateElement={updateElement}
-            changeElementStyle={changeElementStyle}
-            popupData={getEditComponentData(popupUuid)}
-          />
-        ) : null}
-      </OverlayWrapper>
-    </EditorWrapper>
+          )}
+          {isContextMenuOpen && (
+            <ContextMenuPopup
+              pointer={contextMenuPoint.current}
+              changeContextMenuYn={toggleContextMenuYn}
+              deleteElement={deleteElement}
+              updateElement={updateElement}
+              popupData={getEditComponentData(popupUuid)}
+            />
+          )}
+          {!isGrabbing && draggable && (
+            <DraggbleSelection
+              startPointe={selectPoint.current}
+              currentPoint={currentPoint}
+            />
+          )}
+        </OverlayContainer>
+      ) : null}
+      {editorStore.selectBlocks.map((item) => {
+        if (item.tagName === "multiple") return null;
+        const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
+        return createPortal(<SelectionHalo />, element);
+      })}
+    </EditorContainer>
   );
 };
 
 export default CardEditor;
 
-const EditorWrapper = styled.div`
-  overflow: scroll;
+const EditorContainer = styled.div`
   display: flex;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
   flex-direction: column;
   height: 100%;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
   font-size: 1.6rem;
 `;
-const CardEditorContentWrapper = styled.div`
+const ContentWrapper = styled.div`
   flex: 1;
   flex-direction: column;
-  padding: 1rem 2rem 10rem 2rem;
+  padding: 1rem 0 10rem 0;
   z-index: 998;
 `;
-const OverlayWrapper = styled.div`
+const OverlayContainer = styled.div`
   position: absolute;
   min-width: 34rem;
   z-index: ${(props) => (props.zindex ? 999 : 0)};
   width: 100%;
   height: 100%;
   inset: 0px;
+`;
+const OverlayWrapper = styled.div`
+  position: absolute;
+  width: calc(100% - 5rem);
+  left: ${(props) => props.currentPoint?.x + "px"};
+  top: ${(props) => props.currentPoint?.y - 10 + "px"};
+  opacity: 0.4;
+`;
+
+const SelectionHalo = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  background: rgba(35, 131, 226, 0.14);
+  z-index: -1;
 `;
