@@ -22,6 +22,8 @@ const useEditorStore = create((set, get) => ({
   // blocks 조작 함수들
   saveBlocks: async (newBlocks) => {
     const blocks = [...get().blocks];
+    console.log("blocks: ", blocks);
+    console.log("newBlocks: ", newBlocks);
     // 변경된 위치대로 sort를 다시 부여
     newBlocks.forEach((element, index) => {
       element.sort = index;
@@ -44,6 +46,8 @@ const useEditorStore = create((set, get) => ({
     const modifyList = [];
     blocks.forEach((element) => {
       const sameElement = newBlocks.find((x) => x.uuid === element.uuid);
+      console.log("element: ", element);
+      console.log("sameElement: ", sameElement);
       if (
         sameElement &&
         JSON.stringify(element) !== JSON.stringify(sameElement)
@@ -55,6 +59,7 @@ const useEditorStore = create((set, get) => ({
 
     // 3개 배열 합치기
     modifyList.splice(0, 0, ...createList, ...deleteList);
+    console.log("modifyList: ", modifyList);
 
     get().setBlocks(newBlocks);
     await axios.post("/api/editor", modifyList);
@@ -84,7 +89,10 @@ const useEditorStore = create((set, get) => ({
     const filteredBlocks = blocks.filter(
       (block) => !deleteList.includes(block.uuid)
     );
-    const remainingElements = get().removeColumnAndRowIfEmpty(filteredBlocks);
+
+    set((state) => ({ ...state, blocks: filteredBlocks }));
+
+    const remainingElements = get().removeColumnAndRowIfEmpty();
     get().saveBlocks(remainingElements);
   },
   findChildBlocks: (uuid) => {
@@ -106,20 +114,21 @@ const useEditorStore = create((set, get) => ({
     };
     return findChildren(uuid);
   },
-  removeColumnAndRowIfEmpty: (blocks) => {
-    let newBlocks = JSON.parse(JSON.stringify(blocks));
-    const columns = newBlocks.filter((block) => block.direction === "column");
+  removeColumnAndRowIfEmpty: () => {
+    let blocks = [...get().blocks];
+
+    const columns = blocks.filter((block) => block.direction === "column");
     if (columns.length > 0) {
       columns.forEach((column) => {
-        const columnChildren = newBlocks.filter(
+        const columnChildren = blocks.filter(
           (block) => block.parentId === column.uuid
         );
         // 해당 컬럼에 자식이 없는경우 컬럼 삭제처리
         if (columnChildren <= 0) {
-          newBlocks = newBlocks.filter((block) => block.uuid !== column.uuid);
+          blocks = blocks.filter((block) => block.uuid !== column.uuid);
 
           // 여기가 column이 삭제된것
-          newBlocks.forEach((obj) => {
+          blocks.forEach((obj) => {
             if (obj.parentId === column.parentId) {
               const columnWidth = (obj.width / (100 - column.width)) * 100;
               obj.width = columnWidth;
@@ -129,11 +138,11 @@ const useEditorStore = create((set, get) => ({
       });
     }
 
-    const rows = newBlocks.filter((block) => block.direction === "row");
+    const rows = blocks.filter((block) => block.direction === "row");
 
     if (rows.length > 0) {
       rows.forEach((row) => {
-        const rowChildren = newBlocks.filter(
+        const rowChildren = blocks.filter(
           (block) => block.parentId === row.uuid
         );
 
@@ -143,30 +152,26 @@ const useEditorStore = create((set, get) => ({
           const columnUuid = rowChildren[0]?.uuid;
 
           // 여기서 comumn의 자식들을 row의 위치로 옮겨주면 되지 않을까?
-          const rowIndex = newBlocks.findIndex(
-            (block) => block.uuid === rowUuid
-          );
+          const rowIndex = blocks.findIndex((block) => block.uuid === rowUuid);
 
-          newBlocks = newBlocks.filter((block) => block.uuid !== rowUuid);
-          newBlocks = newBlocks.filter((block) => block.uuid !== columnUuid);
-          const columns = newBlocks.filter(
+          blocks = blocks.filter((block) => block.uuid !== rowUuid);
+          blocks = blocks.filter((block) => block.uuid !== columnUuid);
+          const columns = blocks.filter(
             (block) => block.parentId === columnUuid
           );
 
-          newBlocks = newBlocks.filter(
-            (block) => block.parentId !== columnUuid
-          );
+          blocks = blocks.filter((block) => block.parentId !== columnUuid);
           columns.forEach((obj) => {
             if (obj.parentId === columnUuid) {
               obj.parentId = null;
             }
           });
 
-          newBlocks.splice(rowIndex, 0, ...columns);
+          blocks.splice(rowIndex, 0, ...columns);
         }
       });
     }
-    return newBlocks;
+    return blocks;
   },
 }));
 export default useEditorStore;

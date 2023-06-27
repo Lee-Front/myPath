@@ -16,6 +16,7 @@ const ContextMenuPopup = ({
   pointer,
   changeContextMenuYn,
   updateElement,
+  deleteElement,
   popupData,
 }) => {
   const editorStore = useEditorStore();

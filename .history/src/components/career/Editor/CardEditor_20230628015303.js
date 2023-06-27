@@ -820,10 +820,7 @@ const CardEditor = ({ pathId }) => {
       !hoverElement.current
     ) {
       const newElement = createElementData({ tagName: "div" });
-      editorStore.saveBlocks([
-        ...copyObjectArray(editorStore.blocks),
-        newElement,
-      ]);
+      modifyDomSave([...copyObjectArray(editorStore.blocks), newElement]);
       setNewUuid(newElement.uuid);
     }
   };

@@ -11,7 +11,7 @@ const MultipleBlock = ({
   isOverlay,
 }) => {
   return (
-    <RowWrapper blockDirection={data?.direction}>
+    <RowWrapper direction={data?.direction}>
       {data?.multipleData.map((element) => (
         <ColumnWrapper key={element?.uuid} blockWidth={element?.width}>
           <EditBranchComponent
@@ -34,7 +34,7 @@ export default MultipleBlock;
 const RowWrapper = styled.div`
   position: relative;
   display: flex;
-  flex-direction: ${(props) => props.blockDirection};
+  flex-direction: ${(props) => props.direction};
   flex: 1;
 `;
 

@@ -11,9 +11,17 @@ const MultipleBlock = ({
   isOverlay,
 }) => {
   return (
-    <RowWrapper blockDirection={data?.direction}>
-      {data?.multipleData.map((element) => (
-        <ColumnWrapper key={element?.uuid} blockWidth={element?.width}>
+    <RowWrapper direction={data?.direction}>
+      {data?.multipleData.map((element, index) => (
+        <div
+          key={index}
+          style={{
+            width:
+              data.direction === "row" && element.width
+                ? `calc(100% * ${element.width} / 100)`
+                : "100%",
+          }}
+        >
           <EditBranchComponent
             key={element.uuid}
             data={element}
@@ -22,7 +30,7 @@ const MultipleBlock = ({
             changeShowFileUploader={changeShowFileUploader}
             isOverlay={isOverlay}
           />
-        </ColumnWrapper>
+        </div>
       ))}
       {style ? <div style={style}></div> : null}
     </RowWrapper>
@@ -34,16 +42,8 @@ export default MultipleBlock;
 const RowWrapper = styled.div`
   position: relative;
   display: flex;
-  flex-direction: ${(props) => props.blockDirection};
+  flex-direction: ${(props) => props.direction};
   flex: 1;
 `;
 
-const ColumnWrapper = styled.div`
-  width: ${(props) => (props.blockWidth ? `${props.blockWidth}%` : `100%`)};
-  /* width: ${(props) =>
-    `${
-      props.direction && props.width
-        ? `calc(100% * ${props.width} / 100)`
-        : `100%`
-    }`}; */
-`;
+const ColumnWrapper = styled.div``;

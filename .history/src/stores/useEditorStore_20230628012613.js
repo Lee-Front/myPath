@@ -22,6 +22,8 @@ const useEditorStore = create((set, get) => ({
   // blocks 조작 함수들
   saveBlocks: async (newBlocks) => {
     const blocks = [...get().blocks];
+    console.log("blocks: ", blocks);
+    console.log("newBlocks: ", newBlocks);
     // 변경된 위치대로 sort를 다시 부여
     newBlocks.forEach((element, index) => {
       element.sort = index;
@@ -44,6 +46,8 @@ const useEditorStore = create((set, get) => ({
     const modifyList = [];
     blocks.forEach((element) => {
       const sameElement = newBlocks.find((x) => x.uuid === element.uuid);
+      console.log("element: ", element);
+      console.log("sameElement: ", sameElement);
       if (
         sameElement &&
         JSON.stringify(element) !== JSON.stringify(sameElement)
@@ -55,6 +59,7 @@ const useEditorStore = create((set, get) => ({
 
     // 3개 배열 합치기
     modifyList.splice(0, 0, ...createList, ...deleteList);
+    console.log("modifyList: ", modifyList);
 
     get().setBlocks(newBlocks);
     await axios.post("/api/editor", modifyList);
@@ -85,7 +90,8 @@ const useEditorStore = create((set, get) => ({
       (block) => !deleteList.includes(block.uuid)
     );
     const remainingElements = get().removeColumnAndRowIfEmpty(filteredBlocks);
-    get().saveBlocks(remainingElements);
+    console.log("blocks : ", get().blocks);
+    //get().saveBlocks(remainingElements);
   },
   findChildBlocks: (uuid) => {
     if (!uuid) {
@@ -106,8 +112,7 @@ const useEditorStore = create((set, get) => ({
     };
     return findChildren(uuid);
   },
-  removeColumnAndRowIfEmpty: (blocks) => {
-    let newBlocks = JSON.parse(JSON.stringify(blocks));
+  removeColumnAndRowIfEmpty: (newBlocks) => {
     const columns = newBlocks.filter((block) => block.direction === "column");
     if (columns.length > 0) {
       columns.forEach((column) => {

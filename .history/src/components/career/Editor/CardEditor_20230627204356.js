@@ -232,6 +232,46 @@ const CardEditor = ({ pathId }) => {
     setMovementSide(null);
   };
 
+  const modifyDomSave = async (newEditDom) => {
+    const editDomList = copyObjectArray(editorStoreRef.current.blocks);
+    // 변경된 위치대로 sort를 다시 부여
+    newEditDom.map((element, index) => {
+      element.sort = index;
+    });
+
+    // newDom에는 있으나 기존 dom에는 없는것 [생성]
+    const createList = newEditDom
+      .filter((x) => !editDomList.some((y) => x.uuid === y.uuid))
+      .map((data) => {
+        return { type: "create", data: data };
+      });
+
+    // 기존 dom에는 있으나 newDom에는 없는것 [삭제]
+    const deleteList = editDomList
+      .filter((x) => !newEditDom.some((y) => x.uuid === y.uuid))
+      .map((data) => {
+        return { type: "delete", data: data };
+      });
+
+    const modifyList = [];
+    editDomList.forEach((element) => {
+      const sameElement = newEditDom.find((x) => x.uuid === element.uuid);
+      if (
+        sameElement &&
+        JSON.stringify(element) !== JSON.stringify(sameElement)
+      ) {
+        const differentData = { type: "modify", data: sameElement };
+        modifyList.push(differentData);
+      }
+    });
+
+    // 3개 배열 합치기
+    modifyList.splice(0, 0, ...createList, ...deleteList);
+
+    editorStore.setBlocks(newEditDom);
+    await axios.post("/api/editor", modifyList);
+  };
+
   const makeTree = (list, targetUuid) => {
     // 원본 state 유지를 위해 복사하여 사용
     const copyList = copyObjectArray(list);
@@ -650,12 +690,14 @@ const CardEditor = ({ pathId }) => {
         fromParentData.tagName !== "bullet"
       ) {
         const remainingElements = removeColumnAndRowIfEmpty(filteredElements);
-        editorStore.saveBlocks(remainingElements);
+        console.log("remainingElements: ", remainingElements);
+
+        modifyDomSave(remainingElements);
         return;
       }
     }
 
-    editorStore.saveBlocks(filteredElements);
+    modifyDomSave(filteredElements);
   };
 
   /**
@@ -748,7 +790,39 @@ const CardEditor = ({ pathId }) => {
     return newElement;
   };
 
+  const findAllChildUuids = (elements, uuid) => {
+    if (!uuid) {
+      throw new Error("uuid은 필수입력 사항입니다.");
+    }
+
+    const findChildren = (parentId) => {
+      const subData = [];
+      elements.forEach((element) => {
+        if (element.parentId === parentId) {
+          subData.push(element.uuid);
+          const childData = findChildren(element.uuid);
+          subData.push(...childData);
+        }
+      });
+      return subData;
+    };
+
+    return findChildren(uuid);
+  };
+
   // =================여기까지 수정완료======================= //
+
+  const deleteElement = (uuid) => {
+    let editElements = copyObjectArray(editorStoreRef.current.blocks);
+
+    const childList = findAllChildUuids(editElements, uuid);
+    childList.push(uuid);
+    editElements = editElements.filter(
+      (element) => !childList.includes(element.uuid)
+    );
+    const remainingElements = removeColumnAndRowIfEmpty(editElements);
+    modifyDomSave(remainingElements);
+  };
 
   const updateElement = (uuid, data) => {
     let editElements = copyObjectArray(editorStoreRef.current.blocks);
@@ -763,7 +837,7 @@ const CardEditor = ({ pathId }) => {
       return element;
     });
 
-    editorStore.saveBlocks(editElements);
+    modifyDomSave(editElements);
   };
 
   const toggleFileUploader = (e) => {
@@ -820,10 +894,7 @@ const CardEditor = ({ pathId }) => {
       !hoverElement.current
     ) {
       const newElement = createElementData({ tagName: "div" });
-      editorStore.saveBlocks([
-        ...copyObjectArray(editorStore.blocks),
-        newElement,
-      ]);
+      modifyDomSave([...copyObjectArray(editorStore.blocks), newElement]);
       setNewUuid(newElement.uuid);
     }
   };
@@ -896,6 +967,7 @@ const CardEditor = ({ pathId }) => {
             <ContextMenuPopup
               pointer={contextMenuPoint.current}
               changeContextMenuYn={toggleContextMenuYn}
+              deleteElement={deleteElement}
               updateElement={updateElement}
               popupData={getEditComponentData(popupUuid)}
             />

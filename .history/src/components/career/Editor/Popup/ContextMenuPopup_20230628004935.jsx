@@ -16,6 +16,7 @@ const ContextMenuPopup = ({
   pointer,
   changeContextMenuYn,
   updateElement,
+  deleteElement,
   popupData,
 }) => {
   const editorStore = useEditorStore();
@@ -102,7 +103,7 @@ const ContextMenuPopup = ({
 
   const deleteMenu = () => {
     //deleteElement(popupData.uuid);
-    editorStore.deleteBlocks([popupData.uuid]);
+    editorStore.deleteBlocks([...popupData.uuid]);
     changeContextMenuYn(false);
   };
 
