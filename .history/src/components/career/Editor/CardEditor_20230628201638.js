@@ -193,6 +193,11 @@ const CardEditor = ({ pathId }) => {
       setIsContextMenuOpen(false);
     }
 
+    // Element를 옮기는 중이고, 선택된 Element가 있음
+    // const selectDatas = editorStore.selectBlocks.map((block) => {
+    //   const uuid = block.getAttribute("data-uuid");
+    //   return getEditComponentData(uuid);
+    // });
     const moveMentSideData = movementSideRef.current;
     if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(

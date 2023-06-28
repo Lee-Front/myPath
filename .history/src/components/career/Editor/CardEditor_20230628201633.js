@@ -193,6 +193,11 @@ const CardEditor = ({ pathId }) => {
       setIsContextMenuOpen(false);
     }
 
+    // Element를 옮기는 중이고, 선택된 Element가 있음
+    // const selectDatas = editorStore.selectBlocks.map((block) => {
+    //   const uuid = block.getAttribute("data-uuid");
+    //   return getEditComponentData(uuid);
+    // });
     const moveMentSideData = movementSideRef.current;
     if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
@@ -443,6 +448,8 @@ const CardEditor = ({ pathId }) => {
     return topParentdata;
   };
 
+  // 공통 함수
+
   const getEditComponentData = (uuid) => {
     const elements = copyObjectArray(editorStore.blocks);
     const findData = elements.find((element) => {
@@ -451,6 +458,8 @@ const CardEditor = ({ pathId }) => {
 
     return Object.assign({}, findData);
   };
+
+  // =================여기까지 수정완료======================= //
 
   const toggleFileUploader = (e) => {
     const hoverData = getEditComponentData(

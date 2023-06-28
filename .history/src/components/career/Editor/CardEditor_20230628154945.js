@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { v4 as uuidv4 } from "uuid";
 import { useState, useEffect, useRef } from "react";
 import EditBranchComponent from "./EditBranchComponent";
+import axios from "axios";
 import PopupMenu from "./Popup/PopupMenu";
 import ContextMenuPopup from "./Popup/ContextMenuPopup";
 import useEditorStore from "../../../stores/useEditorStore";
@@ -40,7 +41,6 @@ const CardEditor = ({ pathId }) => {
 
   useEffect(() => {
     editorStore.getBlocks(pathId);
-    editorStore.setPathId(pathId);
   }, [pathId]);
 
   // 마우스 이벤트에서 state를 실시간으로 참조하기 위한 ref
@@ -193,12 +193,17 @@ const CardEditor = ({ pathId }) => {
       setIsContextMenuOpen(false);
     }
 
+    // Element를 옮기는 중이고, 선택된 Element가 있음
+    // const selectDatas = editorStore.selectBlocks.map((block) => {
+    //   const uuid = block.getAttribute("data-uuid");
+    //   return getEditComponentData(uuid);
+    // });
     const moveMentSideData = movementSideRef.current;
     if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
-      editorStore.moveBlocks(filteredBlocks, moveMentSideData);
+      moveElementData(filteredBlocks, moveMentSideData);
     }
 
     if (!draggable) {
@@ -443,6 +448,8 @@ const CardEditor = ({ pathId }) => {
     return topParentdata;
   };
 
+  // 공통 함수
+
   const getEditComponentData = (uuid) => {
     const elements = copyObjectArray(editorStore.blocks);
     const findData = elements.find((element) => {
@@ -450,6 +457,236 @@ const CardEditor = ({ pathId }) => {
     });
 
     return Object.assign({}, findData);
+  };
+
+  const findIndexByKey = (elements, key, value) => {
+    return elements.findIndex((element) => element[key] === value);
+  };
+
+  /**
+   * 주어진 배열에서 지정한 키-값 쌍을 포함하는 요소만을 필터링합니다.
+   *
+   * @param {Array} array - 처리할 배열입니다.
+   * @param {string} key - 필터링할 속성명(key)입니다.
+   *                       앞에 !를 작성하여 logicalNot을 사용 할 수 있습니다.
+   * @param {any} value - 필터링할 속성의 값(value)입니다.
+   * @returns {Array} - 필터링된 요소들로 이루어진 새로운 배열입니다.
+   */
+  const filterByKey = (elements, key, value) => {
+    const isLogicalNot = key.includes("!");
+    const filterKey = isLogicalNot ? key.substr(1) : key;
+    return elements.filter((element) =>
+      isLogicalNot ? element[filterKey] !== value : element[key] === value
+    );
+  };
+
+  const setPropByKey = (elements, key, value) => {
+    return elements.forEach((element) => (element[key] = value));
+  };
+
+  // 여기까지 공통함수
+
+  const moveElementData = (selectDatas, movementData) => {
+    const targetData = getEditComponentData(movementData.uuid);
+    const fromDatas = [];
+
+    const filteredElements = copyObjectArray(editorStore.blocks).filter(
+      (element) => {
+        if (selectDatas.some((obj) => element.uuid === obj.uuid)) {
+          fromDatas.push(element);
+          return false;
+        }
+        return true;
+      }
+    );
+
+    const toIndex = findIndexByKey(filteredElements, "uuid", targetData.uuid);
+    const findToData = filteredElements[toIndex];
+
+    // 여기까지 수정했음
+
+    // 해당 데이터들이 없으면 실행되지 않아야함
+    if (toIndex === -1 || !movementData || !findToData) return;
+
+    // 이동관련 Element 데이터 수정 및 추가
+    if (targetData.parentId) {
+      // 일단 위, 아래로 옮겨갔을때 multiple이 새로 생기려면 multiple 데이터 내부 데이터여야함
+      if (
+        movementData.position === "top" ||
+        movementData.position === "bottom"
+      ) {
+        if (movementData?.movementSideType === "text") {
+          // checkbox나 bullet의 경우 text 영역에 아래로 들어가는 경우에
+          setPropByKey(fromDatas, "parentId", findToData.uuid);
+          filteredElements.splice(
+            "top" ? toIndex : toIndex + 1,
+            0,
+            ...fromDatas
+          );
+        } else {
+          const parentData = getEditComponentData(findToData.parentId);
+          setPropByKey(fromDatas, "parentId", parentData.uuid);
+
+          filteredElements.splice(
+            movementData.position === "top" ? toIndex : toIndex + 1,
+            0,
+            ...fromDatas
+          );
+        }
+      } else {
+        const rowChildElements = filterByKey(
+          filteredElements,
+          "parentId",
+          targetData.parentId
+        );
+
+        const width = (100 / (rowChildElements.length + 1)).toFixed(4);
+
+        // left right즉 해당 multiple에 들어가는 경우에만 같은 parentId로 해주면됨
+        const newElement = createElementData({
+          tagName: "multiple",
+          direction: "column",
+          width: parseFloat(width),
+        });
+
+        rowChildElements.forEach((element) => {
+          const newWidth = (element.width / 100) * (100 - width);
+          element.width = newWidth;
+        });
+
+        newElement.parentId = targetData.parentId;
+
+        setPropByKey(fromDatas, "parentId", newElement.uuid);
+        filteredElements.splice(
+          movementData.position === "left" ? toIndex : toIndex + 1,
+          0,
+          newElement,
+          ...fromDatas
+        );
+      }
+    } else {
+      //left, right의 경에우 multiple로 나눠줘야됨
+      if (
+        movementData.position === "left" ||
+        movementData.position === "right"
+      ) {
+        // 일단 sort가 이단계에서 들어가야 하는지 검토필요
+        //let elementSort = editDomRef.current.length;
+        const newElement = createElementData({
+          tagName: "multiple",
+          direction: "row",
+        });
+
+        const newColumElement1 = createElementData({
+          tagName: "multiple",
+          direction: "column",
+          width: 50,
+        });
+
+        const newColumElement2 = createElementData({
+          tagName: "multiple",
+          direction: "column",
+          width: 50,
+        });
+
+        newColumElement1.parentId = newElement.uuid;
+        newColumElement2.parentId = newElement.uuid;
+
+        setPropByKey(fromDatas, "parentId", newColumElement1.uuid);
+
+        findToData.parentId = newColumElement2.uuid;
+
+        if (movementData.position === "left") {
+          filteredElements.splice(
+            toIndex,
+            0,
+            newElement,
+            newColumElement1,
+            ...fromDatas,
+            newColumElement2
+          );
+        } else {
+          filteredElements.splice(
+            toIndex + 1,
+            0,
+            newColumElement1,
+            ...fromDatas
+          );
+          filteredElements.splice(toIndex, 0, newElement, newColumElement2);
+        }
+      } else {
+        fromDatas.forEach((element) => {
+          element.parentId =
+            movementData?.movementSideType === "text" ? findToData.uuid : null;
+        });
+
+        if (movementData.position === "top") {
+          filteredElements.splice(toIndex, 0, ...fromDatas);
+        } else {
+          filteredElements.splice(toIndex + 1, 0, ...fromDatas);
+        }
+      }
+    }
+
+    // multiple에서 데이터 삭제시 multiple 삭제 여부확인 및 처리
+    if (selectDatas[0].parentId) {
+      const fromParentData = getEditComponentData(selectDatas[0].parentId);
+      if (
+        fromParentData.tagName !== "checkbox" &&
+        fromParentData.tagName !== "bullet"
+      ) {
+        const remainingElements = removeColumnAndRowIfEmpty(filteredElements);
+        editorStore.saveBlocks(remainingElements);
+        return;
+      }
+    }
+
+    editorStore.saveBlocks(filteredElements);
+  };
+
+  /**
+   * 1. Element 리스트에서 자식 엘리먼트가 없는 column과 row를 제거합니다.
+   * 2. row에 column이 하나만 남았다면 row와 column을 제거하고
+   *    column의 자식 엘리먼트의 parentId를 비워줍니다.
+   * @param {Array} elements - 처리할 엘리먼트의 배열
+   * @returns {Array} - 자식 엘리먼트가 없는 column, row를 제거한후 새로운 엘리먼트 배열
+   **/
+
+  const createElementData = ({ tagName, direction, width }) => {
+    if (!tagName) {
+      throw new Error("tagName은 필수입력 사항입니다.");
+    }
+    const uuid = uuidv4();
+    // 추후에 타입에따라 필요한것들만 생성되게
+    const newElement = {
+      pathId,
+      uuid,
+      tagName,
+      style: {},
+      parentId: null,
+      direction,
+      width,
+    };
+
+    return newElement;
+  };
+
+  // =================여기까지 수정완료======================= //
+
+  const updateElement = (uuid, data) => {
+    let editElements = copyObjectArray(editorStoreRef.current.blocks);
+    const keys = Object.keys(data);
+
+    editElements.forEach((element) => {
+      if (element.uuid === uuid) {
+        keys.forEach((key) => {
+          element[key] = data[key];
+        });
+      }
+      return element;
+    });
+
+    editorStore.saveBlocks(editElements);
   };
 
   const toggleFileUploader = (e) => {
@@ -505,7 +742,7 @@ const CardEditor = ({ pathId }) => {
       !draggable &&
       !hoverElement.current
     ) {
-      const newElement = editorStore.createBlock({ pathId, tagName: "div" });
+      const newElement = createElementData({ tagName: "div" });
       editorStore.saveBlocks([
         ...copyObjectArray(editorStore.blocks),
         newElement,
@@ -536,6 +773,7 @@ const CardEditor = ({ pathId }) => {
             <EditBranchComponent
               key={element.uuid}
               data={element}
+              updateElement={updateElement}
               movementSide={movementSide}
               changeShowFileUploader={toggleFileUploader}
             />
@@ -574,12 +812,14 @@ const CardEditor = ({ pathId }) => {
               popupRef={popupRef}
               changeShowFileUploader={toggleFileUploader}
               fileData={fileData.current}
+              updateElement={updateElement}
             />
           )}
           {isContextMenuOpen && (
             <ContextMenuPopup
               pointer={contextMenuPoint.current}
               changeContextMenuYn={toggleContextMenuYn}
+              updateElement={updateElement}
               popupData={getEditComponentData(popupUuid)}
             />
           )}

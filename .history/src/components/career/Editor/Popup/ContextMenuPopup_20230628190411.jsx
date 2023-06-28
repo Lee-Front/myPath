@@ -157,7 +157,7 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
       editableTag.appendChild(node);
     });
 
-    editorStore.updateBlock(blockUuid, {
+    updateElement(blockUuid, {
       html: editableTag.innerHTML,
     });
     setCaretPosition(editableTag, newHtmlData);

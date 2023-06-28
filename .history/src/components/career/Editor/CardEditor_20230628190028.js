@@ -193,12 +193,17 @@ const CardEditor = ({ pathId }) => {
       setIsContextMenuOpen(false);
     }
 
+    // Element를 옮기는 중이고, 선택된 Element가 있음
+    // const selectDatas = editorStore.selectBlocks.map((block) => {
+    //   const uuid = block.getAttribute("data-uuid");
+    //   return getEditComponentData(uuid);
+    // });
     const moveMentSideData = movementSideRef.current;
     if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
-      editorStore.moveBlocks(filteredBlocks, moveMentSideData);
+      moveElementData(filteredBlocks, moveMentSideData);
     }
 
     if (!draggable) {
@@ -443,6 +448,8 @@ const CardEditor = ({ pathId }) => {
     return topParentdata;
   };
 
+  // 공통 함수
+
   const getEditComponentData = (uuid) => {
     const elements = copyObjectArray(editorStore.blocks);
     const findData = elements.find((element) => {
@@ -451,6 +458,35 @@ const CardEditor = ({ pathId }) => {
 
     return Object.assign({}, findData);
   };
+
+  const findIndexByKey = (elements, key, value) => {
+    return elements.findIndex((element) => element[key] === value);
+  };
+
+  /**
+   * 주어진 배열에서 지정한 키-값 쌍을 포함하는 요소만을 필터링합니다.
+   *
+   * @param {Array} array - 처리할 배열입니다.
+   * @param {string} key - 필터링할 속성명(key)입니다.
+   *                       앞에 !를 작성하여 logicalNot을 사용 할 수 있습니다.
+   * @param {any} value - 필터링할 속성의 값(value)입니다.
+   * @returns {Array} - 필터링된 요소들로 이루어진 새로운 배열입니다.
+   */
+  const filterByKey = (elements, key, value) => {
+    const isLogicalNot = key.includes("!");
+    const filterKey = isLogicalNot ? key.substr(1) : key;
+    return elements.filter((element) =>
+      isLogicalNot ? element[filterKey] !== value : element[key] === value
+    );
+  };
+
+  const setPropByKey = (elements, key, value) => {
+    return elements.forEach((element) => (element[key] = value));
+  };
+
+  // 여기까지 공통함수
+
+  // =================여기까지 수정완료======================= //
 
   const toggleFileUploader = (e) => {
     const hoverData = getEditComponentData(
@@ -574,12 +610,14 @@ const CardEditor = ({ pathId }) => {
               popupRef={popupRef}
               changeShowFileUploader={toggleFileUploader}
               fileData={fileData.current}
+              updateElement={updateElement}
             />
           )}
           {isContextMenuOpen && (
             <ContextMenuPopup
               pointer={contextMenuPoint.current}
               changeContextMenuYn={toggleContextMenuYn}
+              updateElement={updateElement}
               popupData={getEditComponentData(popupUuid)}
             />
           )}

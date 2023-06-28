@@ -1,11 +1,9 @@
 import axios from "axios";
 import React from "react";
 import { useRef } from "react";
-import useEditorStore from "../../../../stores/useEditorStore";
 
-const PopupMenu = ({ changeShowFileUploader, fileData }) => {
+const PopupMenu = ({ changeShowFileUploader, fileData, updateElement }) => {
   const fileUploadRef = useRef();
-  const editorStore = useEditorStore();
 
   const fileUpload = async (file) => {
     const formData = new FormData();
@@ -30,7 +28,7 @@ const PopupMenu = ({ changeShowFileUploader, fileData }) => {
 
   const fileUploadSend = async (formData) => {
     const upload = await axios.post("/api/common/upload", formData);
-    editorStore.updateBlock(fileData.uuid, { files: upload.data });
+    updateElement(fileData.uuid, { files: upload.data });
   };
 
   return (
