@@ -133,6 +133,7 @@ const CardEditor = ({ pathId }) => {
           });
 
         blocks.forEach((block) => {
+          console.log("block.uuid: ", block.uuid);
           editorStore.toggleSelectBlock(block.uuid);
         });
 

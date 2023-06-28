@@ -136,6 +136,7 @@ const CardEditor = ({ pathId }) => {
           editorStore.toggleSelectBlock(block.uuid);
         });
 
+        editorStore.setSelectBlocks([...editorStore.selectBlocks, ...blocks]);
         setIsGrabbing(true);
       }
     }

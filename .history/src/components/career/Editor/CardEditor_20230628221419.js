@@ -113,31 +113,32 @@ const CardEditor = ({ pathId }) => {
 
   // 마우스 이동에 따른 데이터 수정을 위한 이벤트
   const windowMouseDown = (e) => {
+    console.log("target : ", e.target);
     const hoverData = editorStore.findBlock(
       hoverElement.current?.getAttribute("data-uuid")
     );
 
-    if (!isFileUploderOpen && !isContextMenuOpen) {
-      if (!hoverData) {
-        editorStore.setSelectBlocks([]);
-      }
+    if (
+      !hoverData ||
+      (hoverData && !editorStore.selectBlocks.includes(hoverData))
+    ) {
+      editorStore.setSelectBlocks([]);
+    }
 
-      if (hoverData && e.ctrlKey) {
-        window.getSelection().removeAllRanges();
-        const blocks = document
-          .elementsFromPoint(e.clientX, e.clientY)
-          .filter((item) => item.getAttribute("data-uuid"))
-          .map((item) => {
-            const blockUuid = item.getAttribute("data-uuid");
-            return editorStore.findBlock(blockUuid);
-          });
-
-        blocks.forEach((block) => {
-          editorStore.toggleSelectBlock(block.uuid);
+    if (!isFileUploderOpen && !isContextMenuOpen && hoverData && e.ctrlKey) {
+      window.getSelection().removeAllRanges();
+      const elements = document
+        .elementsFromPoint(e.clientX, e.clientY)
+        .filter((item) => item.getAttribute("data-uuid"))
+        .map((item) => {
+          const blockUuid = item.getAttribute("data-uuid");
+          return editorStore.findBlock(blockUuid);
         });
 
-        setIsGrabbing(true);
+      if (editorStore.selectBlocks.length <= 0) {
+        editorStore.setSelectBlocks(elements);
       }
+      setIsGrabbing(true);
     }
 
     selectPoint.current = { x: e.clientX, y: e.clientY };
@@ -201,13 +202,7 @@ const CardEditor = ({ pathId }) => {
       editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
-    if (
-      !isFileUploderOpen &&
-      !isContextMenuOpen &&
-      e.button !== 2 &&
-      !draggable &&
-      !e.ctrlKey
-    ) {
+    if (e.button !== 2 && !draggable) {
       editorStore.setSelectBlocks([]);
     }
 
@@ -536,19 +531,17 @@ const CardEditor = ({ pathId }) => {
       onMouseMove={windowMouseMove}
       onMouseUp={windowMouseUp}
     >
-      <ContentWrapper
-        name="content-area"
-        ref={contentRef}
-        onMouseUp={handleEditorClick}
-      >
-        {makeTree(editorStore.blocks).map((element) => (
-          <EditBranchComponent
-            key={element.uuid}
-            data={element}
-            movementSide={movementSide}
-            changeShowFileUploader={toggleFileUploader}
-          />
-        ))}
+      <ContentWrapper ref={contentRef} onMouseUp={handleEditorClick}>
+        {makeTree(editorStore.blocks).map((element) => {
+          return (
+            <EditBranchComponent
+              key={element.uuid}
+              data={element}
+              movementSide={movementSide}
+              changeShowFileUploader={toggleFileUploader}
+            />
+          );
+        })}
       </ContentWrapper>
       {isFileUploderOpen || isContextMenuOpen || draggable ? (
         <OverlayContainer

@@ -124,7 +124,7 @@ const CardEditor = ({ pathId }) => {
 
       if (hoverData && e.ctrlKey) {
         window.getSelection().removeAllRanges();
-        const blocks = document
+        const elements = document
           .elementsFromPoint(e.clientX, e.clientY)
           .filter((item) => item.getAttribute("data-uuid"))
           .map((item) => {
@@ -132,10 +132,9 @@ const CardEditor = ({ pathId }) => {
             return editorStore.findBlock(blockUuid);
           });
 
-        blocks.forEach((block) => {
-          editorStore.toggleSelectBlock(block.uuid);
-        });
-
+        if (editorStore.selectBlocks.length <= 0) {
+          editorStore.setSelectBlocks(elements);
+        }
         setIsGrabbing(true);
       }
     }

@@ -118,13 +118,16 @@ const CardEditor = ({ pathId }) => {
     );
 
     if (!isFileUploderOpen && !isContextMenuOpen) {
-      if (!hoverData) {
+      if (
+        !hoverData ||
+        (hoverData && !editorStore.selectBlocks.includes(hoverData))
+      ) {
         editorStore.setSelectBlocks([]);
       }
 
       if (hoverData && e.ctrlKey) {
         window.getSelection().removeAllRanges();
-        const blocks = document
+        const elements = document
           .elementsFromPoint(e.clientX, e.clientY)
           .filter((item) => item.getAttribute("data-uuid"))
           .map((item) => {
@@ -132,10 +135,9 @@ const CardEditor = ({ pathId }) => {
             return editorStore.findBlock(blockUuid);
           });
 
-        blocks.forEach((block) => {
-          editorStore.toggleSelectBlock(block.uuid);
-        });
-
+        if (editorStore.selectBlocks.length <= 0) {
+          editorStore.setSelectBlocks(elements);
+        }
         setIsGrabbing(true);
       }
     }
@@ -205,7 +207,7 @@ const CardEditor = ({ pathId }) => {
       !isFileUploderOpen &&
       !isContextMenuOpen &&
       e.button !== 2 &&
-      !draggable &&
+      !draggable
       !e.ctrlKey
     ) {
       editorStore.setSelectBlocks([]);

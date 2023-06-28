@@ -117,27 +117,29 @@ const CardEditor = ({ pathId }) => {
       hoverElement.current?.getAttribute("data-uuid")
     );
 
-    if (!isFileUploderOpen && !isContextMenuOpen) {
-      if (!hoverData) {
-        editorStore.setSelectBlocks([]);
-      }
+    const isContentClick = e.target.closest("[name=content-area]");
 
-      if (hoverData && e.ctrlKey) {
-        window.getSelection().removeAllRanges();
-        const blocks = document
-          .elementsFromPoint(e.clientX, e.clientY)
-          .filter((item) => item.getAttribute("data-uuid"))
-          .map((item) => {
-            const blockUuid = item.getAttribute("data-uuid");
-            return editorStore.findBlock(blockUuid);
-          });
+    if (
+      !hoverData ||
+      (hoverData && !editorStore.selectBlocks.includes(hoverData))
+    ) {
+      editorStore.setSelectBlocks([]);
+    }
 
-        blocks.forEach((block) => {
-          editorStore.toggleSelectBlock(block.uuid);
+    if (!isFileUploderOpen && !isContextMenuOpen && hoverData && e.ctrlKey) {
+      window.getSelection().removeAllRanges();
+      const elements = document
+        .elementsFromPoint(e.clientX, e.clientY)
+        .filter((item) => item.getAttribute("data-uuid"))
+        .map((item) => {
+          const blockUuid = item.getAttribute("data-uuid");
+          return editorStore.findBlock(blockUuid);
         });
 
-        setIsGrabbing(true);
+      if (editorStore.selectBlocks.length <= 0) {
+        editorStore.setSelectBlocks(elements);
       }
+      setIsGrabbing(true);
     }
 
     selectPoint.current = { x: e.clientX, y: e.clientY };
@@ -201,13 +203,7 @@ const CardEditor = ({ pathId }) => {
       editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
-    if (
-      !isFileUploderOpen &&
-      !isContextMenuOpen &&
-      e.button !== 2 &&
-      !draggable &&
-      !e.ctrlKey
-    ) {
+    if (e.button !== 2 && !draggable) {
       editorStore.setSelectBlocks([]);
     }
 

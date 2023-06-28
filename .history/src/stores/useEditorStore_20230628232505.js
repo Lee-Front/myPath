@@ -360,18 +360,5 @@ const useEditorStore = create((set, get) => ({
     }
     return newBlocks;
   },
-  toggleSelectBlock: (uuid) => {
-    const selectBlocks = get().selectBlocks;
-    const isSelected = selectBlocks.find((block) => block.uuid === uuid);
-    if (isSelected) {
-      set((state) => ({
-        ...state,
-        selectBlocks: selectBlocks.filter((block) => block.uuid !== uuid),
-      }));
-    } else {
-      const block = get().findBlock(uuid);
-      set((state) => ({ ...state, selectBlocks: [...selectBlocks, block] }));
-    }
-  },
 }));
 export default useEditorStore;

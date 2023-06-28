@@ -117,14 +117,42 @@ const CardEditor = ({ pathId }) => {
       hoverElement.current?.getAttribute("data-uuid")
     );
 
+    //const isContentClick = e.target.closest("[name=content-area]");
+
+    // if (
+    //   !hoverData ||
+    //   (hoverData && !editorStore.selectBlocks.includes(hoverData))
+    // ) {
+    //   editorStore.setSelectBlocks([]);
+    // }
+
+    // if (!isFileUploderOpen && !isContextMenuOpen && hoverData && e.ctrlKey) {
+    //   window.getSelection().removeAllRanges();
+    //   const elements = document
+    //     .elementsFromPoint(e.clientX, e.clientY)
+    //     .filter((item) => item.getAttribute("data-uuid"))
+    //     .map((item) => {
+    //       const blockUuid = item.getAttribute("data-uuid");
+    //       return editorStore.findBlock(blockUuid);
+    //     });
+
+    //   if (editorStore.selectBlocks.length <= 0) {
+    //     editorStore.setSelectBlocks(elements);
+    //   }
+    //   setIsGrabbing(true);
+    // }
+
     if (!isFileUploderOpen && !isContextMenuOpen) {
-      if (!hoverData) {
+      if (
+        !hoverData ||
+        (hoverData && !editorStore.selectBlocks.includes(hoverData))
+      ) {
         editorStore.setSelectBlocks([]);
       }
 
       if (hoverData && e.ctrlKey) {
         window.getSelection().removeAllRanges();
-        const blocks = document
+        const elements = document
           .elementsFromPoint(e.clientX, e.clientY)
           .filter((item) => item.getAttribute("data-uuid"))
           .map((item) => {
@@ -132,10 +160,9 @@ const CardEditor = ({ pathId }) => {
             return editorStore.findBlock(blockUuid);
           });
 
-        blocks.forEach((block) => {
-          editorStore.toggleSelectBlock(block.uuid);
-        });
-
+        if (editorStore.selectBlocks.length <= 0) {
+          editorStore.setSelectBlocks(elements);
+        }
         setIsGrabbing(true);
       }
     }
@@ -201,13 +228,7 @@ const CardEditor = ({ pathId }) => {
       editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
-    if (
-      !isFileUploderOpen &&
-      !isContextMenuOpen &&
-      e.button !== 2 &&
-      !draggable &&
-      !e.ctrlKey
-    ) {
+    if (e.button !== 2 && !draggable) {
       editorStore.setSelectBlocks([]);
     }
 

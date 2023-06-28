@@ -56,22 +56,20 @@ const useEditorStore = create((set, get) => ({
 
     get().saveBlocks(blocks);
   },
-  deleteBlocks: () => {
+  deleteBlocks: (blockIUuids) => {
     const blocks = get().blocks;
-    const selectBlocks = JSON.parse(JSON.stringify(get().selectBlocks)).filter(
-      (block) => block.tagName !== "multiple"
-    );
+    const selectBlocks = get().selectBlocks;
+    console.log("selectBlocks : ", selectBlocks);
     const deleteList = [];
-    selectBlocks.forEach((block) => {
-      deleteList.push(block.uuid);
-      const children = get().findChildBlocks(block.uuid);
+    blockIUuids.forEach((uuid) => {
+      deleteList.push(uuid);
+      const children = get().findChildBlocks(uuid);
       deleteList.push(...children);
     });
 
     const filteredBlocks = blocks.filter(
       (block) => !deleteList.includes(block.uuid)
     );
-    get().setSelectBlocks([]);
     const remainingElements = get().removeColumnAndRowIfEmpty(filteredBlocks);
     get().saveBlocks(remainingElements);
   },
@@ -359,19 +357,6 @@ const useEditorStore = create((set, get) => ({
       });
     }
     return newBlocks;
-  },
-  toggleSelectBlock: (uuid) => {
-    const selectBlocks = get().selectBlocks;
-    const isSelected = selectBlocks.find((block) => block.uuid === uuid);
-    if (isSelected) {
-      set((state) => ({
-        ...state,
-        selectBlocks: selectBlocks.filter((block) => block.uuid !== uuid),
-      }));
-    } else {
-      const block = get().findBlock(uuid);
-      set((state) => ({ ...state, selectBlocks: [...selectBlocks, block] }));
-    }
   },
 }));
 export default useEditorStore;
