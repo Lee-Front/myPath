@@ -41,14 +41,14 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
         });
 
         setSelection({ x, y, width, height });
+        console.log("insideElements : ", insideElements);
         if (!isEqual(editorStore.selectBlocks, insideElements)) {
-          const elementsData = insideElements.map((item) => {
+          const blockUuids = insideElements.map((item) => {
             const uuid = item.getAttribute("data-uuid");
-            const blockData = editorStore.findBlock(uuid);
 
-            return blockData;
+            return uuid;
           });
-          editorStore.setSelectBlocks(elementsData);
+          editorStore.setSelectBlocks(blockUuids);
         }
       }
     }, 30),

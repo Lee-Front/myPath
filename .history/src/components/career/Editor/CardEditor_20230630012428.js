@@ -108,6 +108,7 @@ const CardEditor = ({ pathId }) => {
     }
 
     setSelectPoint({ x: e.clientX, y: e.clientY });
+    //selectPoint.current = { x: e.clientX, y: e.clientY };
   };
 
   mouseEventRef.current.mouseMove = (e) => {
@@ -571,8 +572,7 @@ const CardEditor = ({ pathId }) => {
               popupData={getEditComponentData(popupUuid)}
             />
           )}
-          {selectPoint &&
-            findBlocksByPoint(selectPoint?.x, selectPoint?.y).length <= 0 &&
+          {findBlocksByPoint(selectPoint.x, selectPoint.y).length <= 0 &&
             !isGrabbing &&
             draggable && (
               <DraggbleSelection

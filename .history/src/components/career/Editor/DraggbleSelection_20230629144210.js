@@ -41,6 +41,7 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
         });
 
         setSelection({ x, y, width, height });
+        console.log("insideElements : ", insideElements);
         if (!isEqual(editorStore.selectBlocks, insideElements)) {
           const elementsData = insideElements.map((item) => {
             const uuid = item.getAttribute("data-uuid");

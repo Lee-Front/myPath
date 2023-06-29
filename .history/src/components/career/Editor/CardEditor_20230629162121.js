@@ -13,20 +13,23 @@ const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
   const editorStoreRef = useRef(editorStore);
   const [movementSide, setMovementSide] = useState("");
+  const [isBrowserOut, setIsBrowserOut] = useState(false);
 
   // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
   const nearElement = useRef(null);
   const hoverElement = useRef(null);
   const movementSideRef = useRef("");
+  const selectElements = useRef([]);
   const fileData = useRef(null);
+  const selectPoint = useRef(null);
   const contextMenuPoint = useRef(null);
 
   const editorRef = useRef();
   const contentRef = useRef();
   const popupRef = useRef();
 
+  const [overlayList, setOverlayList] = useState([]);
   const [isGrabbing, setIsGrabbing] = useState(false);
-  const [selectPoint, setSelectPoint] = useState(null);
   const [currentPoint, setCurrentPoint] = useState(null);
   const [popupUuid, setPopupUuid] = useState();
   const [newUuid, setNewUuid] = useState(null);
@@ -49,28 +52,49 @@ const CardEditor = ({ pathId }) => {
   useEffect(() => {
     movementSideRef.current = movementSide;
   }, [movementSide]);
-  const mouseDown = (e) => {
-    mouseEventRef.current.mouseDown(e);
-  };
-  const mouseUp = (e) => {
-    mouseEventRef.current.mouseUp(e);
-  };
-  const mouseMove = (e) => {
-    mouseEventRef.current.mouseMove(e);
-  };
+
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     editorStore.getBlocks(pathId);
 
-    window.addEventListener("mousedown", mouseDown);
-    window.addEventListener("mouseup", mouseUp);
-    window.addEventListener("mousemove", mouseMove);
+    const handleMouseEventsOnExit = (e) => {
+      const { clientX, clientY } = e;
+      const { left, right, top, bottom } =
+        editorRef.current.getBoundingClientRect();
+      const isBrowserOut =
+        clientX < left || clientX >= right || clientY < top || clientY > bottom;
+
+      if (isBrowserOut) {
+        setIsBrowserOut(true);
+      } else {
+        setIsBrowserOut(false);
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseEventsOnExit);
     return () => {
-      window.removeEventListener("mousedown", mouseDown);
-      window.removeEventListener("mouseup", mouseUp);
-      window.removeEventListener("mousemove", mouseMove);
+      window.removeEventListener("mousemove", handleMouseEventsOnExit);
     };
   }, []);
+
+  useEffect(() => {
+    const eventRef = mouseEventRef.current;
+    if (isBrowserOut) {
+      eventRef.down = windowMouseDown;
+      eventRef.move = windowMouseMove;
+      eventRef.up = windowMouseUp;
+      window.addEventListener("mousedown", eventRef.down);
+      window.addEventListener("mouseup", eventRef.up);
+      window.addEventListener("mousemove", eventRef.move);
+    } else {
+      window.removeEventListener("mousedown", eventRef.down);
+      window.removeEventListener("mouseup", eventRef.up);
+      window.removeEventListener("mousemove", eventRef.move);
+      mouseEventRef.current.down = null;
+      mouseEventRef.current.move = null;
+      mouseEventRef.current.up = null;
+    }
+  }, [isBrowserOut]);
 
   useEffect(() => {
     const newElement = Array.from(
@@ -88,7 +112,7 @@ const CardEditor = ({ pathId }) => {
   };
 
   // 마우스 이동에 따른 데이터 수정을 위한 이벤트
-  mouseEventRef.current.mouseDown = (e) => {
+  const windowMouseDown = (e) => {
     const hoverData = editorStore.findBlock(
       hoverElement.current?.getAttribute("data-uuid")
     );
@@ -107,10 +131,10 @@ const CardEditor = ({ pathId }) => {
       }
     }
 
-    setSelectPoint({ x: e.clientX, y: e.clientY });
+    selectPoint.current = { x: e.clientX, y: e.clientY };
   };
 
-  mouseEventRef.current.mouseMove = (e) => {
+  const windowMouseMove = (e) => {
     const { clientX, clientY } = e;
 
     const Contents = Array.from(
@@ -130,18 +154,26 @@ const CardEditor = ({ pathId }) => {
     }
 
     // 마우스 클릭 좌표가 있을 경우에만 드래그 확인
-    if (selectPoint) {
+    if (selectPoint.current) {
       const distance = Math.sqrt(
-        Math.pow(Math.abs(clientX - selectPoint.x), 2) +
-          Math.pow(Math.abs(clientY - selectPoint.y), 2)
+        Math.pow(Math.abs(clientX - selectPoint.current.x), 2) +
+          Math.pow(Math.abs(clientY - selectPoint.current.y), 2)
       );
 
       // 이동 거리가 5이상이어야 드래그로 인식
       if (!draggable && distance < 5) {
         return;
       }
-      setDraggable(true);
+
       setCurrentPoint({ x: clientX, y: clientY });
+      const blocks = findBlocksByPoint(
+        selectPoint.current.x,
+        selectPoint.current.y
+      );
+
+      if (blocks.length <= 0) {
+        setDraggable(true);
+      }
     }
 
     // 선택된 Element가 있을경우 드래그 이벤트
@@ -151,7 +183,7 @@ const CardEditor = ({ pathId }) => {
     }
   };
 
-  mouseEventRef.current.mouseUp = (e) => {
+  const windowMouseUp = (e) => {
     const contextMenu = e.target.closest(".contextMenu");
 
     if (hoverElement.current && !contextMenu && e.button === 2) {
@@ -168,6 +200,7 @@ const CardEditor = ({ pathId }) => {
       editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
+    //
     if (
       !isFileUploderOpen &&
       !isContextMenuOpen &&
@@ -187,8 +220,10 @@ const CardEditor = ({ pathId }) => {
       });
     }
 
-    setSelectPoint(null);
+    selectElements.current = [];
+    selectPoint.current = null;
     setIsGrabbing(false);
+    setOverlayList([]);
     setDraggable(false);
     setMovementSide(null);
   };
@@ -515,7 +550,13 @@ const CardEditor = ({ pathId }) => {
   };
 
   return (
-    <EditorContainer onContextMenu={handleEditorContextMenu} ref={editorRef}>
+    <EditorContainer
+      onContextMenu={handleEditorContextMenu}
+      // onMouseDown={windowMouseDown}
+      // onMouseMove={windowMouseMove}
+      // onMouseUp={windowMouseUp}
+      ref={editorRef}
+    >
       <ContentWrapper
         name="content-area"
         ref={contentRef}
@@ -571,15 +612,12 @@ const CardEditor = ({ pathId }) => {
               popupData={getEditComponentData(popupUuid)}
             />
           )}
-          {selectPoint &&
-            findBlocksByPoint(selectPoint?.x, selectPoint?.y).length <= 0 &&
-            !isGrabbing &&
-            draggable && (
-              <DraggbleSelection
-                startPointe={selectPoint}
-                currentPoint={currentPoint}
-              />
-            )}
+          {!isGrabbing && draggable && (
+            <DraggbleSelection
+              startPointe={selectPoint.current}
+              currentPoint={currentPoint}
+            />
+          )}
         </OverlayContainer>
       ) : null}
       {editorStore.selectBlocks.map((item) => {

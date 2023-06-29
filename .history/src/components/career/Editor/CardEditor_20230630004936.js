@@ -19,6 +19,7 @@ const CardEditor = ({ pathId }) => {
   const hoverElement = useRef(null);
   const movementSideRef = useRef("");
   const fileData = useRef(null);
+  const selectPoint = useRef(null);
   const contextMenuPoint = useRef(null);
 
   const editorRef = useRef();
@@ -26,7 +27,6 @@ const CardEditor = ({ pathId }) => {
   const popupRef = useRef();
 
   const [isGrabbing, setIsGrabbing] = useState(false);
-  const [selectPoint, setSelectPoint] = useState(null);
   const [currentPoint, setCurrentPoint] = useState(null);
   const [popupUuid, setPopupUuid] = useState();
   const [newUuid, setNewUuid] = useState(null);
@@ -107,7 +107,7 @@ const CardEditor = ({ pathId }) => {
       }
     }
 
-    setSelectPoint({ x: e.clientX, y: e.clientY });
+    selectPoint.current = { x: e.clientX, y: e.clientY };
   };
 
   mouseEventRef.current.mouseMove = (e) => {
@@ -130,10 +130,10 @@ const CardEditor = ({ pathId }) => {
     }
 
     // 마우스 클릭 좌표가 있을 경우에만 드래그 확인
-    if (selectPoint) {
+    if (selectPoint.current) {
       const distance = Math.sqrt(
-        Math.pow(Math.abs(clientX - selectPoint.x), 2) +
-          Math.pow(Math.abs(clientY - selectPoint.y), 2)
+        Math.pow(Math.abs(clientX - selectPoint.current.x), 2) +
+          Math.pow(Math.abs(clientY - selectPoint.current.y), 2)
       );
 
       // 이동 거리가 5이상이어야 드래그로 인식
@@ -187,7 +187,7 @@ const CardEditor = ({ pathId }) => {
       });
     }
 
-    setSelectPoint(null);
+    selectPoint.current = null;
     setIsGrabbing(false);
     setDraggable(false);
     setMovementSide(null);
@@ -571,12 +571,12 @@ const CardEditor = ({ pathId }) => {
               popupData={getEditComponentData(popupUuid)}
             />
           )}
-          {selectPoint &&
-            findBlocksByPoint(selectPoint?.x, selectPoint?.y).length <= 0 &&
+          {findBlocksByPoint(selectPoint.current.x, selectPoint.current.y)
+            .length <= 0 &&
             !isGrabbing &&
             draggable && (
               <DraggbleSelection
-                startPointe={selectPoint}
+                startPointe={selectPoint.current}
                 currentPoint={currentPoint}
               />
             )}

@@ -571,8 +571,7 @@ const CardEditor = ({ pathId }) => {
               popupData={getEditComponentData(popupUuid)}
             />
           )}
-          {selectPoint &&
-            findBlocksByPoint(selectPoint?.x, selectPoint?.y).length <= 0 &&
+          {findBlocksByPoint(selectPoint?.x, selectPoint?.y).length <= 0 &&
             !isGrabbing &&
             draggable && (
               <DraggbleSelection

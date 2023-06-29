@@ -18,7 +18,9 @@ const CardEditor = ({ pathId }) => {
   const nearElement = useRef(null);
   const hoverElement = useRef(null);
   const movementSideRef = useRef("");
+  const selectElements = useRef([]);
   const fileData = useRef(null);
+  const selectPoint = useRef(null);
   const contextMenuPoint = useRef(null);
 
   const editorRef = useRef();
@@ -26,7 +28,6 @@ const CardEditor = ({ pathId }) => {
   const popupRef = useRef();
 
   const [isGrabbing, setIsGrabbing] = useState(false);
-  const [selectPoint, setSelectPoint] = useState(null);
   const [currentPoint, setCurrentPoint] = useState(null);
   const [popupUuid, setPopupUuid] = useState();
   const [newUuid, setNewUuid] = useState(null);
@@ -107,7 +108,7 @@ const CardEditor = ({ pathId }) => {
       }
     }
 
-    setSelectPoint({ x: e.clientX, y: e.clientY });
+    selectPoint.current = { x: e.clientX, y: e.clientY };
   };
 
   mouseEventRef.current.mouseMove = (e) => {
@@ -130,18 +131,26 @@ const CardEditor = ({ pathId }) => {
     }
 
     // 마우스 클릭 좌표가 있을 경우에만 드래그 확인
-    if (selectPoint) {
+    if (selectPoint.current) {
       const distance = Math.sqrt(
-        Math.pow(Math.abs(clientX - selectPoint.x), 2) +
-          Math.pow(Math.abs(clientY - selectPoint.y), 2)
+        Math.pow(Math.abs(clientX - selectPoint.current.x), 2) +
+          Math.pow(Math.abs(clientY - selectPoint.current.y), 2)
       );
 
       // 이동 거리가 5이상이어야 드래그로 인식
       if (!draggable && distance < 5) {
         return;
       }
-      setDraggable(true);
+
       setCurrentPoint({ x: clientX, y: clientY });
+      const blocks = findBlocksByPoint(
+        selectPoint.current.x,
+        selectPoint.current.y
+      );
+
+      if (blocks.length <= 0) {
+        setDraggable(true);
+      }
     }
 
     // 선택된 Element가 있을경우 드래그 이벤트
@@ -186,8 +195,9 @@ const CardEditor = ({ pathId }) => {
         editorStore.toggleSelectBlock(block.uuid);
       });
     }
-
-    setSelectPoint(null);
+    console.log("up");
+    selectElements.current = [];
+    selectPoint.current = null;
     setIsGrabbing(false);
     setDraggable(false);
     setMovementSide(null);
@@ -490,6 +500,7 @@ const CardEditor = ({ pathId }) => {
   };
 
   const handleEditorClick = (e) => {
+    console.log("draggable: ", draggable);
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&
@@ -571,15 +582,12 @@ const CardEditor = ({ pathId }) => {
               popupData={getEditComponentData(popupUuid)}
             />
           )}
-          {selectPoint &&
-            findBlocksByPoint(selectPoint?.x, selectPoint?.y).length <= 0 &&
-            !isGrabbing &&
-            draggable && (
-              <DraggbleSelection
-                startPointe={selectPoint}
-                currentPoint={currentPoint}
-              />
-            )}
+          {!isGrabbing && draggable && (
+            <DraggbleSelection
+              startPointe={selectPoint.current}
+              currentPoint={currentPoint}
+            />
+          )}
         </OverlayContainer>
       ) : null}
       {editorStore.selectBlocks.map((item) => {
