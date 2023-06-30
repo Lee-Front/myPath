@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 import EditBranchComponent from "../EditBranchComponent";
 import styled from "@emotion/styled";
 
@@ -12,11 +12,8 @@ const MultipleBlock = ({
   return (
     <RowWrapper blockDirection={data?.direction}>
       {data?.multipleData.map((element, index) => (
-        <Fragment key={element?.uuid}>
-          <ColumnWrapper
-            blockWidth={element?.width}
-            columns={data?.multipleData.length}
-          >
+        <>
+          <ColumnWrapper key={element?.uuid} blockWidth={element?.width}>
             <EditBranchComponent
               key={element.uuid}
               data={element}
@@ -26,7 +23,7 @@ const MultipleBlock = ({
             />
           </ColumnWrapper>
           {index !== data?.multipleData.length - 1 && <HandleWrapper />}
-        </Fragment>
+        </>
       ))}
       {style ? <div style={style}></div> : null}
     </RowWrapper>
@@ -44,9 +41,7 @@ const RowWrapper = styled.div`
 `;
 
 const ColumnWrapper = styled.div`
-  width: ${(props) =>
-    props.blockWidth &&
-    `calc((100% - ${props.columns} * 2rem) * (${props.blockWidth}/100))`};
+  width: ${(props) => (props.blockWidth ? `${props.blockWidth}%` : `100%`)};
 `;
 
 const HandleWrapper = styled.div`

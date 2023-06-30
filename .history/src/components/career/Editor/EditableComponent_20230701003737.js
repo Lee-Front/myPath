@@ -69,7 +69,7 @@ export default EditableComponent;
 const Editable = styled.div`
   position: relative;
   outline: none;
-  flex: 1;
+  //flex: 1;
   word-break: break-all;
   white-space: pre-wrap;
 

@@ -13,11 +13,7 @@ function App() {
   // 모바일은 읽기 모드만 지원해줄 예정
 
   return (
-    <PageWrapper
-      onDragStart={(e) => {
-        e.preventDefault();
-      }}
-    >
+    <PageWrapper>
       <SideBar isSideBarOpen={isSideBarOpen} />
       <ContentWarpper isSideBarOpen={isSideBarOpen}>
         <Navigator setIsSideBarOpen={setIsSideBarOpen} />

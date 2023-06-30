@@ -43,6 +43,9 @@ const EditableComponent = ({ data }) => {
       name="editable-tag"
       contentEditable={true}
       suppressContentEditableWarning={true}
+      // onDragStart={(e) => {
+      //   e.preventDefault();
+      // }}
       placeholder={editPlaceHolder}
       onFocus={() => {
         setEditPlaceHolder("내용을 입력하세요");
@@ -69,7 +72,7 @@ export default EditableComponent;
 const Editable = styled.div`
   position: relative;
   outline: none;
-  flex: 1;
+  //flex: 1;
   word-break: break-all;
   white-space: pre-wrap;
 

@@ -120,7 +120,7 @@ const BlockContainer = styled.div`
   display: flex;
   flex: 1;
   position: relative;
-  //width: ${(props) => props?.overlayWidth + "%"};
+  width: ${(props) => props?.overlayWidth + "%"};
 
   :hover {
     background: ${(props) => props.isHoverEnabled && "rgba(55, 53, 47, 0.1)"};

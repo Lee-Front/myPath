@@ -67,9 +67,11 @@ const EditableComponent = ({ data }) => {
 export default EditableComponent;
 
 const Editable = styled.div`
+  -webkit-user-drag: auto;
+  -webkit-user-select: auto;
   position: relative;
   outline: none;
-  flex: 1;
+  //flex: 1;
   word-break: break-all;
   white-space: pre-wrap;
 

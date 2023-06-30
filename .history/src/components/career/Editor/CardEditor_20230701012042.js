@@ -89,6 +89,7 @@ const CardEditor = ({ pathId }) => {
 
   // 마우스 이동에 따른 데이터 수정을 위한 이벤트
   mouseEventRef.current.mouseDown = (e) => {
+    console.log("target : ", e.target);
     const hoverData = editorStore.findBlock(
       hoverElement.current?.getAttribute("data-uuid")
     );

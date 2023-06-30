@@ -10,12 +10,13 @@ const MultipleBlock = ({
   isOverlay,
 }) => {
   return (
-    <RowWrapper blockDirection={data?.direction}>
+    <RowWrapper blockDirection={data?.direction} direction="row">
       {data?.multipleData.map((element, index) => (
-        <Fragment key={element?.uuid}>
+        <Fragment>
           <ColumnWrapper
+            key={element?.uuid}
             blockWidth={element?.width}
-            columns={data?.multipleData.length}
+            direction="column"
           >
             <EditBranchComponent
               key={element.uuid}
@@ -44,9 +45,7 @@ const RowWrapper = styled.div`
 `;
 
 const ColumnWrapper = styled.div`
-  width: ${(props) =>
-    props.blockWidth &&
-    `calc((100% - ${props.columns} * 2rem) * (${props.blockWidth}/100))`};
+  width: ${(props) => (props.blockWidth ? `${props.blockWidth}%` : `100%`)};
 `;
 
 const HandleWrapper = styled.div`

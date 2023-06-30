@@ -10,9 +10,6 @@
 	box-sizing: border-box;
 	font-family: "SpoqaHanSansNeo";
 	white-space: nowrap;
-	user-select: none;
-	-webkit-user-drag: none;
-  -webkit-user-select: none;
 }
 
 /* HTML5 display-role reset for older browsers */
@@ -43,6 +40,8 @@ html, body,#root {
 	height: 100vh;
 }
 html{
+	
+  
   overflow: hidden;
   font-size: 62.5%;
 }
@@ -56,6 +55,13 @@ html{
 	border-bottom: 0.1rem solid;
 	border-color: rgba(55,53,47,0.4);
 }
+
+img{
+	-webkit-user-drag: none;
+  -webkit-user-select: none;
+}
+
+
 
 div::-webkit-scrollbar{
 	width: 1rem;

@@ -144,6 +144,12 @@ const CardEditor = ({ pathId }) => {
       setCurrentPoint({ x: clientX, y: clientY });
     }
 
+    console.log("draggable : ", draggable);
+    if (!draggable) {
+      console.log("?");
+      window.getSelection().removeRange();
+    }
+
     // 선택된 Element가 있을경우 드래그 이벤트
     if (isGrabbing && editorStore.selectBlocks.length > 0) {
       window.getSelection().removeAllRanges();

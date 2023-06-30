@@ -104,13 +104,15 @@ const EditBranchComponent = ({
   };
 
   return (
-    <BlockContainer
-      data-uuid={!isOverlay ? data.uuid : null}
-      tagName={data?.tagName}
-      isHoverEnabled={!isOverlay && data?.tagName !== "multiple"}
-    >
-      {BranchTab()}
-    </BlockContainer>
+    <>
+      <div>ㅁ</div>
+      <BlockContainer
+        data-uuid={!isOverlay ? data.uuid : null}
+        isHoverEnabled={!isOverlay && data?.tagName !== "multiple"}
+      >
+        {BranchTab()}
+      </BlockContainer>
+    </>
   );
 };
 
@@ -118,10 +120,8 @@ export default EditBranchComponent;
 
 const BlockContainer = styled.div`
   display: flex;
-  flex: 1;
   position: relative;
-  //width: ${(props) => props?.overlayWidth + "%"};
-
+  width: ${(props) => props?.overlayWidth + "%"};
   :hover {
     background: ${(props) => props.isHoverEnabled && "rgba(55, 53, 47, 0.1)"};
   }

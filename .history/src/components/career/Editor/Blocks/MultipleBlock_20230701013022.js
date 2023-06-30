@@ -13,18 +13,13 @@ const MultipleBlock = ({
     <RowWrapper blockDirection={data?.direction}>
       {data?.multipleData.map((element, index) => (
         <Fragment key={element?.uuid}>
-          <ColumnWrapper
-            blockWidth={element?.width}
-            columns={data?.multipleData.length}
-          >
-            <EditBranchComponent
-              key={element.uuid}
-              data={element}
-              movementSide={movementSide}
-              changeShowFileUploader={changeShowFileUploader}
-              isOverlay={isOverlay}
-            />
-          </ColumnWrapper>
+          <EditBranchComponent
+            key={element.uuid}
+            data={element}
+            movementSide={movementSide}
+            changeShowFileUploader={changeShowFileUploader}
+            isOverlay={isOverlay}
+          />
           {index !== data?.multipleData.length - 1 && <HandleWrapper />}
         </Fragment>
       ))}
@@ -38,15 +33,16 @@ export default MultipleBlock;
 const RowWrapper = styled.div`
   position: relative;
   display: flex;
+  display: -webkit-box;
   flex-direction: ${(props) => props.blockDirection};
   flex: 1;
   padding: 0.2rem 0;
 `;
 
 const ColumnWrapper = styled.div`
-  width: ${(props) =>
-    props.blockWidth &&
-    `calc((100% - ${props.columns} * 2rem) * (${props.blockWidth}/100))`};
+  display: flex;
+  flex-direction: column;
+  width: ${(props) => (props.blockWidth ? `${props.blockWidth}%` : `100%`)};
 `;
 
 const HandleWrapper = styled.div`
