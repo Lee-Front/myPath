@@ -109,6 +109,7 @@ const EditBranchComponent = ({
       tagName={data?.tagName}
       isHoverEnabled={!isOverlay && data?.tagName !== "multiple"}
     >
+      <div>a</div>
       {BranchTab()}
     </BlockContainer>
   );
@@ -120,7 +121,6 @@ const BlockContainer = styled.div`
   display: flex;
   flex: 1;
   position: relative;
-  margin: ${(props) => props?.tagName !== "multiple" && "0.2rem"};
   //width: ${(props) => props?.overlayWidth + "%"};
 
   :hover {

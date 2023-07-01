@@ -17,6 +17,7 @@ const MultipleBlock = ({
             blockWidth={element?.width}
             columns={data?.multipleData.length}
           >
+            {index !== data?.multipleData.length - 1 && <HandleWrapper />}
             <EditBranchComponent
               key={element.uuid}
               data={element}
@@ -25,7 +26,6 @@ const MultipleBlock = ({
               isOverlay={isOverlay}
             />
           </ColumnWrapper>
-          {index !== data?.multipleData.length - 1 && <HandleWrapper />}
         </Fragment>
       ))}
       {style ? <div style={style}></div> : null}
@@ -40,7 +40,7 @@ const RowWrapper = styled.div`
   display: flex;
   flex-direction: ${(props) => props.blockDirection};
   flex: 1;
-  margin: 0.2rem 0;
+  padding: 0.2rem 0;
 `;
 
 const ColumnWrapper = styled.div`

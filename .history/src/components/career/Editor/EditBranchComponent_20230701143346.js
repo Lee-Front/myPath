@@ -120,7 +120,8 @@ const BlockContainer = styled.div`
   display: flex;
   flex: 1;
   position: relative;
-  margin: ${(props) => props?.tagName !== "multiple" && "0.2rem"};
+  padding-left: ${(props) => props?.tagName !== "multiple" && "1.5rem"}
+  
   //width: ${(props) => props?.overlayWidth + "%"};
 
   :hover {

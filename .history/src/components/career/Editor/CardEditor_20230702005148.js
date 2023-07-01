@@ -666,7 +666,7 @@ const BlockHandleContainer = styled.div`
 
 const BlockHandle = styled.div`
   position: absolute;
-  left: -1.4rem;
+  left: -1.3rem;
   top: 0;
   width: 1.2rem;
   height: 2rem;

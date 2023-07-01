@@ -25,7 +25,7 @@ const MultipleBlock = ({
               isOverlay={isOverlay}
             />
           </ColumnWrapper>
-          {index !== data?.multipleData.length - 1 && <HandleWrapper />}
+          {/* {index !== data?.multipleData.length - 1 && <HandleWrapper />} */}
         </Fragment>
       ))}
       {style ? <div style={style}></div> : null}
@@ -40,13 +40,16 @@ const RowWrapper = styled.div`
   display: flex;
   flex-direction: ${(props) => props.blockDirection};
   flex: 1;
-  margin: 0.2rem 0;
+  padding: 0.2rem 0;
 `;
 
 const ColumnWrapper = styled.div`
-  width: ${(props) =>
+  width: ${(props) => props.blockWidth};
+  /* width: ${(props) =>
     props.blockWidth &&
-    `calc((100% - ${props.columns - 1} * 2rem) * (${props.blockWidth}/100))`};
+    `calc((100% - ${props.columns - 1} * 2rem) * (${
+      props.blockWidth
+    }/100))`}; */
 `;
 
 const HandleWrapper = styled.div`

@@ -8,7 +8,6 @@ import ContextMenuPopup from "./Popup/ContextMenuPopup";
 import useEditorStore from "../../../stores/useEditorStore";
 import DraggbleSelection from "./DraggbleSelection";
 import { createPortal } from "react-dom";
-import { find } from "lodash";
 
 const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
@@ -125,11 +124,12 @@ const CardEditor = ({ pathId }) => {
     });
 
     if (Contents.length > 0) {
-      const { nearBlock, hoverBlock } = findElementsByPoint(
+      const { nearBlock, hoverBlock } = findNearElementByPointer(
         filteredContents,
         clientX,
         clientY
       );
+      console.log({ nearBlock, hoverBlock });
     } else if (nearElement.current || hoverElement.current) {
       nearElement.current = null;
       hoverElement.current = null;
@@ -236,7 +236,7 @@ const CardEditor = ({ pathId }) => {
     return copyList.filter((node) => !node.parentId);
   };
 
-  const findElementByAxis = (elements, pos, axis) => {
+  const findClosestElementByAxis = (elements, pos, axis) => {
     if (!elements || elements.length === 0) {
       nearElement.current = null;
       hoverElement.current = null;
@@ -246,13 +246,16 @@ const CardEditor = ({ pathId }) => {
     let hoverEl = null;
 
     const rectProp = axis === "x" ? "left" : "top";
-    const sizeProp = axis === "x" ? "right" : "bottom";
+    const sizeProp = axis === "x" ? "width" : "height";
 
     const nearEl = elements.reduce((prev, curr) => {
       const prevRect = prev.getBoundingClientRect();
       const currRect = curr.getBoundingClientRect();
 
-      if (currRect[rectProp] <= pos && pos <= currRect[sizeProp]) {
+      if (
+        currRect[rectProp] <= pos &&
+        pos <= currRect[rectProp] + currRect[sizeProp]
+      ) {
         hoverEl = curr;
         return curr;
       }
@@ -266,43 +269,33 @@ const CardEditor = ({ pathId }) => {
     return { nearEl, hoverEl };
   };
 
-  const findElementsByPoint = (Contents, x, y) => {
+  const findNearElementByPointer = (Contents, x, y) => {
     let hoverBlock = null;
     let nearBlock = null;
     if (Contents.length > 0) {
-      const equalYElements = Contents.filter((element) => {
-        const { top, bottom } = element.getBoundingClientRect();
-        return top <= y && y <= bottom;
+      const equalXElements = Contents.filter((element) => {
+        const { left, right } = element.getBoundingClientRect();
+        return left <= x && x <= right;
       });
 
-      const xAxisResults = findElementByAxis(equalYElements, x, "x");
-      const nearRect = xAxisResults?.nearEl?.getBoundingClientRect();
-      const minDistance = nearRect
-        ? Math.min(Math.abs(nearRect?.left - x), Math.abs(nearRect?.right - x))
-        : null;
+      const closestDataByY = findClosestElementByAxis(equalXElements, y, "y");
 
-      if (xAxisResults?.hoverEl || (minDistance && minDistance < 25)) {
-        setHandlePosition({ x: nearRect.x, y: nearRect.y });
-      } else {
-        //setHandlePosition(null);
-      }
-
-      if (!xAxisResults?.nearEl) {
-        const equalXElements = Contents.filter((element) => {
-          const { left, right } = element.getBoundingClientRect();
-          return left <= x && x <= right;
+      if (!closestDataByY?.nearEl) {
+        const equalYElements = Contents.filter((element) => {
+          const { top, bottom } = element.getBoundingClientRect();
+          return top <= y && y <= bottom;
         });
-        const yAxisResults = findElementByAxis(equalXElements, y, "y");
 
-        nearElement.current = yAxisResults?.nearEl;
-        hoverElement.current = yAxisResults?.hoverEl;
-        nearBlock = yAxisResults?.nearEl;
-        hoverBlock = yAxisResults?.hoverEl;
+        const closestDataByX = findClosestElementByAxis(equalYElements, x, "x");
+        nearElement.current = closestDataByX?.nearEl;
+        hoverElement.current = closestDataByX?.hoverEl;
+        nearBlock = closestDataByX?.nearEl;
+        hoverBlock = closestDataByX?.hoverEl;
       } else {
-        nearElement.current = xAxisResults?.nearEl;
-        hoverElement.current = xAxisResults?.hoverEl;
-        nearBlock = xAxisResults?.nearEl;
-        hoverBlock = xAxisResults?.hoverEl;
+        nearElement.current = closestDataByY?.nearEl;
+        hoverElement.current = closestDataByY?.hoverEl;
+        nearBlock = closestDataByY?.nearEl;
+        hoverBlock = closestDataByY?.hoverEl;
       }
     }
     return { nearBlock, hoverBlock };
@@ -607,11 +600,7 @@ const CardEditor = ({ pathId }) => {
         const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
         return createPortal(<SelectionHalo />, element);
       })}
-      {handlePosition && (
-        <BlockHandleContainer handlePosition={handlePosition}>
-          <BlockHandle />
-        </BlockHandleContainer>
-      )}
+      {handlePosition && <BlockHandle handlePosition={handlePosition} />}
     </EditorContainer>
   );
 };
@@ -658,16 +647,10 @@ const SelectionHalo = styled.div`
   z-index: -1;
 `;
 
-const BlockHandleContainer = styled.div`
+const BlockHandle = styled.div`
   position: absolute;
   left: ${(props) => props.handlePosition?.x + "px"};
   top: ${(props) => props.handlePosition?.y + "px"};
-`;
-
-const BlockHandle = styled.div`
-  position: absolute;
-  left: -1.4rem;
-  top: 0;
   width: 1.2rem;
   height: 2rem;
   background: #000;

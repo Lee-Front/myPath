@@ -662,13 +662,9 @@ const BlockHandleContainer = styled.div`
   position: absolute;
   left: ${(props) => props.handlePosition?.x + "px"};
   top: ${(props) => props.handlePosition?.y + "px"};
-`;
-
-const BlockHandle = styled.div`
-  position: absolute;
-  left: -1.4rem;
-  top: 0;
   width: 1.2rem;
   height: 2rem;
   background: #000;
 `;
+
+const BlockHandle = styled.div``;

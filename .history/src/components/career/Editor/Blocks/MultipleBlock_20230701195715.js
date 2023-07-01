@@ -24,8 +24,9 @@ const MultipleBlock = ({
               changeShowFileUploader={changeShowFileUploader}
               isOverlay={isOverlay}
             />
+            {index !== data?.multipleData.length - 1}
+            {index !== data?.multipleData.length - 1 && <HandleWrapper />}
           </ColumnWrapper>
-          {index !== data?.multipleData.length - 1 && <HandleWrapper />}
         </Fragment>
       ))}
       {style ? <div style={style}></div> : null}
@@ -40,7 +41,7 @@ const RowWrapper = styled.div`
   display: flex;
   flex-direction: ${(props) => props.blockDirection};
   flex: 1;
-  margin: 0.2rem 0;
+  padding: 0.2rem 0;
 `;
 
 const ColumnWrapper = styled.div`

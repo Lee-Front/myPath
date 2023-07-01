@@ -8,7 +8,6 @@ import ContextMenuPopup from "./Popup/ContextMenuPopup";
 import useEditorStore from "../../../stores/useEditorStore";
 import DraggbleSelection from "./DraggbleSelection";
 import { createPortal } from "react-dom";
-import { find } from "lodash";
 
 const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
@@ -34,7 +33,9 @@ const CardEditor = ({ pathId }) => {
   const [draggable, setDraggable] = useState(false);
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
-  const [handlePosition, setHandlePosition] = useState(null);
+
+  const [hoverBlock, setHoverBlock] = useState(null);
+  const [nearBlock, setNearBlock] = useState(null);
 
   const mouseEventRef = useRef({ down: null, move: null, up: null });
 
@@ -125,14 +126,12 @@ const CardEditor = ({ pathId }) => {
     });
 
     if (Contents.length > 0) {
-      const { nearBlock, hoverBlock } = findElementsByPoint(
-        filteredContents,
-        clientX,
-        clientY
-      );
+      findNearElementByPointer(filteredContents, clientX, clientY);
     } else if (nearElement.current || hoverElement.current) {
       nearElement.current = null;
       hoverElement.current = null;
+      setHoverBlock(null);
+      setNearBlock(null);
     }
 
     // 마우스 클릭 좌표가 있을 경우에만 드래그 확인
@@ -236,23 +235,28 @@ const CardEditor = ({ pathId }) => {
     return copyList.filter((node) => !node.parentId);
   };
 
-  const findElementByAxis = (elements, pos, axis) => {
+  const findClosestElementByAxis = (elements, pos, axis) => {
     if (!elements || elements.length === 0) {
       nearElement.current = null;
       hoverElement.current = null;
+      setHoverBlock(null);
+      setNearBlock(null);
       return;
     }
 
     let hoverEl = null;
 
     const rectProp = axis === "x" ? "left" : "top";
-    const sizeProp = axis === "x" ? "right" : "bottom";
+    const sizeProp = axis === "x" ? "width" : "height";
 
     const nearEl = elements.reduce((prev, curr) => {
       const prevRect = prev.getBoundingClientRect();
       const currRect = curr.getBoundingClientRect();
 
-      if (currRect[rectProp] <= pos && pos <= currRect[sizeProp]) {
+      if (
+        currRect[rectProp] <= pos &&
+        pos <= currRect[rectProp] + currRect[sizeProp]
+      ) {
         hoverEl = curr;
         return curr;
       }
@@ -266,46 +270,33 @@ const CardEditor = ({ pathId }) => {
     return { nearEl, hoverEl };
   };
 
-  const findElementsByPoint = (Contents, x, y) => {
-    let hoverBlock = null;
-    let nearBlock = null;
+  const findNearElementByPointer = (Contents, x, y) => {
     if (Contents.length > 0) {
-      const equalYElements = Contents.filter((element) => {
-        const { top, bottom } = element.getBoundingClientRect();
-        return top <= y && y <= bottom;
+      const equalXElements = Contents.filter((element) => {
+        const { left, right } = element.getBoundingClientRect();
+        return left <= x && x <= right;
       });
 
-      const xAxisResults = findElementByAxis(equalYElements, x, "x");
-      const nearRect = xAxisResults?.nearEl?.getBoundingClientRect();
-      const minDistance = nearRect
-        ? Math.min(Math.abs(nearRect?.left - x), Math.abs(nearRect?.right - x))
-        : null;
+      const closestDataByY = findClosestElementByAxis(equalXElements, y, "y");
 
-      if (xAxisResults?.hoverEl || (minDistance && minDistance < 25)) {
-        setHandlePosition({ x: nearRect.x, y: nearRect.y });
-      } else {
-        //setHandlePosition(null);
-      }
-
-      if (!xAxisResults?.nearEl) {
-        const equalXElements = Contents.filter((element) => {
-          const { left, right } = element.getBoundingClientRect();
-          return left <= x && x <= right;
+      if (!closestDataByY?.nearEl) {
+        const equalYElements = Contents.filter((element) => {
+          const { top, bottom } = element.getBoundingClientRect();
+          return top <= y && y <= bottom;
         });
-        const yAxisResults = findElementByAxis(equalXElements, y, "y");
 
-        nearElement.current = yAxisResults?.nearEl;
-        hoverElement.current = yAxisResults?.hoverEl;
-        nearBlock = yAxisResults?.nearEl;
-        hoverBlock = yAxisResults?.hoverEl;
+        const closestDataByX = findClosestElementByAxis(equalYElements, x, "x");
+        nearElement.current = closestDataByX?.nearEl;
+        hoverElement.current = closestDataByX?.hoverEl;
+        setHoverBlock(closestDataByX?.hoverEl);
+        setNearBlock(closestDataByX?.nearEl);
       } else {
-        nearElement.current = xAxisResults?.nearEl;
-        hoverElement.current = xAxisResults?.hoverEl;
-        nearBlock = xAxisResults?.nearEl;
-        hoverBlock = xAxisResults?.hoverEl;
+        nearElement.current = closestDataByY?.nearEl;
+        hoverElement.current = closestDataByY?.hoverEl;
+        setHoverBlock(closestDataByY?.hoverEl);
+        setNearBlock(closestDataByY?.nearEl);
       }
     }
-    return { nearBlock, hoverBlock };
   };
 
   const decideMovementSide = (x1, y1) => {
@@ -607,11 +598,8 @@ const CardEditor = ({ pathId }) => {
         const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
         return createPortal(<SelectionHalo />, element);
       })}
-      {handlePosition && (
-        <BlockHandleContainer handlePosition={handlePosition}>
-          <BlockHandle />
-        </BlockHandleContainer>
-      )}
+      {hoverElement.current &&
+        createPortal(<BlockHandle />, hoverElement.current)}
     </EditorContainer>
   );
 };
@@ -650,23 +638,17 @@ const OverlayWrapper = styled.div`
 
 const SelectionHalo = styled.div`
   position: absolute;
-  width: 100%;
+  width: calc(100% - 1.5rem);
   height: 100%;
   top: 0;
-  left: 0;
+  left: 1.5rem;
   background: rgba(35, 131, 226, 0.14);
   z-index: -1;
 `;
 
-const BlockHandleContainer = styled.div`
-  position: absolute;
-  left: ${(props) => props.handlePosition?.x + "px"};
-  top: ${(props) => props.handlePosition?.y + "px"};
-`;
-
 const BlockHandle = styled.div`
   position: absolute;
-  left: -1.4rem;
+  left: 0.1rem;
   top: 0;
   width: 1.2rem;
   height: 2rem;

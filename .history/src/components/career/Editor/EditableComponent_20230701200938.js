@@ -72,7 +72,7 @@ const Editable = styled.div`
   flex: 1;
   word-break: break-all;
   white-space: pre-wrap;
-  //padding: 0.2rem;
+  padding: 0.2rem;
 
   font-size: ${(props) =>
     props?.styleData["font-size"] ? props?.styleData["font-size"] : "1.6rem"};

@@ -277,14 +277,14 @@ const CardEditor = ({ pathId }) => {
 
       const xAxisResults = findElementByAxis(equalYElements, x, "x");
       const nearRect = xAxisResults?.nearEl?.getBoundingClientRect();
-      const minDistance = nearRect
-        ? Math.min(Math.abs(nearRect?.left - x), Math.abs(nearRect?.right - x))
-        : null;
+      const minDistance = nearRect ? Math.min(
+        Math.abs(nearRect?.left - x),
+        Math.abs(nearRect?.right - x) : null
+      );
 
-      if (xAxisResults?.hoverEl || (minDistance && minDistance < 25)) {
+      console.log("minDistance: ", minDistance);
+      if (xAxisResults?.hoverEl || minDistance < 10) {
         setHandlePosition({ x: nearRect.x, y: nearRect.y });
-      } else {
-        //setHandlePosition(null);
       }
 
       if (!xAxisResults?.nearEl) {
@@ -607,11 +607,7 @@ const CardEditor = ({ pathId }) => {
         const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
         return createPortal(<SelectionHalo />, element);
       })}
-      {handlePosition && (
-        <BlockHandleContainer handlePosition={handlePosition}>
-          <BlockHandle />
-        </BlockHandleContainer>
-      )}
+      {handlePosition && <BlockHandle handlePosition={handlePosition} />}
     </EditorContainer>
   );
 };
@@ -658,16 +654,10 @@ const SelectionHalo = styled.div`
   z-index: -1;
 `;
 
-const BlockHandleContainer = styled.div`
+const BlockHandle = styled.div`
   position: absolute;
   left: ${(props) => props.handlePosition?.x + "px"};
   top: ${(props) => props.handlePosition?.y + "px"};
-`;
-
-const BlockHandle = styled.div`
-  position: absolute;
-  left: -1.4rem;
-  top: 0;
   width: 1.2rem;
   height: 2rem;
   background: #000;

@@ -40,7 +40,6 @@ const RowWrapper = styled.div`
   display: flex;
   flex-direction: ${(props) => props.blockDirection};
   flex: 1;
-  margin: 0.2rem 0;
 `;
 
 const ColumnWrapper = styled.div`
