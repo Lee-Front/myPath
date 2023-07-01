@@ -104,14 +104,12 @@ const CardEditor = ({ pathId }) => {
 
       const isHandle = e.target.closest("[name=block-handle]");
 
+      console.log("handleBlockData: ", handleBlockData);
+
       if (isHandle) {
+        console.log(getTopParentData(handleBlockData));
         if (!isSelected) {
-          const block = document.querySelector(
-            `[data-uuid="${handleBlockData.uuid}"]`
-          );
-          const { x, y } = block.getBoundingClientRect();
-          const handleBlocks = findBlocksByPoint(x, y);
-          editorStore.setSelectBlocks(handleBlocks);
+          editorStore.setSelectBlocks([handleBlockData]);
         }
         window.getSelection().removeAllRanges();
         setIsGrabbing(true);
@@ -617,7 +615,6 @@ const CardEditor = ({ pathId }) => {
       ) : null}
       {editorStore.selectBlocks.map((item) => {
         if (item.tagName === "multiple") return null;
-        console.log("item : ", item);
         const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
         return createPortal(<SelectionHalo />, element);
       })}

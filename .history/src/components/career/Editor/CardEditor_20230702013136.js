@@ -104,14 +104,15 @@ const CardEditor = ({ pathId }) => {
 
       const isHandle = e.target.closest("[name=block-handle]");
 
+      console.log("handleBlockData: ", handleBlockData);
+
       if (isHandle) {
+        let test = null;
+        if (handleBlockData.parentId) {
+          test = getTopParentData(handleBlockData);
+        }
         if (!isSelected) {
-          const block = document.querySelector(
-            `[data-uuid="${handleBlockData.uuid}"]`
-          );
-          const { x, y } = block.getBoundingClientRect();
-          const handleBlocks = findBlocksByPoint(x, y);
-          editorStore.setSelectBlocks(handleBlocks);
+          editorStore.setSelectBlocks([handleBlockData]);
         }
         window.getSelection().removeAllRanges();
         setIsGrabbing(true);
@@ -617,7 +618,6 @@ const CardEditor = ({ pathId }) => {
       ) : null}
       {editorStore.selectBlocks.map((item) => {
         if (item.tagName === "multiple") return null;
-        console.log("item : ", item);
         const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
         return createPortal(<SelectionHalo />, element);
       })}
@@ -647,7 +647,7 @@ const ContentWrapper = styled.div`
   flex: 1;
   flex-direction: column;
   margin: 1rem 0 10rem 0;
-  z-index: 2;
+  z-index: 998;
 `;
 const OverlayContainer = styled.div`
   position: absolute;
@@ -679,7 +679,6 @@ const BlockHandleContainer = styled.div`
   position: absolute;
   left: ${(props) => props.handlePosition?.x + "px"};
   top: ${(props) => props.handlePosition?.y + "px"};
-  z-index: 3;
 `;
 
 const BlockHandle = styled.div`
@@ -689,5 +688,4 @@ const BlockHandle = styled.div`
   width: 1.2rem;
   height: 2rem;
   background: #000;
-  z-index: 3;
 `;

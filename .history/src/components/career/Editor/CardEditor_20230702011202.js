@@ -91,28 +91,23 @@ const CardEditor = ({ pathId }) => {
 
   // 마우스 이동에 따른 데이터 수정을 위한 이벤트
   mouseEventRef.current.mouseDown = (e) => {
-    const handleBlockData = editorStore.findBlock(handleBlock?.uuid);
+    const hoverData = editorStore.findBlock(
+      hoverElement.current?.getAttribute("data-uuid")
+    );
 
     if (!isFileUploderOpen && !isContextMenuOpen) {
-      if (!handleBlockData) {
+      if (!hoverData) {
         editorStore.setSelectBlocks([]);
       }
 
       const isSelected = editorStore.selectBlocks.find(
-        (block) => block.uuid === handleBlockData?.uuid
+        (block) => block.uuid === hoverData?.uuid
       );
 
       const isHandle = e.target.closest("[name=block-handle]");
+      console.log("isHandle: ", isHandle);
 
-      if (isHandle) {
-        if (!isSelected) {
-          const block = document.querySelector(
-            `[data-uuid="${handleBlockData.uuid}"]`
-          );
-          const { x, y } = block.getBoundingClientRect();
-          const handleBlocks = findBlocksByPoint(x, y);
-          editorStore.setSelectBlocks(handleBlocks);
-        }
+      if (hoverData && e.ctrlKey && isSelected) {
         window.getSelection().removeAllRanges();
         setIsGrabbing(true);
       }
@@ -617,7 +612,6 @@ const CardEditor = ({ pathId }) => {
       ) : null}
       {editorStore.selectBlocks.map((item) => {
         if (item.tagName === "multiple") return null;
-        console.log("item : ", item);
         const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
         return createPortal(<SelectionHalo />, element);
       })}
@@ -647,7 +641,7 @@ const ContentWrapper = styled.div`
   flex: 1;
   flex-direction: column;
   margin: 1rem 0 10rem 0;
-  z-index: 2;
+  z-index: 998;
 `;
 const OverlayContainer = styled.div`
   position: absolute;
@@ -679,7 +673,6 @@ const BlockHandleContainer = styled.div`
   position: absolute;
   left: ${(props) => props.handlePosition?.x + "px"};
   top: ${(props) => props.handlePosition?.y + "px"};
-  z-index: 3;
 `;
 
 const BlockHandle = styled.div`
@@ -689,5 +682,4 @@ const BlockHandle = styled.div`
   width: 1.2rem;
   height: 2rem;
   background: #000;
-  z-index: 3;
 `;

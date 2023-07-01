@@ -104,6 +104,8 @@ const CardEditor = ({ pathId }) => {
 
       const isHandle = e.target.closest("[name=block-handle]");
 
+      console.log("handleBlockData: ", handleBlockData);
+
       if (isHandle) {
         if (!isSelected) {
           const block = document.querySelector(
