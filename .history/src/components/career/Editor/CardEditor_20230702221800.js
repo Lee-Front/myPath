@@ -29,13 +29,11 @@ const CardEditor = ({ pathId }) => {
   const [selectPoint, setSelectPoint] = useState(null);
   const [currentPoint, setCurrentPoint] = useState(null);
   const [popupUuid, setPopupUuid] = useState();
-  const [draggable, setDraggable] = useState(false);
-  const [handleBlock, setHandleBlock] = useState(null);
-
   const [newUuid, setNewUuid] = useState(null);
-
+  const [draggable, setDraggable] = useState(false);
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
+  const [handleBlock, setHandleBlock] = useState(null);
 
   const mouseEventRef = useRef({ down: null, move: null, up: null });
 
@@ -291,11 +289,7 @@ const CardEditor = ({ pathId }) => {
         ? Math.min(Math.abs(nearRect?.left - x), Math.abs(nearRect?.right - x))
         : null;
 
-      if (
-        !isContextMenuOpen &&
-        !isFileUploderOpen &&
-        (xAxisResults?.hoverEl || (minDistance && minDistance < 25))
-      ) {
+      if (xAxisResults?.hoverEl || (minDistance && minDistance < 25)) {
         const blockUuid = xAxisResults?.nearEl.getAttribute("data-uuid");
         setHandleBlock({
           uuid: blockUuid,
@@ -686,7 +680,6 @@ const BlockHandleContainer = styled.div`
   top: ${(props) => props.handlePosition?.y + "px"};
   z-index: 3;
 `;
-
 const fadIn = keyframes`
   from {
     opacity: 0;

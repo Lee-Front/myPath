@@ -120,12 +120,13 @@ const useEditorStore = create((set, get) => ({
     const selectBlocks = get().selectBlocks;
 
     const updatedBlocks = cloneDeep(blocks).map((block) => {
-      const findBlock = selectBlocks.find((x) => x.uuid === block.uuid);
-      if (findBlock) {
+      if (selectBlocks.includes(block)) {
+        console.log("include");
         block.style = { ...block.style, ...style };
       }
       return block;
     });
+    console.log("blocks: ", blocks);
 
     set((state) => ({ ...state, blocks: updatedBlocks }));
   },

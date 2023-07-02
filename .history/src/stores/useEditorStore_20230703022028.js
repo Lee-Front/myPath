@@ -116,12 +116,16 @@ const useEditorStore = create((set, get) => ({
     await axios.post("/api/editor", modifyList);
   },
   changeBlockStyle: (blockId, style) => {
+    const arr = [{ id: 1 }, { id: 2 }, { id: 3 }];
+    const obj = { id: 2 };
+    const result = arr.includes(obj);
+    console.log(result); // true
     const blocks = get().blocks;
     const selectBlocks = get().selectBlocks;
-
+    console.log("selectBlocks: ", selectBlocks);
     const updatedBlocks = cloneDeep(blocks).map((block) => {
-      const findBlock = selectBlocks.find((x) => x.uuid === block.uuid);
-      if (findBlock) {
+      console.log("block : ", block);
+      if (selectBlocks.includes(block)) {
         block.style = { ...block.style, ...style };
       }
       return block;

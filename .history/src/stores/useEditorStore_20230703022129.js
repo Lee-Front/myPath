@@ -118,7 +118,7 @@ const useEditorStore = create((set, get) => ({
   changeBlockStyle: (blockId, style) => {
     const blocks = get().blocks;
     const selectBlocks = get().selectBlocks;
-
+    console.log("selectBlocks: ", selectBlocks);
     const updatedBlocks = cloneDeep(blocks).map((block) => {
       const findBlock = selectBlocks.find((x) => x.uuid === block.uuid);
       if (findBlock) {

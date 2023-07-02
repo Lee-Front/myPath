@@ -1,7 +1,6 @@
 import axios from "axios";
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import { cloneDeep } from "lodash";
 
 const useEditorStore = create((set, get) => ({
   pathId: null,
@@ -117,17 +116,15 @@ const useEditorStore = create((set, get) => ({
   },
   changeBlockStyle: (blockId, style) => {
     const blocks = get().blocks;
+    const test = { ...blocks };
+    test.map((item) => (item.html = "aaaa"));
+    console.log("blocks : ", blocks);
     const selectBlocks = get().selectBlocks;
 
-    const updatedBlocks = cloneDeep(blocks).map((block) => {
-      const findBlock = selectBlocks.find((x) => x.uuid === block.uuid);
-      if (findBlock) {
-        block.style = { ...block.style, ...style };
-      }
-      return block;
+    selectBlocks.forEach((block) => {
+      block.style = { ...block?.style, ...style };
     });
-
-    set((state) => ({ ...state, blocks: updatedBlocks }));
+    set((state) => ({ ...state, blocks }));
   },
   findBlock: (blockUuid) => {
     const blocks = get().blocks;

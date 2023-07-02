@@ -172,7 +172,8 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     await axios.post("/api/editor/style", {
       uuid: blockUuid,
       uuids: uuids,
-      style: style,
+      style:style,
+      ,
     });
   };
 

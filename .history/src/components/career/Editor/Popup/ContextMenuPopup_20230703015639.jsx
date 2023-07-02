@@ -45,6 +45,7 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
       const commonStyles = getCommonAttributes(nodesStyle);
       styleData = Object.assign(styleData, commonStyles);
     } else {
+      console.log("a");
       styleData = Object.assign(styleData, popupData?.style);
     }
 
@@ -167,12 +168,9 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
       ...style,
     });
 
-    const uuids = editorStore.selectBlocks.map((block) => block.uuid);
-
     await axios.post("/api/editor/style", {
       uuid: blockUuid,
-      uuids: uuids,
-      style: style,
+      ...style,
     });
   };
 

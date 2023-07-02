@@ -7,7 +7,6 @@ import PopupMenu from "./Popup/PopupMenu";
 import ContextMenuPopup from "./Popup/ContextMenuPopup";
 import useEditorStore from "../../../stores/useEditorStore";
 import DraggbleSelection from "./DraggbleSelection";
-import { keyframes } from "@emotion/react";
 
 const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
@@ -29,13 +28,11 @@ const CardEditor = ({ pathId }) => {
   const [selectPoint, setSelectPoint] = useState(null);
   const [currentPoint, setCurrentPoint] = useState(null);
   const [popupUuid, setPopupUuid] = useState();
-  const [draggable, setDraggable] = useState(false);
-  const [handleBlock, setHandleBlock] = useState(null);
-
   const [newUuid, setNewUuid] = useState(null);
-
+  const [draggable, setDraggable] = useState(false);
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
+  const [handleBlock, setHandleBlock] = useState(null);
 
   const mouseEventRef = useRef({ down: null, move: null, up: null });
 
@@ -291,11 +288,7 @@ const CardEditor = ({ pathId }) => {
         ? Math.min(Math.abs(nearRect?.left - x), Math.abs(nearRect?.right - x))
         : null;
 
-      if (
-        !isContextMenuOpen &&
-        !isFileUploderOpen &&
-        (xAxisResults?.hoverEl || (minDistance && minDistance < 25))
-      ) {
+      if (xAxisResults?.hoverEl || (minDistance && minDistance < 25)) {
         const blockUuid = xAxisResults?.nearEl.getAttribute("data-uuid");
         setHandleBlock({
           uuid: blockUuid,
@@ -625,13 +618,12 @@ const CardEditor = ({ pathId }) => {
         const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
         return createPortal(<SelectionHalo />, element);
       })}
-
-      {!isGrabbing && handleBlock && (
+      {handleBlock && (
         <BlockHandleContainer
           name="block-handle"
           handlePosition={handleBlock.position}
         >
-          <BlockHandle src={`${process.env.PUBLIC_URL}/images/blockGrip.svg`} />
+          <BlockHandle />
         </BlockHandleContainer>
       )}
     </EditorContainer>
@@ -687,21 +679,13 @@ const BlockHandleContainer = styled.div`
   z-index: 3;
 `;
 
-const fadIn = keyframes`
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-`;
-
-const BlockHandle = styled.img`
+const BlockHandle = styled.div`
   position: absolute;
   left: -1.4rem;
   top: 0;
   width: 1.2rem;
   height: 2rem;
+  //background: #000;
   z-index: 3;
-  animation: ${fadIn} 0.2s ease-in-out;
+  background-image: url(process.env.PUBLIC_URL + "/images/blockGrop.sbg");
 `;
