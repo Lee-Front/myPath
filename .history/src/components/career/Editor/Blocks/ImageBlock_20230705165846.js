@@ -75,11 +75,13 @@ const BlockContainer = styled.div`
 const ImageWrapper = styled.div`
   display: flex;
 `;
-
 const Image = styled.svg`
-  width: 2.5rem;
-  height: 2.5rem;
-  fill: rgba(55, 53, 47, 0.45);
-  backface-visibility: hidden;
-  margin-right: 1.2rem;
+width: 2.5rem;
+              height: 2.5rem;
+              display: block;
+              margin-right: 1.5rem;
+              fill: rgba(55, 53, 47, 0.45);
+              flex-shrink: 0,
+              //backface-visibility: hidden;
+              margin-right: 1.2rem;
 `;

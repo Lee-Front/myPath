@@ -184,7 +184,7 @@ const CardEditor = ({ pathId }) => {
         const { x, y } = block.getBoundingClientRect();
         const handleBlocks = findBlocksByPoint(x, y);
         editorStore.setSelectBlocks(handleBlocks);
-        window.getSelection().removeAllRanges();
+        //window.getSelection().removeAllRanges();
       }
       setIsContextMenuOpen(false);
     }

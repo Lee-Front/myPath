@@ -110,6 +110,7 @@ const EditBranchComponent = ({
       tagName={data?.tagName}
       onMouseEnter={() => setIsHover(true)}
       onMouseLeave={() => setIsHover(false)}
+      isHoverEnabled={!isOverlay && data?.tagName !== "multiple"}
     >
       {BranchTab()}
       {isHover && !isOverlay && data?.tagName !== "multiple" && <HoverBlock />}
@@ -123,6 +124,11 @@ const BlockContainer = styled.div`
   display: flex;
   position: relative;
   margin: ${(props) => props?.tagName !== "multiple" && "0.2rem"};
+  //width: ${(props) => props?.overlayWidth + "%"};
+
+  :hover {
+    background: ${(props) => props.isHoverEnabled && "rgba(55, 53, 47, 0.1)"};
+  }
 `;
 
 const HoverBlock = styled.div`

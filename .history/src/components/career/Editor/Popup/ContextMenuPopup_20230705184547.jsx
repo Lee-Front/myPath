@@ -124,10 +124,11 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     if (isFontSize) {
       setFontSize(style["font-size"]);
     }
-    if (selection.type === "Range") {
-      partialChangeTextStyle(blockUuid, style);
-    } else {
+
+    if (selection.type === "Caret") {
       fullChangeTextStyle(blockUuid, style);
+    } else {
+      partialChangeTextStyle(blockUuid, style);
     }
   };
 
@@ -167,6 +168,7 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     });
 
     const uuids = editorStore.selectBlocks.map((block) => block.uuid);
+    console.log("uuids: ", uuids);
 
     await axios.post("/api/editor/style", {
       uuid: blockUuid,

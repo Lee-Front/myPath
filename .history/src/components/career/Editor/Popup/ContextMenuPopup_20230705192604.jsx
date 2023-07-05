@@ -124,6 +124,7 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     if (isFontSize) {
       setFontSize(style["font-size"]);
     }
+    console.log("selection: ", selection);
     if (selection.type === "Range") {
       partialChangeTextStyle(blockUuid, style);
     } else {

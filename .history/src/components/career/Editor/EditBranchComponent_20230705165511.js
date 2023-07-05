@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import styled from "@emotion/styled";
 
 import ImageBlock from "./Blocks/ImageBlock";
@@ -14,7 +14,6 @@ const EditBranchComponent = ({
   overlayWidth,
   isOverlay,
 }) => {
-  const [isHover, setIsHover] = useState(false);
   const getMovementStyle = (movementData) => {
     const side = movementData.position;
 
@@ -108,11 +107,9 @@ const EditBranchComponent = ({
     <BlockContainer
       data-uuid={!isOverlay ? data.uuid : null}
       tagName={data?.tagName}
-      onMouseEnter={() => setIsHover(true)}
-      onMouseLeave={() => setIsHover(false)}
+      isHoverEnabled={!isOverlay && data?.tagName !== "multiple"}
     >
       {BranchTab()}
-      {isHover && !isOverlay && data?.tagName !== "multiple" && <HoverBlock />}
     </BlockContainer>
   );
 };
@@ -123,13 +120,9 @@ const BlockContainer = styled.div`
   display: flex;
   position: relative;
   margin: ${(props) => props?.tagName !== "multiple" && "0.2rem"};
-`;
+  //width: ${(props) => props?.overlayWidth + "%"};
 
-const HoverBlock = styled.div`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  pointer-events: none;
-  background: rgba(55, 53, 47, 0.1);
+  :hover {
+    background: ${(props) => props.isHoverEnabled && "rgba(55, 53, 47, 0.1)"};
+  }
 `;

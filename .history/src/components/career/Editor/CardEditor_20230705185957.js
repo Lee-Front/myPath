@@ -173,19 +173,6 @@ const CardEditor = ({ pathId }) => {
     if (hoverElement.current && !contextMenu && e.button === 2) {
       const { clientX, clientY } = e;
       contextMenuPoint.current = { x: clientX, y: clientY };
-
-      const hoverUuid = hoverElement.current?.getAttribute("data-uuid");
-      const isSelected = editorStore.selectBlocks.find(
-        (block) => block.uuid === hoverUuid
-      );
-
-      if (!isSelected) {
-        const block = document.querySelector(`[data-uuid="${hoverUuid}"]`);
-        const { x, y } = block.getBoundingClientRect();
-        const handleBlocks = findBlocksByPoint(x, y);
-        editorStore.setSelectBlocks(handleBlocks);
-        window.getSelection().removeAllRanges();
-      }
       setIsContextMenuOpen(false);
     }
 

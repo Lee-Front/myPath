@@ -75,7 +75,6 @@ const BlockContainer = styled.div`
 const ImageWrapper = styled.div`
   display: flex;
 `;
-
 const Image = styled.svg`
   width: 2.5rem;
   height: 2.5rem;

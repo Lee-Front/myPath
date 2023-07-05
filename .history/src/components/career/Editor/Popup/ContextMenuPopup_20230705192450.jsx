@@ -124,10 +124,11 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     if (isFontSize) {
       setFontSize(style["font-size"]);
     }
-    if (selection.type === "Range") {
-      partialChangeTextStyle(blockUuid, style);
-    } else {
+    console.log("selection: ", selection);
+    if (selection.type === "Caret") {
       fullChangeTextStyle(blockUuid, style);
+    } else {
+      partialChangeTextStyle(blockUuid, style);
     }
   };
 

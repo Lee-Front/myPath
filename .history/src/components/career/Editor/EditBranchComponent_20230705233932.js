@@ -110,6 +110,7 @@ const EditBranchComponent = ({
       tagName={data?.tagName}
       onMouseEnter={() => setIsHover(true)}
       onMouseLeave={() => setIsHover(false)}
+      isHoverEnabled={!isOverlay && data?.tagName !== "multiple"}
     >
       {BranchTab()}
       {isHover && !isOverlay && data?.tagName !== "multiple" && <HoverBlock />}

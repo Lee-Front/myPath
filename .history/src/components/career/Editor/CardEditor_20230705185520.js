@@ -173,19 +173,6 @@ const CardEditor = ({ pathId }) => {
     if (hoverElement.current && !contextMenu && e.button === 2) {
       const { clientX, clientY } = e;
       contextMenuPoint.current = { x: clientX, y: clientY };
-
-      const hoverUuid = hoverElement.current?.getAttribute("data-uuid");
-      const isSelected = editorStore.selectBlocks.find(
-        (block) => block.uuid === hoverUuid
-      );
-
-      if (!isSelected) {
-        const block = document.querySelector(`[data-uuid="${hoverUuid}"]`);
-        const { x, y } = block.getBoundingClientRect();
-        const handleBlocks = findBlocksByPoint(x, y);
-        editorStore.setSelectBlocks(handleBlocks);
-        window.getSelection().removeAllRanges();
-      }
       setIsContextMenuOpen(false);
     }
 
@@ -225,11 +212,17 @@ const CardEditor = ({ pathId }) => {
   const findBlocksByPoint = (x, y) => {
     const blocks = document
       .elementsFromPoint(x, y)
+      .filter((item) => {
+        console.log("d : ", item.getAttribute("data-uuid"));
+        const blockData = editorStore.findBlock(item.getAttribute("data-uuid"));
+        if (blockData?.tagName !== "multiple") return true;
+        else return false;
+      })
       .map((item) => {
         const blockUuid = item.getAttribute("data-uuid");
         return editorStore.findBlock(blockUuid);
-      })
-      .filter((item) => item && item.tagName !== "multiple");
+      });
+    console.log("blocks: ", blocks);
     return blocks;
   };
 
@@ -636,7 +629,7 @@ const CardEditor = ({ pathId }) => {
         </OverlayContainer>
       ) : null}
       {editorStore.selectBlocks.map((item) => {
-        if (item.tagName === "multiple") return null;
+        if (item?.tagName === "multiple") return null;
         const element = document.querySelector(`[data-uuid="${item?.uuid}"]`);
         return createPortal(<SelectionHalo />, element);
       })}
