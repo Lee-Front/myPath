@@ -307,6 +307,7 @@ const CardEditor = ({ pathId }) => {
       ) {
         const blockUuid = xAxisResults?.nearEl.getAttribute("data-uuid");
         const editorTop = editorRef.current?.getBoundingClientRect().top;
+        console.log("editorTop : ", editorTop);
         setHandleBlock({
           uuid: blockUuid,
           position: { x: nearRect.x, y: Math.max(editorTop, nearRect.y) },
@@ -569,7 +570,8 @@ const CardEditor = ({ pathId }) => {
       onMouseUp={handleEditorClick}
       onScroll={() => {
         if (handleBlock) {
-          setHandleBlock(null);
+          console.log("handleBlock : ", handleBlock);
+          //setHandleBlock(null);
         }
       }}
     >

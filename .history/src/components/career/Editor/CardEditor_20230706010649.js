@@ -306,13 +306,13 @@ const CardEditor = ({ pathId }) => {
         (xAxisResults?.hoverEl || (minDistance && minDistance < 25))
       ) {
         const blockUuid = xAxisResults?.nearEl.getAttribute("data-uuid");
-        const editorTop = editorRef.current?.getBoundingClientRect().top;
+        console.log("editorTop : ", editorTop);
         setHandleBlock({
           uuid: blockUuid,
-          position: { x: nearRect.x, y: Math.max(editorTop, nearRect.y) },
+          position: { x: nearRect.x, y: nearRect.y },
         });
       } else {
-        setHandleBlock(null);
+        //setHandleBlock(null);
       }
 
       if (!xAxisResults?.nearEl) {
@@ -569,7 +569,8 @@ const CardEditor = ({ pathId }) => {
       onMouseUp={handleEditorClick}
       onScroll={() => {
         if (handleBlock) {
-          setHandleBlock(null);
+          console.log("handleBlock : ", handleBlock);
+          //setHandleBlock(null);
         }
       }}
     >

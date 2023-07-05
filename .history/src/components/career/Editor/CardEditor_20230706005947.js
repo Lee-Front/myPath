@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import styled from "@emotion/styled";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -306,13 +306,13 @@ const CardEditor = ({ pathId }) => {
         (xAxisResults?.hoverEl || (minDistance && minDistance < 25))
       ) {
         const blockUuid = xAxisResults?.nearEl.getAttribute("data-uuid");
-        const editorTop = editorRef.current?.getBoundingClientRect().top;
+        console.log("nearRect : ", nearRect);
         setHandleBlock({
           uuid: blockUuid,
-          position: { x: nearRect.x, y: Math.max(editorTop, nearRect.y) },
+          position: { x: nearRect.x, y: nearRect.y },
         });
       } else {
-        setHandleBlock(null);
+        //setHandleBlock(null);
       }
 
       if (!xAxisResults?.nearEl) {

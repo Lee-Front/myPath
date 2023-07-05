@@ -45,5 +45,5 @@ const ContentWarpper = styled.div`
   flex-direction: column;
   flex: 1;
   background-color: white;
-  border-radius: 3.5rem 0 0 3.5rem;
+  border-radius: 5rem 0 0 5rem;
 `;

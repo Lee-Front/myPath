@@ -38,6 +38,9 @@ const CardEditor = ({ pathId }) => {
   const [isFileUploderOpen, setIsFileUploderOpen] = useState(false);
 
   const mouseEventRef = useRef({ down: null, move: null, up: null });
+  const editorTop = useMemo(
+    () => editorRef.current.getBoundingClientRect().top
+  );
 
   useEffect(() => {
     editorStore.getBlocks(pathId);
@@ -306,13 +309,13 @@ const CardEditor = ({ pathId }) => {
         (xAxisResults?.hoverEl || (minDistance && minDistance < 25))
       ) {
         const blockUuid = xAxisResults?.nearEl.getAttribute("data-uuid");
-        const editorTop = editorRef.current?.getBoundingClientRect().top;
+        console.log("editorTop : ", editorTop);
         setHandleBlock({
           uuid: blockUuid,
-          position: { x: nearRect.x, y: Math.max(editorTop, nearRect.y) },
+          position: { x: nearRect.x, y: nearRect.y },
         });
       } else {
-        setHandleBlock(null);
+        //setHandleBlock(null);
       }
 
       if (!xAxisResults?.nearEl) {
@@ -569,7 +572,8 @@ const CardEditor = ({ pathId }) => {
       onMouseUp={handleEditorClick}
       onScroll={() => {
         if (handleBlock) {
-          setHandleBlock(null);
+          console.log("handleBlock : ", handleBlock);
+          //setHandleBlock(null);
         }
       }}
     >

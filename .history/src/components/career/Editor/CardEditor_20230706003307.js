@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import styled from "@emotion/styled";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -135,7 +135,11 @@ const CardEditor = ({ pathId }) => {
     });
 
     if (Contents.length > 0) {
-      findElementsByPoint(filteredContents, clientX, clientY);
+      const { nearBlock, hoverBlock } = findElementsByPoint(
+        filteredContents,
+        clientX,
+        clientY
+      );
     } else if (nearElement.current || hoverElement.current) {
       nearElement.current = null;
       hoverElement.current = null;
@@ -221,11 +225,11 @@ const CardEditor = ({ pathId }) => {
   const findBlocksByPoint = (x, y) => {
     const blocks = document
       .elementsFromPoint(x, y)
-      .filter((item) => item.getAttribute("data-uuid"))
       .map((item) => {
         const blockUuid = item.getAttribute("data-uuid");
         return editorStore.findBlock(blockUuid);
-      });
+      })
+      .filter((item) => item && item.tagName !== "multiple");
     return blocks;
   };
 
@@ -306,10 +310,9 @@ const CardEditor = ({ pathId }) => {
         (xAxisResults?.hoverEl || (minDistance && minDistance < 25))
       ) {
         const blockUuid = xAxisResults?.nearEl.getAttribute("data-uuid");
-        const editorTop = editorRef.current?.getBoundingClientRect().top;
         setHandleBlock({
           uuid: blockUuid,
-          position: { x: nearRect.x, y: Math.max(editorTop, nearRect.y) },
+          position: { x: nearRect.x, y: nearRect.y },
         });
       } else {
         setHandleBlock(null);
@@ -563,17 +566,12 @@ const CardEditor = ({ pathId }) => {
   };
 
   return (
-    <EditorContainer
-      onContextMenu={handleEditorContextMenu}
-      ref={editorRef}
-      onMouseUp={handleEditorClick}
-      onScroll={() => {
-        if (handleBlock) {
-          setHandleBlock(null);
-        }
-      }}
-    >
-      <ContentWrapper name="content-area" ref={contentRef}>
+    <EditorContainer onContextMenu={handleEditorContextMenu} ref={editorRef}>
+      <ContentWrapper
+        name="content-area"
+        ref={contentRef}
+        onMouseUp={handleEditorClick}
+      >
         {makeTree(editorStore.blocks).map((element) => (
           <EditBranchComponent
             key={element.uuid}
@@ -598,6 +596,7 @@ const CardEditor = ({ pathId }) => {
           {isGrabbing && editorStore.selectBlocks.length > 0 && (
             <OverlayWrapper currentPoint={currentPoint}>
               {makeTree(editorStore.selectBlocks).map((item) => {
+                console.log("item : ", item);
                 const overlayWidth = item.width;
                 return (
                   <EditBranchComponent
@@ -664,7 +663,6 @@ const EditorContainer = styled.div`
   flex-direction: column;
   height: 100%;
   font-size: 1.6rem;
-  overflow: auto;
 `;
 const ContentWrapper = styled.div`
   flex: 1;
@@ -702,6 +700,7 @@ const BlockHandleContainer = styled.div`
   position: absolute;
   left: ${(props) => props.handlePosition?.x + "px"};
   top: ${(props) => props.handlePosition?.y + "px"};
+  z-index: 3;
 `;
 
 const fadIn = keyframes`
@@ -719,5 +718,6 @@ const BlockHandle = styled.img`
   top: 0;
   width: 1.2rem;
   height: 2rem;
+  z-index: 3;
   animation: ${fadIn} 0.2s ease-in-out;
 `;
