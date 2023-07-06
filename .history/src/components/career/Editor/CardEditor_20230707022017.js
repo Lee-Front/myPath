@@ -127,6 +127,7 @@ const CardEditor = ({ pathId }) => {
   };
 
   mouseEventRef.current.mouseMove = (e) => {
+    console.log("move");
     const { clientX, clientY } = e;
 
     const Contents = Array.from(
@@ -591,7 +592,6 @@ const CardEditor = ({ pathId }) => {
 
   return (
     <EditorContainer
-      onMouseLeave={() => setHandleBlock(null)}
       onContextMenu={handleEditorContextMenu}
       ref={editorRef}
       onScroll={() => {

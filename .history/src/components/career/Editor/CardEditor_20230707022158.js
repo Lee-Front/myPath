@@ -591,7 +591,9 @@ const CardEditor = ({ pathId }) => {
 
   return (
     <EditorContainer
-      onMouseLeave={() => setHandleBlock(null)}
+      onMouseOut={() => {
+        console.log("a");
+      }}
       onContextMenu={handleEditorContextMenu}
       ref={editorRef}
       onScroll={() => {

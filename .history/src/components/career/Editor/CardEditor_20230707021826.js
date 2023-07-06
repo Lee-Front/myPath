@@ -139,6 +139,7 @@ const CardEditor = ({ pathId }) => {
     });
 
     if (Contents.length > 0) {
+      console.log("a");
       findElementsByPoint(filteredContents, clientX, clientY);
     } else if (nearElement.current || hoverElement.current) {
       nearElement.current = null;
@@ -591,7 +592,6 @@ const CardEditor = ({ pathId }) => {
 
   return (
     <EditorContainer
-      onMouseLeave={() => setHandleBlock(null)}
       onContextMenu={handleEditorContextMenu}
       ref={editorRef}
       onScroll={() => {

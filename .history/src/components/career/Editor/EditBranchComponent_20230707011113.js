@@ -122,7 +122,7 @@ export default EditBranchComponent;
 const BlockContainer = styled.div`
   display: flex;
   position: relative;
-  //padding: ${(props) => props?.tagName !== "multiple" && "0.2rem"};
+  padding: ${(props) => props?.tagName !== "multiple" && "0.2rem"};
 `;
 
 const HoverBlock = styled.div`

@@ -117,10 +117,6 @@ const CardEditor = ({ pathId }) => {
         window.getSelection().removeAllRanges();
         setIsGrabbing(true);
       }
-
-      if (!hoverElement.current) {
-        window.getSelection().removeAllRanges();
-      }
     }
 
     setSelectPoint({ x: e.clientX, y: e.clientY });
@@ -316,7 +312,7 @@ const CardEditor = ({ pathId }) => {
           position: { x: nearRect.x, y: Math.max(editorTop, nearRect.y) },
         });
       } else {
-        setHandleBlock(null);
+        //setHandleBlock(null);
       }
 
       if (!xAxisResults?.nearEl) {
@@ -542,26 +538,12 @@ const CardEditor = ({ pathId }) => {
   };
 
   const handleEditorClick = (e) => {
-    const isHandle = e.target.closest("[name=block-handle]");
-
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&
-      !isHandle &&
-      !draggable
+      !draggable &&
+      !hoverElement.current
     ) {
-      // 마지막 블록이 텍스트 블록인데 비어있으면 생성하지 않음
-      const lastBlockData = editorStore.blocks
-        .filter((block) => block.tagName !== "multiple")
-        .reduce((acc, cur) => (acc.srot > cur.sort ? acc : cur));
-      if (lastBlockData.tagName === "div" && lastBlockData.html === "") {
-        const lastBloack = document.querySelector(
-          `[data-uuid="${lastBlockData.uuid}"]`
-        );
-        lastBloack.firstChild.focus();
-        return;
-      }
-
       const newElement = editorStore.createBlock({ pathId, tagName: "div" });
       editorStore.saveBlocks([
         ...copyObjectArray(editorStore.blocks),
@@ -580,31 +562,18 @@ const CardEditor = ({ pathId }) => {
     }
   };
 
-  const handleOverlayMouseUp = (e) => {
-    const contextMenu = e.target.closest(".contextMenu");
-    const filePopup = e.target.closest(".filePopup");
-    if (!filePopup && !contextMenu && !draggable) {
-      toggleContextMenuYn(false);
-      toggleFileUploader(e);
-    }
-  };
-
   return (
     <EditorContainer
-      onMouseLeave={() => setHandleBlock(null)}
       onContextMenu={handleEditorContextMenu}
       ref={editorRef}
+      onMouseUp={handleEditorClick}
       onScroll={() => {
         if (handleBlock) {
           setHandleBlock(null);
         }
       }}
     >
-      <ContentWrapper
-        name="content-area"
-        ref={contentRef}
-        onClick={handleEditorClick}
-      >
+      <ContentWrapper name="content-area" ref={contentRef}>
         {makeTree(editorStore.blocks).map((element) => (
           <EditBranchComponent
             key={element.uuid}
@@ -616,7 +585,14 @@ const CardEditor = ({ pathId }) => {
       </ContentWrapper>
       {isFileUploderOpen || isContextMenuOpen || draggable ? (
         <OverlayContainer
-          onMouseUp={handleOverlayMouseUp}
+          onMouseUp={(e) => {
+            const contextMenu = e.target.closest(".contextMenu");
+            const filePopup = e.target.closest(".filePopup");
+            if (!filePopup && !contextMenu && !draggable) {
+              toggleContextMenuYn(false);
+              toggleFileUploader(e);
+            }
+          }}
           zindex={isFileUploderOpen || isContextMenuOpen || draggable}
         >
           {isGrabbing && editorStore.selectBlocks.length > 0 && (
@@ -650,7 +626,7 @@ const CardEditor = ({ pathId }) => {
           )}
           {!isFileUploderOpen &&
             !isContextMenuOpen &&
-            //selectPoint &&
+            selectPoint &&
             findBlocksByPoint(selectPoint?.x, selectPoint?.y).length <= 0 &&
             !isGrabbing &&
             draggable && (
@@ -667,7 +643,7 @@ const CardEditor = ({ pathId }) => {
         return createPortal(<SelectionHalo />, element);
       })}
 
-      {handleBlock && !draggable && (
+      {!isGrabbing && handleBlock && (
         <BlockHandleContainer
           name="block-handle"
           handlePosition={handleBlock.position}
@@ -693,7 +669,7 @@ const EditorContainer = styled.div`
 const ContentWrapper = styled.div`
   flex: 1;
   flex-direction: column;
-  padding: 1rem 0 10rem 0;
+  margin: 1rem 0 10rem 0;
   z-index: 2;
 `;
 const OverlayContainer = styled.div`
@@ -711,6 +687,7 @@ const OverlayWrapper = styled.div`
   top: ${(props) => props.currentPoint?.y - 10 + "px"};
   opacity: 0.4;
 `;
+
 const SelectionHalo = styled.div`
   position: absolute;
   width: 100%;
@@ -720,11 +697,13 @@ const SelectionHalo = styled.div`
   background: rgba(35, 131, 226, 0.14);
   pointer-events: none;
 `;
+
 const BlockHandleContainer = styled.div`
   position: absolute;
   left: ${(props) => props.handlePosition?.x + "px"};
   top: ${(props) => props.handlePosition?.y + "px"};
 `;
+
 const fadIn = keyframes`
   from {
     opacity: 0;
@@ -733,12 +712,12 @@ const fadIn = keyframes`
     opacity: 1;
   }
 `;
+
 const BlockHandle = styled.img`
   position: absolute;
   left: -1.4rem;
   top: 0.2rem;
   width: 1.2rem;
   height: 2rem;
-  z-index: 3;
   animation: ${fadIn} 0.2s ease-in-out;
 `;

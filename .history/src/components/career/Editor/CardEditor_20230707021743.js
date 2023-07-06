@@ -106,6 +106,7 @@ const CardEditor = ({ pathId }) => {
       const isHandle = e.target.closest("[name=block-handle]");
 
       if (isHandle) {
+        console.log("asd");
         if (!isSelected) {
           const block = document.querySelector(
             `[data-uuid="${handleBlockData.uuid}"]`
@@ -591,7 +592,6 @@ const CardEditor = ({ pathId }) => {
 
   return (
     <EditorContainer
-      onMouseLeave={() => setHandleBlock(null)}
       onContextMenu={handleEditorContextMenu}
       ref={editorRef}
       onScroll={() => {

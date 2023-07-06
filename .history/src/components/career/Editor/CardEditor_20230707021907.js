@@ -304,6 +304,7 @@ const CardEditor = ({ pathId }) => {
         ? Math.min(Math.abs(nearRect?.left - x), Math.abs(nearRect?.right - x))
         : null;
 
+      console.log("a");
       if (
         !isContextMenuOpen &&
         !isFileUploderOpen &&
@@ -591,7 +592,6 @@ const CardEditor = ({ pathId }) => {
 
   return (
     <EditorContainer
-      onMouseLeave={() => setHandleBlock(null)}
       onContextMenu={handleEditorContextMenu}
       ref={editorRef}
       onScroll={() => {

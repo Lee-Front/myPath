@@ -543,6 +543,9 @@ const CardEditor = ({ pathId }) => {
 
   const handleEditorClick = (e) => {
     const isHandle = e.target.closest("[name=block-handle]");
+    const lastBlock = editorStore.blocks
+      .filter((block) => block.tagName !== "multiple")
+      .reduce((acc, cur) => (acc.srot > cur.sort ? acc : cur));
 
     if (
       e.button === 0 &&
@@ -551,14 +554,8 @@ const CardEditor = ({ pathId }) => {
       !draggable
     ) {
       // 마지막 블록이 텍스트 블록인데 비어있으면 생성하지 않음
-      const lastBlockData = editorStore.blocks
-        .filter((block) => block.tagName !== "multiple")
-        .reduce((acc, cur) => (acc.srot > cur.sort ? acc : cur));
-      if (lastBlockData.tagName === "div" && lastBlockData.html === "") {
-        const lastBloack = document.querySelector(
-          `[data-uuid="${lastBlockData.uuid}"]`
-        );
-        lastBloack.firstChild.focus();
+      if (lastBlock.tagName === "div" && lastBlock.html === "") {
+        document.querySelector(`[data-uuid="${lastBlock.uuid}"]`).focus();
         return;
       }
 
@@ -591,7 +588,6 @@ const CardEditor = ({ pathId }) => {
 
   return (
     <EditorContainer
-      onMouseLeave={() => setHandleBlock(null)}
       onContextMenu={handleEditorContextMenu}
       ref={editorRef}
       onScroll={() => {
@@ -739,6 +735,5 @@ const BlockHandle = styled.img`
   top: 0.2rem;
   width: 1.2rem;
   height: 2rem;
-  z-index: 3;
   animation: ${fadIn} 0.2s ease-in-out;
 `;

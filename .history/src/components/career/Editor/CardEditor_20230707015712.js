@@ -556,9 +556,9 @@ const CardEditor = ({ pathId }) => {
         .reduce((acc, cur) => (acc.srot > cur.sort ? acc : cur));
       if (lastBlockData.tagName === "div" && lastBlockData.html === "") {
         const lastBloack = document.querySelector(
-          `[data-uuid="${lastBlockData.uuid}"]`
+          `[data-uuid="${lastBloack.uuid}"]`
         );
-        lastBloack.firstChild.focus();
+        lastBloack.focus();
         return;
       }
 
@@ -591,7 +591,6 @@ const CardEditor = ({ pathId }) => {
 
   return (
     <EditorContainer
-      onMouseLeave={() => setHandleBlock(null)}
       onContextMenu={handleEditorContextMenu}
       ref={editorRef}
       onScroll={() => {
@@ -739,6 +738,5 @@ const BlockHandle = styled.img`
   top: 0.2rem;
   width: 1.2rem;
   height: 2rem;
-  z-index: 3;
   animation: ${fadIn} 0.2s ease-in-out;
 `;
