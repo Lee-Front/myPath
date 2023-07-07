@@ -80,7 +80,7 @@ const CheckBoxWrapper = styled.div`
   justify-content: center;
   align-items: center;
   width: 2.1rem;
-  height: 2.5rem;
+  height: 2.1rem;
   cursor: pointer;
 `;
 

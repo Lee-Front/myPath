@@ -12,6 +12,7 @@ const CheckBoxBlock = ({
   movementSide,
   overlayWidth,
 }) => {
+  console.log("movementSide: ", movementSide);
   const [state, setState] = useState({
     html: data.html ? data.html : "",
     checkYn: data.checkYn ? data.checkYn : false,

@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { SketchPicker } from "react-color";
 
@@ -8,9 +8,10 @@ const ColorPicker = ({ color, handleChange }) => {
     horizontal: "bottom",
     vertical: "right",
   });
-
-  useLayoutEffect(() => {
+  console.log("orientation : ", orientation);
+  useEffect(() => {
     const rect = pickerRef.current.getBoundingClientRect();
+    console.log("rect : ", rect);
     const top = window.innerHeight < rect.y + rect.height;
     const left = window.innerWidth < rect.x + rect.width;
 
@@ -19,8 +20,6 @@ const ColorPicker = ({ color, handleChange }) => {
       vertical: top ? "top" : "bottom",
     });
   }, []);
-
-  useEffect(() => {}, []);
   return (
     <PickerContainer
       name="color-picker"
@@ -43,8 +42,8 @@ const PickerContainer = styled.div`
   margin-top: 0.2rem;
   ${(props) => {
     return props.pickerOrientation.horizontal === "left"
-      ? "right: 0"
-      : "left: 0";
+      ? "left: 0"
+      : "right: 0";
   }};
   ${(props) => {
     return props.pickerOrientation.vertical === "top"

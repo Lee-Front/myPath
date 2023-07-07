@@ -112,10 +112,8 @@ const CardEditor = ({ pathId }) => {
             `[data-uuid="${handleBlockData.uuid}"]`
           );
           const { x, y } = block.getBoundingClientRect();
-          const filterTag =
-            handleBlockData.tagName !== "checkbox" ? "checkbox" : "";
-          const blocks = findBlocksByPoint(x, y, filterTag);
-          editorStore.setSelectBlocks(blocks);
+          const handleBlocks = findBlocksByPoint(x, y);
+          editorStore.setSelectBlocks(handleBlocks);
         }
         window.getSelection().removeAllRanges();
         setIsGrabbing(true);
@@ -137,7 +135,7 @@ const CardEditor = ({ pathId }) => {
     );
 
     const filteredContents = Contents.filter((content) => {
-      const data = editorStore.findBlock(content.getAttribute("data-uuid"));
+      const data = getEditComponentData(content.getAttribute("data-uuid"));
       return data.tagName !== "multiple";
     });
 
@@ -225,18 +223,14 @@ const CardEditor = ({ pathId }) => {
     setMovementSide(null);
   };
 
-  const findBlocksByPoint = (x, y, filterBlock) => {
-    let blocks = document
+  const findBlocksByPoint = (x, y) => {
+    const blocks = document
       .elementsFromPoint(x, y)
       .filter((item) => item.getAttribute("data-uuid"))
       .map((item) => {
         const blockUuid = item.getAttribute("data-uuid");
         return editorStore.findBlock(blockUuid);
       });
-
-    if (filterBlock) {
-      blocks = blocks.filter((block) => block.tagName !== filterBlock);
-    }
     return blocks;
   };
 
@@ -253,10 +247,8 @@ const CardEditor = ({ pathId }) => {
     });
 
     copyList.forEach((node) => {
-      if (node.parentId && copyList[map[node.parentId]]) {
-        copyList[map[node.parentId]]?.multipleData.push(node);
-      } else {
-        node.parentId = null;
+      if (node.parentId) {
+        copyList[map[node.parentId]].multipleData.push(node);
       }
     });
 
@@ -358,9 +350,9 @@ const CardEditor = ({ pathId }) => {
 
     const clonedEditDom = copyObjectArray(editorStore.blocks);
     const targetUuid = targetElement.getAttribute("data-uuid");
-    const targetData = editorStore.findBlock(targetUuid);
+    const targetData = getEditComponentData(targetUuid);
     const parentData =
-      targetData?.parentId && editorStore.findBlock(targetData.parentId);
+      targetData?.parentId && getEditComponentData(targetData.parentId);
     const { top, bottom, left, right } = targetElement.getBoundingClientRect();
     const distanceList = [];
 
@@ -443,7 +435,7 @@ const CardEditor = ({ pathId }) => {
       }
     }
 
-    const findTargerData = editorStore.findBlock(targetElementData.uuid);
+    const findTargerData = getEditComponentData(targetElementData.uuid);
 
     // 좌측, 우측이 나뉘어진 Tag의 경우 하위로 들어갈때 별도의 영역처리 필요
     const isSubTextAreaTag =
@@ -490,13 +482,22 @@ const CardEditor = ({ pathId }) => {
     // 초기값 할당
     let topParentdata = data;
     while (topParentdata.parentId) {
-      topParentdata = editorStore.findBlock(topParentdata.parentId);
+      topParentdata = getEditComponentData(topParentdata.parentId);
     }
     return topParentdata;
   };
 
+  const getEditComponentData = (uuid) => {
+    const elements = copyObjectArray(editorStore.blocks);
+    const findData = elements.find((element) => {
+      return uuid === element.uuid;
+    });
+
+    return Object.assign({}, findData);
+  };
+
   const toggleFileUploader = (e) => {
-    const hoverData = editorStore.findBlock(
+    const hoverData = getEditComponentData(
       hoverElement.current?.getAttribute("data-uuid")
     );
 
@@ -551,17 +552,15 @@ const CardEditor = ({ pathId }) => {
       !draggable
     ) {
       // 마지막 블록이 텍스트 블록인데 비어있으면 생성하지 않음
-      if (editorStore.blocks.length > 0) {
-        const lastBlockData = editorStore.blocks
-          .filter((block) => block.tagName !== "multiple")
-          ?.reduce((acc, cur) => (acc.srot > cur.sort ? acc : cur));
-        if (lastBlockData.tagName === "div" && lastBlockData.html === "") {
-          const lastBloack = document.querySelector(
-            `[data-uuid="${lastBlockData.uuid}"]`
-          );
-          lastBloack.firstChild.focus();
-          return;
-        }
+      const lastBlockData = editorStore.blocks
+        .filter((block) => block.tagName !== "multiple")
+        .reduce((acc, cur) => (acc.srot > cur.sort ? acc : cur));
+      if (lastBlockData.tagName === "div" && lastBlockData.html === "") {
+        const lastBloack = document.querySelector(
+          `[data-uuid="${lastBlockData.uuid}"]`
+        );
+        lastBloack.firstChild.focus();
+        return;
       }
 
       const newElement = editorStore.createBlock({ pathId, tagName: "div" });
@@ -647,7 +646,7 @@ const CardEditor = ({ pathId }) => {
             <ContextMenuPopup
               pointer={contextMenuPoint.current}
               changeContextMenuYn={toggleContextMenuYn}
-              popupData={editorStore.findBlock(popupUuid)}
+              popupData={getEditComponentData(popupUuid)}
             />
           )}
           {!isFileUploderOpen &&

@@ -9,7 +9,9 @@ const ColorPicker = ({ color, handleChange }) => {
     vertical: "right",
   });
 
+  console.log("2");
   useLayoutEffect(() => {
+    console.log("1");
     const rect = pickerRef.current.getBoundingClientRect();
     const top = window.innerHeight < rect.y + rect.height;
     const left = window.innerWidth < rect.x + rect.width;

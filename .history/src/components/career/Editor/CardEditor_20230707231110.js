@@ -112,9 +112,10 @@ const CardEditor = ({ pathId }) => {
             `[data-uuid="${handleBlockData.uuid}"]`
           );
           const { x, y } = block.getBoundingClientRect();
-          const filterTag =
-            handleBlockData.tagName !== "checkbox" ? "checkbox" : "";
-          const blocks = findBlocksByPoint(x, y, filterTag);
+          let blocks = findBlocksByPoint(x, y, "checkbox");
+          if (handleBlockData.tagName !== "checkbox") {
+            blocks = blocks.filter((block) => block.tagName !== "checkbox");
+          }
           editorStore.setSelectBlocks(blocks);
         }
         window.getSelection().removeAllRanges();
@@ -226,17 +227,13 @@ const CardEditor = ({ pathId }) => {
   };
 
   const findBlocksByPoint = (x, y, filterBlock) => {
-    let blocks = document
+    const blocks = document
       .elementsFromPoint(x, y)
       .filter((item) => item.getAttribute("data-uuid"))
       .map((item) => {
         const blockUuid = item.getAttribute("data-uuid");
         return editorStore.findBlock(blockUuid);
       });
-
-    if (filterBlock) {
-      blocks = blocks.filter((block) => block.tagName !== filterBlock);
-    }
     return blocks;
   };
 
@@ -253,10 +250,8 @@ const CardEditor = ({ pathId }) => {
     });
 
     copyList.forEach((node) => {
-      if (node.parentId && copyList[map[node.parentId]]) {
-        copyList[map[node.parentId]]?.multipleData.push(node);
-      } else {
-        node.parentId = null;
+      if (node.parentId) {
+        copyList[map[node.parentId]].multipleData.push(node);
       }
     });
 

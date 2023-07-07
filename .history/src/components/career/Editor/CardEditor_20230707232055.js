@@ -112,9 +112,11 @@ const CardEditor = ({ pathId }) => {
             `[data-uuid="${handleBlockData.uuid}"]`
           );
           const { x, y } = block.getBoundingClientRect();
-          const filterTag =
-            handleBlockData.tagName !== "checkbox" ? "checkbox" : "";
-          const blocks = findBlocksByPoint(x, y, filterTag);
+          let blocks = findBlocksByPoint(
+            x,
+            y,
+            handleBlockData.tagName === "checkbox" ? "checkbox" : ""
+          );
           editorStore.setSelectBlocks(blocks);
         }
         window.getSelection().removeAllRanges();
@@ -253,10 +255,8 @@ const CardEditor = ({ pathId }) => {
     });
 
     copyList.forEach((node) => {
-      if (node.parentId && copyList[map[node.parentId]]) {
-        copyList[map[node.parentId]]?.multipleData.push(node);
-      } else {
-        node.parentId = null;
+      if (node.parentId) {
+        copyList[map[node.parentId]].multipleData.push(node);
       }
     });
 

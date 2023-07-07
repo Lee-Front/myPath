@@ -253,10 +253,8 @@ const CardEditor = ({ pathId }) => {
     });
 
     copyList.forEach((node) => {
-      if (node.parentId && copyList[map[node.parentId]]) {
+      if (node.parentId) {
         copyList[map[node.parentId]]?.multipleData.push(node);
-      } else {
-        node.parentId = null;
       }
     });
 
@@ -265,6 +263,10 @@ const CardEditor = ({ pathId }) => {
     if (targetUuid) {
       return roots.concat(copyList.filter((node) => node.uuid === targetUuid));
     }
+    console.log(
+      "test : ",
+      copyList.filter((node) => !node.parentId)
+    );
     return copyList.filter((node) => !node.parentId);
   };
 

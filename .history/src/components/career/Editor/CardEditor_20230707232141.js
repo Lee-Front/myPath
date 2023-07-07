@@ -253,10 +253,8 @@ const CardEditor = ({ pathId }) => {
     });
 
     copyList.forEach((node) => {
-      if (node.parentId && copyList[map[node.parentId]]) {
-        copyList[map[node.parentId]]?.multipleData.push(node);
-      } else {
-        node.parentId = null;
+      if (node.parentId) {
+        copyList[map[node.parentId]].multipleData.push(node);
       }
     });
 

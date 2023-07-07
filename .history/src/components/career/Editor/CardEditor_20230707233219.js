@@ -241,6 +241,7 @@ const CardEditor = ({ pathId }) => {
   };
 
   const makeTree = (list, targetUuid) => {
+    console.log("list: ", list);
     // 원본 state 유지를 위해 복사하여 사용
     const copyList = copyObjectArray(list);
     const map = {};
@@ -249,14 +250,13 @@ const CardEditor = ({ pathId }) => {
     copyList.forEach((node, index) => {
       // map에 uuid가 몇번째인지 넣어줌
       map[node.uuid] = index;
+      console.log("node : ", node);
       node.multipleData = [];
     });
 
     copyList.forEach((node) => {
-      if (node.parentId && copyList[map[node.parentId]]) {
-        copyList[map[node.parentId]]?.multipleData.push(node);
-      } else {
-        node.parentId = null;
+      if (node.parentId) {
+        copyList[map[node.parentId]].multipleData.push(node);
       }
     });
 
