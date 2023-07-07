@@ -502,7 +502,7 @@ const CardEditor = ({ pathId }) => {
 
     const filePopup = e.target.closest(".filePopup");
 
-    if (!hoverData || (e.type === "mouseup" && filePopup)) {
+    if (e.type === "mouseup" && filePopup) {
       return;
     }
 

@@ -506,7 +506,7 @@ const CardEditor = ({ pathId }) => {
       return;
     }
 
-    if (e.button === 0 && hoverData?.tagName === "image") {
+    if (e.button === 0 && hoverData.tagName === "image") {
       if (!isFileUploderOpen) {
         const { bottom, left, width } =
           hoverElement.current?.getBoundingClientRect();
