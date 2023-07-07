@@ -100,7 +100,8 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     changeContextMenuYn(false);
   };
 
-  const changeMenu = (tagName) => {
+  const changeMenu = () => {
+    const tagName = prompt("tagName", "div");
     editorStore.updateBlock(popupData.uuid, { tagName: tagName });
     changeContextMenuYn(false);
   };

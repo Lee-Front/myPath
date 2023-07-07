@@ -200,7 +200,7 @@ const SubMenuImage = styled.img`
 `;
 
 const SubMenuText = styled.span`
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 `;
 
 const SubMenuWrapper = styled.div`

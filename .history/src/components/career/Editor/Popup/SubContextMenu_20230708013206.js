@@ -57,24 +57,21 @@ const SubContextMenu = ({
       menuText: "정렬",
       subMenuList: [
         {
-          text: "좌측",
-          image: "alignLeft",
+          text: "왼쪽",
           isSelect: textAlign === "start",
           event: () => {
             changeTextAlignment("start");
           },
         },
         {
-          text: "중앙",
-          image: "alignCenter",
+          text: "가운데",
           isSelect: textAlign === "center",
           event: () => {
             changeTextAlignment("center");
           },
         },
         {
-          text: "우측",
-          image: "alignRight",
+          text: "오른쪽",
           isSelect: textAlign === "end",
           event: () => {
             changeTextAlignment("end");
@@ -145,12 +142,12 @@ const SubContextMenu = ({
               isSelect={menu.isSelect}
             >
               {menu.image && (
-                <SubMenuImage
+                <img
                   src={`${process.env.PUBLIC_URL}/images/${menu.image}.svg`}
                   alt={menu.image}
                 />
               )}
-              <SubMenuText>{menu.text}</SubMenuText>
+              {menu.text}
             </SubMenuButton>
           ))}
         </SubMenuWrapper>
@@ -183,7 +180,6 @@ const SubMenuArrow = styled.span`
 const SubMenuButton = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
   padding: 0.5rem;
   border-radius: ${(props) => (props.isSelect ? "0.3rem" : null)};
   outline: ${(props) =>
@@ -192,15 +188,6 @@ const SubMenuButton = styled.div`
     background: rgba(55, 53, 47, 0.1);
     border-radius: 0.3rem;
   }
-`;
-
-const SubMenuImage = styled.img`
-  width: 3rem;
-  height: 3rem;
-`;
-
-const SubMenuText = styled.span`
-  font-size: 1.3rem;
 `;
 
 const SubMenuWrapper = styled.div`

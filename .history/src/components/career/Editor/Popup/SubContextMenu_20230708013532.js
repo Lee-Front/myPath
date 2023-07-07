@@ -57,24 +57,21 @@ const SubContextMenu = ({
       menuText: "정렬",
       subMenuList: [
         {
-          text: "좌측",
-          image: "alignLeft",
+          text: "왼쪽",
           isSelect: textAlign === "start",
           event: () => {
             changeTextAlignment("start");
           },
         },
         {
-          text: "중앙",
-          image: "alignCenter",
+          text: "가운데",
           isSelect: textAlign === "center",
           event: () => {
             changeTextAlignment("center");
           },
         },
         {
-          text: "우측",
-          image: "alignRight",
+          text: "오른쪽",
           isSelect: textAlign === "end",
           event: () => {
             changeTextAlignment("end");
@@ -200,7 +197,7 @@ const SubMenuImage = styled.img`
 `;
 
 const SubMenuText = styled.span`
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 `;
 
 const SubMenuWrapper = styled.div`
