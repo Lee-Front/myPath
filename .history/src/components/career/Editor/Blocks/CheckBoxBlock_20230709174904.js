@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "@emotion/styled";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import EditBranchComponent from "../EditBranchComponent";
 import EditableBlock from "./EditableBlock";
 import useEditorStore from "../../../../stores/useEditorStore";
@@ -14,44 +14,47 @@ const CheckBoxBlock = ({
 }) => {
   const [state, setState] = useState({
     html: data.html ? data.html : "",
+    checkYn: data.checkYn ? data.checkYn : false,
   });
-
-  const [boxHeight, setBoxHeight] = useState(16);
-  const editRef = useRef(null);
   const editorStore = useEditorStore();
-
-  useEffect(() => {
-    if (editRef.current) {
-      const rect = editRef.current?.getBoundingClientRect();
-      setBoxHeight(rect.height);
-    }
-  }, [data?.styleData?.fontSize]);
+  console.log("movementSide: ", movementSide);
+  const handleCheckChange = (e) => {
+    setState((prev) => ({ ...prev, checkYn: !state.checkYn }));
+    editorStore.updateBlock(data.uuid, {
+      checkYn: !state.checkYn,
+    });
+  };
 
   return (
     <BlockContainer styleData={data?.style}>
-      <BulletWrapper>
-        <BulletImage viewBox="0 0 512 512">
-          <path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0S0 114.6 0 256S114.6 512 256 512z" />
-        </BulletImage>
-      </BulletWrapper>
-
-      <TextAreaWrapper className="text-area" name="text-area">
+      <CheckBoxWrapper onClick={handleCheckChange}>
+        {!state.checkYn ? (
+          <CheckBoxImage viewBox="0 0 16 16">
+            <path d="M1.5,1.5 L1.5,14.5 L14.5,14.5 L14.5,1.5 L1.5,1.5 Z M0,0 L16,0 L16,16 L0,16 L0,0 Z"></path>
+          </CheckBoxImage>
+        ) : (
+          <CheckBoxImage checkYn={state.checkYn} viewBox="0 0 14 14">
+            <polygon points="5.5 11.9993304 14 3.49933039 12.5 2 5.5 8.99933039 1.5 4.9968652 0 6.49933039"></polygon>
+          </CheckBoxImage>
+        )}
+      </CheckBoxWrapper>
+      <TextAreaWrapper name="text-area">
         <EditableBlock data={data} overlayWidth={overlayWidth} />
-        {data?.multipleData?.map((element) => (
-          <EditBranchComponent
-            key={element.uuid}
-            data={element}
-            hoverUuid={hoverUuid}
-            movementSide={movementSide}
-          />
-        ))}
+        {data?.multipleData &&
+          data?.multipleData?.map((element) => (
+            <EditBranchComponent
+              key={element.uuid}
+              data={element}
+              hoverUuid={hoverUuid}
+              movementSide={movementSide}
+            />
+          ))}
       </TextAreaWrapper>
-
       {movementSide &&
       data.uuid === movementSide?.uuid &&
       movementSide?.movementSideType === "text" ? (
         <>
-          <BulletUnderLine />
+          <CheckBoxUnderLine />
           <TextUnderLine />
         </>
       ) : (
@@ -64,13 +67,8 @@ const CheckBoxBlock = ({
 export default CheckBoxBlock;
 
 const BlockContainer = styled.div`
-  position: relative;
-  flex: 1;
-  outline: none;
   display: flex;
-  margin: 0.4rem;
-  color: rgb(55, 53, 47);
-
+  flex: 1;
   // 여기부턴 태그 설정 스타일
   justify-content: ${(props) =>
     props?.styleData?.textAlign ? props?.styleData?.textAlign : null};
@@ -80,17 +78,18 @@ const BlockContainer = styled.div`
     props?.styleData?.background ? props?.styleData?.background : null};
 `;
 
-const BulletWrapper = styled.div`
+const CheckBoxWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 1.5rem;
+  width: 2.1rem;
   height: 2.5rem;
+  cursor: pointer;
 `;
 
-const BulletImage = styled.svg`
+const CheckBoxImage = styled.svg`
   display: block;
-  width: 0.7rem;
+  width: 1.6rem;
   height: 1.6rem;
   flex-shrink: 0;
   backface-visibility: hidden;
@@ -104,7 +103,7 @@ const TextAreaWrapper = styled.div`
   height: 100%;
 `;
 
-const BulletUnderLine = styled.div`
+const CheckBoxUnderLine = styled.div`
   background: rgba(35, 131, 226, 0.43);
   bottom: 0;
   left: 0;

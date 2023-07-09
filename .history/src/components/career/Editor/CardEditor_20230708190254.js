@@ -11,12 +11,12 @@ import { keyframes } from "@emotion/react";
 
 const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
-  const [movementSide, setMovementSide] = useState(null);
+  const [movementSide, setMovementSide] = useState("");
 
   // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
   const nearElement = useRef(null);
   const hoverElement = useRef(null);
-  const movementSideRef = useRef(null);
+  const movementSideRef = useRef("");
   const fileData = useRef(null);
   const contextMenuPoint = useRef(null);
 
@@ -113,9 +113,7 @@ const CardEditor = ({ pathId }) => {
           );
           const { x, y } = block.getBoundingClientRect();
           const filterTag =
-            handleBlockData.tagName === ("checkbox" || "bullet")
-              ? handleBlockData.tagName
-              : "";
+            handleBlockData.tagName !== "checkbox" ? "checkbox" : "";
           const blocks = findBlocksByPoint(x, y, filterTag);
           editorStore.setSelectBlocks(blocks);
         }
@@ -188,10 +186,7 @@ const CardEditor = ({ pathId }) => {
         const block = document.querySelector(`[data-uuid="${hoverUuid}"]`);
         const blockData = editorStore.findBlock(hoverUuid);
         const { x, y } = block.getBoundingClientRect();
-        const filterTag =
-          blockData.tagName === ("checkbox" || "bullet")
-            ? blockData.tagName
-            : "";
+        const filterTag = blockData.tagName !== "checkbox" ? "checkbox" : "";
         const blocks = findBlocksByPoint(x, y, filterTag);
 
         editorStore.setSelectBlocks(blocks);
@@ -359,6 +354,7 @@ const CardEditor = ({ pathId }) => {
 
   const decideMovementSide = (x1, y1) => {
     const targetElement = hoverElement.current || nearElement.current;
+    console.log("hoverElement: ", hoverElement);
     if (!targetElement) {
       setMovementSide(null);
       return;
@@ -463,6 +459,7 @@ const CardEditor = ({ pathId }) => {
       const checkboxElement = contentRef.current.querySelector(
         `[data-uuid="${targetElementData.uuid}"]`
       );
+
       const checkboxTextElement =
         checkboxElement.querySelector(`[name="text-area"]`);
 

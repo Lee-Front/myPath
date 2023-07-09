@@ -11,12 +11,12 @@ import { keyframes } from "@emotion/react";
 
 const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
-  const [movementSide, setMovementSide] = useState(null);
+  const [movementSide, setMovementSide] = useState("");
 
   // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
   const nearElement = useRef(null);
   const hoverElement = useRef(null);
-  const movementSideRef = useRef(null);
+  const movementSideRef = useRef("");
   const fileData = useRef(null);
   const contextMenuPoint = useRef(null);
 
@@ -364,6 +364,7 @@ const CardEditor = ({ pathId }) => {
       return;
     }
 
+    console.log("targetElement : ", targetElement);
     const clonedEditDom = copyObjectArray(editorStore.blocks);
     const targetUuid = targetElement.getAttribute("data-uuid");
     const targetData = editorStore.findBlock(targetUuid);
@@ -463,6 +464,7 @@ const CardEditor = ({ pathId }) => {
       const checkboxElement = contentRef.current.querySelector(
         `[data-uuid="${targetElementData.uuid}"]`
       );
+
       const checkboxTextElement =
         checkboxElement.querySelector(`[name="text-area"]`);
 

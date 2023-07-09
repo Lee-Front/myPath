@@ -11,12 +11,12 @@ import { keyframes } from "@emotion/react";
 
 const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
-  const [movementSide, setMovementSide] = useState(null);
+  const [movementSide, setMovementSide] = useState("");
 
   // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
   const nearElement = useRef(null);
   const hoverElement = useRef(null);
-  const movementSideRef = useRef(null);
+  const movementSideRef = useRef("");
   const fileData = useRef(null);
   const contextMenuPoint = useRef(null);
 
@@ -174,7 +174,7 @@ const CardEditor = ({ pathId }) => {
 
   mouseEventRef.current.mouseUp = (e) => {
     const contextMenu = e.target.closest(".contextMenu");
-
+    console.log("a");
     if (hoverElement.current && !contextMenu && e.button === 2) {
       const { clientX, clientY } = e;
       contextMenuPoint.current = { x: clientX, y: clientY };
@@ -201,13 +201,14 @@ const CardEditor = ({ pathId }) => {
     }
 
     const moveMentSideData = movementSideRef.current;
+    console.log("b");
     if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
       editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
-
+    console.log("c");
     if (
       !isFileUploderOpen &&
       !isContextMenuOpen &&
@@ -218,7 +219,7 @@ const CardEditor = ({ pathId }) => {
     ) {
       editorStore.setSelectBlocks([]);
     }
-
+    console.log("d");
     if (!draggable && hoverElement.current && e.ctrlKey) {
       const blocks = findBlocksByPoint(e.clientX, e.clientY);
 
@@ -226,6 +227,7 @@ const CardEditor = ({ pathId }) => {
         editorStore.toggleSelectBlock(block.uuid);
       });
     }
+    console.log("e");
 
     setSelectPoint(null);
     setIsGrabbing(false);
@@ -550,15 +552,17 @@ const CardEditor = ({ pathId }) => {
 
   const handleEditorClick = (e) => {
     const isHandle = e.target.closest("[name=block-handle]");
-
+    console.log("1");
     if (
       e.button === 0 &&
       e.target === e.currentTarget &&
       !isHandle &&
       !draggable
     ) {
+      console.log("2");
       // 마지막 블록이 텍스트 블록인데 비어있으면 생성하지 않음
       if (editorStore.blocks.length > 0) {
+        console.log("3");
         const lastBlockData = editorStore.blocks
           .filter((block) => block.tagName !== "multiple")
           ?.reduce((acc, cur) => (acc.srot > cur.sort ? acc : cur));

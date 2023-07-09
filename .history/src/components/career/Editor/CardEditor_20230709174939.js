@@ -11,7 +11,7 @@ import { keyframes } from "@emotion/react";
 
 const CardEditor = ({ pathId }) => {
   const editorStore = useEditorStore();
-  const [movementSide, setMovementSide] = useState(null);
+  const [movementSide, setMovementSide] = useState("");
 
   // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
   const nearElement = useRef(null);

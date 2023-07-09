@@ -37,7 +37,7 @@ const CheckBoxBlock = ({
 
       <TextAreaWrapper className="text-area" name="text-area">
         <EditableBlock data={data} overlayWidth={overlayWidth} />
-        {data?.multipleData?.map((element) => (
+        {data?.multipleData?.map((element, index) => (
           <EditBranchComponent
             key={element.uuid}
             data={element}
@@ -47,9 +47,7 @@ const CheckBoxBlock = ({
         ))}
       </TextAreaWrapper>
 
-      {movementSide &&
-      data.uuid === movementSide?.uuid &&
-      movementSide?.movementSideType === "text" ? (
+      {movementSide?.movementSideType === "text" ? (
         <>
           <BulletUnderLine />
           <TextUnderLine />
