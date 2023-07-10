@@ -66,11 +66,7 @@ const PathList = () => {
           >
             <PathCardTitle>{path.title}</PathCardTitle>
             {hoverCard?._id === path._id && (
-              <PathCardOptionWrapper
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
+              <PathCardOptionWrapper>
                 <PathCarOptionImg
                   src={`${process.env.PUBLIC_URL}/images/optionDots.svg`}
                 />
@@ -96,7 +92,7 @@ const PathContainer = styled.div`
 `;
 
 const PathCardWrapper = styled.div`
-  padding: 1rem;
+  margin: 1rem;
   flex-basis: ${(props) => `${100 / props.cardColumn}%`};
   min-width: 15rem;
 `;

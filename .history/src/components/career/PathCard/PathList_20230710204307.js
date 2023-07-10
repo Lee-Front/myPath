@@ -60,22 +60,12 @@ const PathList = () => {
           onMouseLeave={() => setHoverCard(null)}
         >
           <PathCard
+            cardColumn={cardColumn}
             onClick={() => {
               goToPathWrite(path._id);
             }}
           >
             <PathCardTitle>{path.title}</PathCardTitle>
-            {hoverCard?._id === path._id && (
-              <PathCardOptionWrapper
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <PathCarOptionImg
-                  src={`${process.env.PUBLIC_URL}/images/optionDots.svg`}
-                />
-              </PathCardOptionWrapper>
-            )}
           </PathCard>
         </PathCardWrapper>
       ))}
@@ -96,14 +86,16 @@ const PathContainer = styled.div`
 `;
 
 const PathCardWrapper = styled.div`
-  padding: 1rem;
-  flex-basis: ${(props) => `${100 / props.cardColumn}%`};
-  min-width: 15rem;
+  //padding: 1rem;
+  /* flex-basis: ${(props) => `${100 / props.cardColumn}%`};
+  min-width: 15rem; */
 `;
 
 const PathCard = styled.div`
-  position: relative;
+  padding: 1rem;
   height: 100%;
+  flex-basis: ${(props) => `${100 / props.cardColumn}%`};
+  min-width: 15rem;
   border-radius: 0.5rem;
   min-height: 15rem;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -127,22 +119,4 @@ const AddButtonImageWrapper = styled.div`
 const AddButtonImage = styled.img`
   width: 7rem;
   height: 7rem;
-`;
-
-const PathCardOptionWrapper = styled.div`
-  position: absolute;
-  padding: 0.5rem;
-  right: 0.5rem;
-  top: 1rem;
-  width: 1.5rem;
-  height: 3rem;
-  border-radius: 0.5rem;
-  :hover {
-    background: rgba(55, 53, 47, 0.1);
-  }
-`;
-
-const PathCarOptionImg = styled.img`
-  width: 100%;
-  height: 100%;
 `;

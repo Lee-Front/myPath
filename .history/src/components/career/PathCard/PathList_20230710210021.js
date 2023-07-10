@@ -68,6 +68,7 @@ const PathList = () => {
             {hoverCard?._id === path._id && (
               <PathCardOptionWrapper
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                 }}
               >

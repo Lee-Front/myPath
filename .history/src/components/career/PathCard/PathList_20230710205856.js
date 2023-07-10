@@ -66,11 +66,7 @@ const PathList = () => {
           >
             <PathCardTitle>{path.title}</PathCardTitle>
             {hoverCard?._id === path._id && (
-              <PathCardOptionWrapper
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
+              <PathCardOptionWrapper>
                 <PathCarOptionImg
                   src={`${process.env.PUBLIC_URL}/images/optionDots.svg`}
                 />
@@ -134,7 +130,7 @@ const PathCardOptionWrapper = styled.div`
   padding: 0.5rem;
   right: 0.5rem;
   top: 1rem;
-  width: 1.5rem;
+  width: 1.2rem;
   height: 3rem;
   border-radius: 0.5rem;
   :hover {

@@ -65,17 +65,7 @@ const PathList = () => {
             }}
           >
             <PathCardTitle>{path.title}</PathCardTitle>
-            {hoverCard?._id === path._id && (
-              <PathCardOptionWrapper
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <PathCarOptionImg
-                  src={`${process.env.PUBLIC_URL}/images/optionDots.svg`}
-                />
-              </PathCardOptionWrapper>
-            )}
+            <PathCardOption />
           </PathCard>
         </PathCardWrapper>
       ))}
@@ -102,7 +92,6 @@ const PathCardWrapper = styled.div`
 `;
 
 const PathCard = styled.div`
-  position: relative;
   height: 100%;
   border-radius: 0.5rem;
   min-height: 15rem;
@@ -129,20 +118,4 @@ const AddButtonImage = styled.img`
   height: 7rem;
 `;
 
-const PathCardOptionWrapper = styled.div`
-  position: absolute;
-  padding: 0.5rem;
-  right: 0.5rem;
-  top: 1rem;
-  width: 1.5rem;
-  height: 3rem;
-  border-radius: 0.5rem;
-  :hover {
-    background: rgba(55, 53, 47, 0.1);
-  }
-`;
-
-const PathCarOptionImg = styled.img`
-  width: 100%;
-  height: 100%;
-`;
+const PathCardOption = styled.div``;
