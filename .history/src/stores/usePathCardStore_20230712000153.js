@@ -38,26 +38,22 @@ const usePathCardStore = create((set, get) => ({
       set({ contextMenuData: null });
     }
   },
-  update: async (pathId, title) => {
+  edit: async (pathId) => {
     if (pathId === null) return;
 
-    const updatePath = await axios.put("/api/path/update", {
+    const pathName = prompt("path의 이름을 입력하세요", "Path명");
+
+    if (pathName === null) return;
+
+    const editPath = await axios.put("/api/path/edit", {
       pathId,
-      title,
+      title: pathName,
     });
 
-    if (updatePath.status === 200) {
+    if (editPath.status === 200) {
       await get().getPathList();
+      set({ contextMenuData: null });
     }
-  },
-  toggleEdit: (pathId) => {
-    const pathList = get().pathList.map((path) => {
-      if (path._id === pathId) {
-        return { ...path, isEdit: !path.isEdit };
-      }
-      return path;
-    });
-    set({ pathList });
   },
   setContextMenuData: (data) => {
     set({ contextMenuData: data });

@@ -39,7 +39,6 @@ const PathList = () => {
     const isContextMenu = contextRef.current?.contains(e.target);
     if (!isContextMenu) {
       pathCardStore.setContextMenuData(null);
-      setIsContextMenu(false);
     }
   };
 
@@ -142,8 +141,8 @@ const CardContextMenu = styled.div`
   background: white;
   border: 1px solid rgba(55, 53, 47, 0.2);
   border-radius: 0.5rem;
-  left: ${(props) => props.position?.x}px;
-  top: ${(props) => props.position?.y}px;
+  left: ${(props) => props.position.x}px;
+  top: ${(props) => props.position.y}px;
   padding: 0.5rem;
 `;
 

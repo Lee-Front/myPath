@@ -12,12 +12,8 @@ const PathCard = ({ pathData, isHover, setIsContextMenu }) => {
 
   const handleEditSubmit = (e) => {
     e.stopPropagation();
-    const title = inputRef.current?.value;
-    if (title !== pathData.title) {
-      pathCardStore.update(pathData._id, title);
-    } else {
-      pathCardStore.toggleEdit(pathData._id);
-    }
+    const title = inputRef.current.value;
+    console.log("title: ,", title);
   };
   return (
     <PathCardContainer onClick={() => nav("/write/" + pathData._id)}>

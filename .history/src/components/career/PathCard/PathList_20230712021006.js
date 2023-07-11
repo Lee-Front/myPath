@@ -39,7 +39,6 @@ const PathList = () => {
     const isContextMenu = contextRef.current?.contains(e.target);
     if (!isContextMenu) {
       pathCardStore.setContextMenuData(null);
-      setIsContextMenu(false);
     }
   };
 

@@ -38,18 +38,6 @@ const usePathCardStore = create((set, get) => ({
       set({ contextMenuData: null });
     }
   },
-  update: async (pathId, title) => {
-    if (pathId === null) return;
-
-    const updatePath = await axios.put("/api/path/update", {
-      pathId,
-      title,
-    });
-
-    if (updatePath.status === 200) {
-      await get().getPathList();
-    }
-  },
   toggleEdit: (pathId) => {
     const pathList = get().pathList.map((path) => {
       if (path._id === pathId) {

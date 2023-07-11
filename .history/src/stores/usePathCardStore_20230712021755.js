@@ -39,6 +39,7 @@ const usePathCardStore = create((set, get) => ({
     }
   },
   update: async (pathId, title) => {
+    console.log("update");
     if (pathId === null) return;
 
     const updatePath = await axios.put("/api/path/update", {

@@ -15,8 +15,6 @@ const PathCard = ({ pathData, isHover, setIsContextMenu }) => {
     const title = inputRef.current?.value;
     if (title !== pathData.title) {
       pathCardStore.update(pathData._id, title);
-    } else {
-      pathCardStore.toggleEdit(pathData._id);
     }
   };
   return (

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
+import { useNavigate } from "react-router-dom";
 import { throttle } from "lodash";
 import usePathCardStore from "../../../stores/usePathCardStore";
 import PathCard from "./PathCard";
@@ -9,10 +10,8 @@ const userId = "wkdrmadl3";
 const PathList = () => {
   const pathCardStore = usePathCardStore();
   const containerRef = useRef(null);
-  const contextRef = useRef(null);
   const [cardColumn, setCardColumn] = useState(null);
   const [hoverCardId, setHoverCardId] = useState(null);
-  const [isContextMenu, setIsContextMenu] = useState(false);
 
   useEffect(() => {
     const getMaxCardCount = () => {
@@ -29,19 +28,7 @@ const PathList = () => {
       }, 100)
     );
     resizeObserver.observe(containerRef.current);
-
-    document.addEventListener("click", isOutsideClicked);
-    return () => {
-      document.removeEventListener("click", isOutsideClicked);
-    };
   }, []);
-  const isOutsideClicked = (e) => {
-    const isContextMenu = contextRef.current?.contains(e.target);
-    if (!isContextMenu) {
-      pathCardStore.setContextMenuData(null);
-      setIsContextMenu(false);
-    }
-  };
 
   return (
     <PathContainer ref={containerRef}>
@@ -61,35 +48,19 @@ const PathList = () => {
           onMouseEnter={() => setHoverCardId(path._id)}
           onMouseLeave={() => setHoverCardId(null)}
         >
-          <PathCard
-            pathData={path}
-            isHover={hoverCardId === path._id}
-            setIsContextMenu={setIsContextMenu}
-          />
+          <PathCard pathData={path} isHover={hoverCardId === path._id} />
         </PathCardWrapper>
       ))}
-      {isContextMenu && (
-        <CardContextMenu
-          position={pathCardStore.contextMenuData}
-          ref={contextRef}
-        >
+      {pathCardStore.contextMenuData && (
+        <CardContextMenu position={pathCardStore.contextMenuData}>
+          {/* <SubMenu>수정</SubMenu> */}
           <SubMenu
             onClick={async () => {
               const deletePathId = pathCardStore.contextMenuData.pathId;
               pathCardStore.delete(deletePathId);
-              setIsContextMenu(false);
             }}
           >
             삭제
-          </SubMenu>
-          <SubMenu
-            onClick={() => {
-              const editPathId = pathCardStore.contextMenuData.pathId;
-              pathCardStore.toggleEdit(editPathId);
-              setIsContextMenu(false);
-            }}
-          >
-            수정
           </SubMenu>
           {/* <SubMenu>이미지</SubMenu> */}
         </CardContextMenu>
@@ -142,8 +113,8 @@ const CardContextMenu = styled.div`
   background: white;
   border: 1px solid rgba(55, 53, 47, 0.2);
   border-radius: 0.5rem;
-  left: ${(props) => props.position?.x}px;
-  top: ${(props) => props.position?.y}px;
+  left: ${(props) => props.position.x}px;
+  top: ${(props) => props.position.y}px;
   padding: 0.5rem;
 `;
 

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import usePathCardStore from "../../../stores/usePathCardStore";
@@ -8,17 +8,6 @@ import { keyframes } from "@emotion/react";
 const PathCard = ({ pathData, isHover, setIsContextMenu }) => {
   const nav = useNavigate();
   const pathCardStore = usePathCardStore();
-  const inputRef = useRef(null);
-
-  const handleEditSubmit = (e) => {
-    e.stopPropagation();
-    const title = inputRef.current?.value;
-    if (title !== pathData.title) {
-      pathCardStore.update(pathData._id, title);
-    } else {
-      pathCardStore.toggleEdit(pathData._id);
-    }
-  };
   return (
     <PathCardContainer onClick={() => nav("/write/" + pathData._id)}>
       <PathCardWrapper>
@@ -26,13 +15,16 @@ const PathCard = ({ pathData, isHover, setIsContextMenu }) => {
           <>
             <PathCardInputWrapper>
               <PathCardInput
-                ref={inputRef}
                 onClick={(e) => {
                   e.stopPropagation();
                 }}
               />
             </PathCardInputWrapper>
-            <EditSubmitWrapper onClick={handleEditSubmit}>
+            <EditSubmitWrapper
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
               <EditSubmitImg
                 src={`${process.env.PUBLIC_URL}/images/editSubmit.svg`}
               />
@@ -50,14 +42,14 @@ const PathCard = ({ pathData, isHover, setIsContextMenu }) => {
 
             if (pathCardStore.contextMenuData?.pathId === pathData._id) {
               pathCardStore.setContextMenuData(null);
-              setIsContextMenu((prev) => !prev);
+              setIsContextMenu(false);
             } else {
               pathCardStore.setContextMenuData({
                 pathId: pathData._id,
                 x: e.clientX,
                 y: e.clientY,
               });
-              setIsContextMenu(true);
+              setIsContextMenu((prev) => !prev);
             }
           }}
         >

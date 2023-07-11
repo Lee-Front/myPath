@@ -12,7 +12,6 @@ const PathList = () => {
   const contextRef = useRef(null);
   const [cardColumn, setCardColumn] = useState(null);
   const [hoverCardId, setHoverCardId] = useState(null);
-  const [isContextMenu, setIsContextMenu] = useState(false);
 
   useEffect(() => {
     const getMaxCardCount = () => {
@@ -37,9 +36,9 @@ const PathList = () => {
   }, []);
   const isOutsideClicked = (e) => {
     const isContextMenu = contextRef.current?.contains(e.target);
+    console.log("a");
     if (!isContextMenu) {
       pathCardStore.setContextMenuData(null);
-      setIsContextMenu(false);
     }
   };
 
@@ -61,35 +60,22 @@ const PathList = () => {
           onMouseEnter={() => setHoverCardId(path._id)}
           onMouseLeave={() => setHoverCardId(null)}
         >
-          <PathCard
-            pathData={path}
-            isHover={hoverCardId === path._id}
-            setIsContextMenu={setIsContextMenu}
-          />
+          <PathCard pathData={path} isHover={hoverCardId === path._id} />
         </PathCardWrapper>
       ))}
-      {isContextMenu && (
+      {pathCardStore.contextMenuData && (
         <CardContextMenu
           position={pathCardStore.contextMenuData}
           ref={contextRef}
         >
+          {/* <SubMenu>수정</SubMenu> */}
           <SubMenu
             onClick={async () => {
               const deletePathId = pathCardStore.contextMenuData.pathId;
               pathCardStore.delete(deletePathId);
-              setIsContextMenu(false);
             }}
           >
             삭제
-          </SubMenu>
-          <SubMenu
-            onClick={() => {
-              const editPathId = pathCardStore.contextMenuData.pathId;
-              pathCardStore.toggleEdit(editPathId);
-              setIsContextMenu(false);
-            }}
-          >
-            수정
           </SubMenu>
           {/* <SubMenu>이미지</SubMenu> */}
         </CardContextMenu>
@@ -142,8 +128,8 @@ const CardContextMenu = styled.div`
   background: white;
   border: 1px solid rgba(55, 53, 47, 0.2);
   border-radius: 0.5rem;
-  left: ${(props) => props.position?.x}px;
-  top: ${(props) => props.position?.y}px;
+  left: ${(props) => props.position.x}px;
+  top: ${(props) => props.position.y}px;
   padding: 0.5rem;
 `;
 
