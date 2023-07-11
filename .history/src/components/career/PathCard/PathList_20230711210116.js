@@ -54,11 +54,11 @@ const PathList = () => {
       ))}
       {pathCardStore.contextMenuData && (
         <CardContextMenu position={pathCardStore.contextMenuData}>
-          {/* <SubMenu>수정</SubMenu> */}
+          <SubMenu>수정</SubMenu>
           <SubMenu
             onClick={async () => {
               const deletePathId = pathCardStore.contextMenuData.pathId;
-              pathCardStore.delete(deletePathId);
+              const result = await pathCardStore.delete(deletePathId);
             }}
           >
             삭제

@@ -4,7 +4,6 @@ import { create } from "zustand";
 const userId = "wkdrmadl3";
 const usePathCardStore = create((set, get) => ({
   pathList: [],
-  contextMenuData: null,
   getPathList: async () => {
     const response = await axios.get("/api/path/getList", {
       params: { userId },
@@ -35,11 +34,7 @@ const usePathCardStore = create((set, get) => ({
 
     if (deletePath.status === 200) {
       await get().getPathList();
-      set({ contextMenuData: null });
     }
-  },
-  setContextMenuData: (data) => {
-    set({ contextMenuData: data });
   },
 }));
 

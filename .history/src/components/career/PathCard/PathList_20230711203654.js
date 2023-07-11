@@ -13,6 +13,12 @@ const PathList = () => {
   const containerRef = useRef(null);
   const [cardColumn, setCardColumn] = useState(null);
   const [hoverCardId, setHoverCardId] = useState(null);
+  const [isContextMenu, setIsContextMenu] = useState(false);
+  const [contextMenuData, setContextMenuData] = useState({
+    pathId: -1,
+    x: 0,
+    y: 0,
+  });
 
   useEffect(() => {
     const getMaxCardCount = () => {
@@ -49,16 +55,26 @@ const PathList = () => {
           onMouseEnter={() => setHoverCardId(path._id)}
           onMouseLeave={() => setHoverCardId(null)}
         >
-          <PathCard pathData={path} isHover={hoverCardId === path._id} />
+          <PathCard
+            pathData={path}
+            isHover={hoverCardId === path._id}
+            setContextMenuData={setContextMenuData}
+            setIsContextMenu={setIsContextMenu}
+            contextMenuData={contextMenuData}
+          />
         </PathCardWrapper>
       ))}
       {pathCardStore.contextMenuData && (
-        <CardContextMenu position={pathCardStore.contextMenuData}>
-          {/* <SubMenu>수정</SubMenu> */}
+        <CardContextMenu position={contextMenuData}>
+          <SubMenu>수정</SubMenu>
           <SubMenu
             onClick={async () => {
-              const deletePathId = pathCardStore.contextMenuData.pathId;
-              pathCardStore.delete(deletePathId);
+              const result = await pathCardStore.delete(contextMenuData.pathId);
+
+              if (result) {
+                setIsContextMenu(false);
+                setContextMenuData({ pathId: -1, x: 0, y: 0 });
+              }
             }}
           >
             삭제

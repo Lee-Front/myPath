@@ -35,7 +35,12 @@ const SideBar = ({ isSideBarOpen }) => {
             onChange={handleInputChange}
           />
         </SearchWrapper>
-        <SideBarButtonWrapper onClick={() => pathCardStore.create("wkdrmadl3")}>
+        <SideBarButtonWrapper
+          onClick={async () => {
+            const pathId = await pathCardStore.create("wkdrmadl3");
+            nav(`/write/${pathId}`);
+          }}
+        >
           <SideBarButtonImage src={`${imagePath}/smallAddButton.svg`} />
           새로운 명함 생성하기
         </SideBarButtonWrapper>

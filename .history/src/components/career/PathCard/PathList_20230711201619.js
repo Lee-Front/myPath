@@ -3,7 +3,6 @@ import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import { throttle } from "lodash";
 import usePathCardStore from "../../../stores/usePathCardStore";
-import PathCard from "./PathCard";
 
 const userId = "wkdrmadl3";
 
@@ -13,6 +12,23 @@ const PathList = () => {
   const containerRef = useRef(null);
   const [cardColumn, setCardColumn] = useState(null);
   const [hoverCardId, setHoverCardId] = useState(null);
+  const [isContextMenu, setIsContextMenu] = useState(false);
+  const [contextMenuData, setContextMenuData] = useState({
+    pathId: -1,
+    x: 0,
+    y: 0,
+  });
+
+  const goToPathWrite = (pathId) => {
+    nav("/write/" + pathId);
+  };
+
+  const createPath = async () => {
+    const pathId = await pathCardStore.create(userId);
+    if (pathId) {
+      goToPathWrite(pathId);
+    }
+  };
 
   useEffect(() => {
     const getMaxCardCount = () => {
@@ -34,13 +50,13 @@ const PathList = () => {
   return (
     <PathContainer ref={containerRef}>
       <PathCardWrapper cardColumn={cardColumn}>
-        <AddPathCard onClick={() => pathCardStore.create(userId)}>
+        <PathCard onClick={() => pathCardStore.create(userId)}>
           <AddButtonImageWrapper>
             <AddButtonImage
               src={`${process.env.PUBLIC_URL}/images/bigAddButton.svg`}
             />
           </AddButtonImageWrapper>
-        </AddPathCard>
+        </PathCard>
       </PathCardWrapper>
       {pathCardStore.pathList.map((path) => (
         <PathCardWrapper
@@ -49,21 +65,54 @@ const PathList = () => {
           onMouseEnter={() => setHoverCardId(path._id)}
           onMouseLeave={() => setHoverCardId(null)}
         >
-          <PathCard pathData={path} isHover={hoverCardId === path._id} />
+          <PathCard
+            isHover={hoverCardId === path._id}
+            onClick={() => {
+              goToPathWrite(path._id);
+            }}
+          >
+            <PathCardTitle>{path.title}</PathCardTitle>
+            {hoverCardId === path._id && (
+              <PathCardOptionWrapper
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setContextMenuData({
+                    pathId: path._id,
+                    x: e.clientX,
+                    y: e.clientY,
+                  });
+
+                  if (contextMenuData.pathId === path._id) {
+                    setIsContextMenu((prev) => !prev);
+                  } else {
+                    setIsContextMenu(true);
+                  }
+                }}
+              >
+                <PathCarOptionImg
+                  src={`${process.env.PUBLIC_URL}/images/optionDots.svg`}
+                />
+              </PathCardOptionWrapper>
+            )}
+          </PathCard>
         </PathCardWrapper>
       ))}
-      {pathCardStore.contextMenuData && (
-        <CardContextMenu position={pathCardStore.contextMenuData}>
-          {/* <SubMenu>수정</SubMenu> */}
+      {isContextMenu && (
+        <CardContextMenu position={contextMenuData}>
+          <SubMenu>수정</SubMenu>
           <SubMenu
             onClick={async () => {
-              const deletePathId = pathCardStore.contextMenuData.pathId;
-              pathCardStore.delete(deletePathId);
+              const result = await pathCardStore.delete(contextMenuData.pathId);
+
+              if (result) {
+                setIsContextMenu(false);
+                setContextMenuData({ pathId: -1, x: 0, y: 0 });
+              }
             }}
           >
             삭제
           </SubMenu>
-          {/* <SubMenu>이미지</SubMenu> */}
+          <SubMenu>이미지</SubMenu>
         </CardContextMenu>
       )}
     </PathContainer>
@@ -88,7 +137,7 @@ const PathCardWrapper = styled.div`
   min-width: 15rem;
 `;
 
-const AddPathCard = styled.div`
+const PathCard = styled.div`
   position: relative;
   height: 100%;
   border-radius: 0.5rem;
@@ -96,6 +145,13 @@ const AddPathCard = styled.div`
   border: 1px solid rgba(0, 0, 0, 0.1);
   cursor: pointer;
   background: white;
+`;
+
+const PathCardTitle = styled.span`
+  display: block;
+  font-size: 2.5rem;
+  margin: 1rem;
+  white-space: break-spaces;
 `;
 
 const AddButtonImageWrapper = styled.div`
@@ -107,6 +163,24 @@ const AddButtonImageWrapper = styled.div`
 const AddButtonImage = styled.img`
   width: 7rem;
   height: 7rem;
+`;
+
+const PathCardOptionWrapper = styled.div`
+  position: absolute;
+  padding: 0.5rem;
+  right: 0.5rem;
+  top: 1rem;
+  width: 1.5rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  :hover {
+    background: rgba(55, 53, 47, 0.1);
+  }
+`;
+
+const PathCarOptionImg = styled.img`
+  width: 100%;
+  height: 100%;
 `;
 
 const CardContextMenu = styled.div`

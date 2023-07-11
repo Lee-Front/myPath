@@ -35,7 +35,7 @@ const usePathCardStore = create((set, get) => ({
 
     if (deletePath.status === 200) {
       await get().getPathList();
-      set({ contextMenuData: null });
+      return true;
     }
   },
   setContextMenuData: (data) => {

@@ -4,14 +4,13 @@ import { create } from "zustand";
 const userId = "wkdrmadl3";
 const usePathCardStore = create((set, get) => ({
   pathList: [],
-  contextMenuData: null,
   getPathList: async () => {
     const response = await axios.get("/api/path/getList", {
       params: { userId },
     });
     set({ pathList: response.data });
   },
-  create: async () => {
+  createPath: async () => {
     const pathName = prompt("path의 이름을 입력하세요", "Path명");
 
     if (pathName === null) return;
@@ -26,7 +25,7 @@ const usePathCardStore = create((set, get) => ({
       return createPath.data.id;
     }
   },
-  delete: async (pathId) => {
+  deletePath: async (pathId) => {
     if (pathId === null) return;
 
     const deletePath = await axios.delete("/api/path/delete", {
@@ -35,11 +34,7 @@ const usePathCardStore = create((set, get) => ({
 
     if (deletePath.status === 200) {
       await get().getPathList();
-      set({ contextMenuData: null });
     }
-  },
-  setContextMenuData: (data) => {
-    set({ contextMenuData: data });
   },
 }));
 

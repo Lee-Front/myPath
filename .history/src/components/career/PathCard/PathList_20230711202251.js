@@ -13,6 +13,12 @@ const PathList = () => {
   const containerRef = useRef(null);
   const [cardColumn, setCardColumn] = useState(null);
   const [hoverCardId, setHoverCardId] = useState(null);
+  const [isContextMenu, setIsContextMenu] = useState(false);
+  const [contextMenuData, setContextMenuData] = useState({
+    pathId: -1,
+    x: 0,
+    y: 0,
+  });
 
   useEffect(() => {
     const getMaxCardCount = () => {
@@ -33,15 +39,15 @@ const PathList = () => {
 
   return (
     <PathContainer ref={containerRef}>
-      <PathCardWrapper cardColumn={cardColumn}>
-        <AddPathCard onClick={() => pathCardStore.create(userId)}>
+      {/* <PathCardWrapper cardColumn={cardColumn}>
+        <PathCard onClick={() => pathCardStore.create(userId)}>
           <AddButtonImageWrapper>
             <AddButtonImage
               src={`${process.env.PUBLIC_URL}/images/bigAddButton.svg`}
             />
           </AddButtonImageWrapper>
-        </AddPathCard>
-      </PathCardWrapper>
+        </PathCard>
+      </PathCardWrapper> */}
       {pathCardStore.pathList.map((path) => (
         <PathCardWrapper
           key={path._id}
@@ -49,16 +55,25 @@ const PathList = () => {
           onMouseEnter={() => setHoverCardId(path._id)}
           onMouseLeave={() => setHoverCardId(null)}
         >
-          <PathCard pathData={path} isHover={hoverCardId === path._id} />
+          <PathCard
+            pathData={path}
+            isHover={hoverCardId === path._id}
+            setContextMenuData={setContextMenuData}
+            setIsContextMenu={setIsContextMenu}
+          />
         </PathCardWrapper>
       ))}
-      {pathCardStore.contextMenuData && (
-        <CardContextMenu position={pathCardStore.contextMenuData}>
-          {/* <SubMenu>수정</SubMenu> */}
+      {isContextMenu && (
+        <CardContextMenu position={contextMenuData}>
+          <SubMenu>수정</SubMenu>
           <SubMenu
             onClick={async () => {
-              const deletePathId = pathCardStore.contextMenuData.pathId;
-              pathCardStore.delete(deletePathId);
+              const result = await pathCardStore.delete(contextMenuData.pathId);
+
+              if (result) {
+                setIsContextMenu(false);
+                setContextMenuData({ pathId: -1, x: 0, y: 0 });
+              }
             }}
           >
             삭제
@@ -88,15 +103,22 @@ const PathCardWrapper = styled.div`
   min-width: 15rem;
 `;
 
-const AddPathCard = styled.div`
-  position: relative;
-  height: 100%;
-  border-radius: 0.5rem;
-  min-height: 15rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  background: white;
-`;
+// const PathCard = styled.div`
+//   position: relative;
+//   height: 100%;
+//   border-radius: 0.5rem;
+//   min-height: 15rem;
+//   border: 1px solid rgba(0, 0, 0, 0.1);
+//   cursor: pointer;
+//   background: white;
+// `;
+
+// const PathCardTitle = styled.span`
+//   display: block;
+//   font-size: 2.5rem;
+//   margin: 1rem;
+//   white-space: break-spaces;
+// `;
 
 const AddButtonImageWrapper = styled.div`
   display: flex;
@@ -107,6 +129,24 @@ const AddButtonImageWrapper = styled.div`
 const AddButtonImage = styled.img`
   width: 7rem;
   height: 7rem;
+`;
+
+const PathCardOptionWrapper = styled.div`
+  position: absolute;
+  padding: 0.5rem;
+  right: 0.5rem;
+  top: 1rem;
+  width: 1.5rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  :hover {
+    background: rgba(55, 53, 47, 0.1);
+  }
+`;
+
+const PathCarOptionImg = styled.img`
+  width: 100%;
+  height: 100%;
 `;
 
 const CardContextMenu = styled.div`

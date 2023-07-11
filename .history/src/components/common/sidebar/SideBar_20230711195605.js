@@ -35,7 +35,12 @@ const SideBar = ({ isSideBarOpen }) => {
             onChange={handleInputChange}
           />
         </SearchWrapper>
-        <SideBarButtonWrapper onClick={() => pathCardStore.create("wkdrmadl3")}>
+        <SideBarButtonWrapper
+          onClick={() => {
+            const pathId = pathCardStore.createPath("wkdrmadl3");
+            nav(`/write/${pathId}`);
+          }}
+        >
           <SideBarButtonImage src={`${imagePath}/smallAddButton.svg`} />
           새로운 명함 생성하기
         </SideBarButtonWrapper>
@@ -45,7 +50,14 @@ const SideBar = ({ isSideBarOpen }) => {
             .map((path) => (
               <SideBarButtonWrapper key={path._id} to={`/write/${path._id}`}>
                 <SideBarButtonImage src={`${imagePath}/leftArrow.svg`} />
-                <SideBarText>{path.title}</SideBarText>
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {path.title}
+                </span>
               </SideBarButtonWrapper>
             ))}
         </SideBarButtonContainer>
