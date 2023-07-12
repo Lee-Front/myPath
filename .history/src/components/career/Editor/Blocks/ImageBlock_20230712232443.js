@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { useState } from "react";
 import { useEffect } from "react";
 
-const ImageBlock = ({ style, data, overlayWidth, changeShowFileUploader }) => {
+const ImageBlock = ({ style, data, changeShowFileUploader, hoverUuid }) => {
   const [fileId, setFileId] = useState();
   const [width, setWidth] = useState();
 
@@ -16,25 +16,31 @@ const ImageBlock = ({ style, data, overlayWidth, changeShowFileUploader }) => {
   return (
     <BlockContainer
       fileId={fileId}
+      hoverYn={hoverUuid === data.uuid}
       onClick={(e) => {
         changeShowFileUploader(e);
       }}
     >
       {fileId != null ? (
-        <Image
+        <img
           src={`${process.env.REACT_APP_API_URL}/api/common/images/${fileId}`}
           onLoad={() => {
             setWidth(data?.files[0]?.width);
           }}
           alt="이미지"
+          style={{
+            width: width + "px",
+            maxWidth: "100%",
+            transition: "0.5s",
+          }}
         />
       ) : (
-        <UploadWrapper>
-          <UploadImage viewBox="0 0 30 30">
+        <ImageWrapper>
+          <Image viewBox="0 0 30 30">
             <path d="M1,4v22h28V4H1z M27,24H3V6h24V24z M18,10l-5,6l-2-2l-6,8h20L18,10z M11.216,17.045l1.918,1.918l4.576-5.491L21.518,20H9 L11.216,17.045z M7,12c1.104,0,2-0.896,2-2S8.104,8,7,8s-2,0.896-2,2S5.896,12,7,12z"></path>
-          </UploadImage>
+          </Image>
           이미지를 등록해주세요.
-        </UploadWrapper>
+        </ImageWrapper>
       )}
       {style ? <div style={style}></div> : null}
     </BlockContainer>
@@ -59,17 +65,12 @@ const BlockContainer = styled.div`
       : ""};
   cursor: pointer;
 `;
-const Image = styled.img`
-  width: ${(props) => props.width + "px"};
-  max-width: 100%;
-  transition: 0.5s;
-`;
 
-const UploadWrapper = styled.div`
+const ImageWrapper = styled.div`
   display: flex;
 `;
 
-const UploadImage = styled.svg`
+const Image = styled.svg`
   width: 2.5rem;
   height: 2.5rem;
   fill: rgba(55, 53, 47, 0.45);

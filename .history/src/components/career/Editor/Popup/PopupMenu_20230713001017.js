@@ -41,25 +41,44 @@ const PopupMenu = ({ changeShowFileUploader, fileData }) => {
     >
       <UploadMethodWrapper>
         <UploadMethod>이미지</UploadMethod>
-        {/* <UploadMethod>링크</UploadMethod> */}
-      </UploadMethodWrapper>
-      <StyledFileUploader
-        onClick={(e) => {
-          e.stopPropagation();
-          fileUploadRef.current.click();
-        }}
-      >
-        <input
-          type="file"
-          ref={fileUploadRef}
-          style={{ display: "none" }}
-          onChange={(e) => {
-            changeShowFileUploader(e);
-            fileUpload(e.target.files[0]);
+        {/* <div
+          style={{
+            cursor: "pointer",
+            height: "3rem",
+            width: "6rem",
+            textAlign: "center",
           }}
-        />
-        파일 업로드
-      </StyledFileUploader>
+        >
+          링크
+        </div> */}
+      </UploadMethodWrapper>
+      <div style={{ borderTop: "1px solid rgba(55, 53, 47, 0.3)" }}>
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            fileUploadRef.current.click();
+          }}
+          style={{
+            cursor: "pointer",
+            margin: "1rem 1rem 0 1rem",
+            padding: "0.5rem",
+            border: "1px solid rgba(55, 53, 47, 0.3)",
+            borderRadius: "0.5rem",
+            textAlign: "center",
+          }}
+        >
+          <input
+            type="file"
+            ref={fileUploadRef}
+            style={{ display: "none" }}
+            onChange={(e) => {
+              changeShowFileUploader(e);
+              fileUpload(e.target.files[0]);
+            }}
+          />
+          파일 업로드
+        </div>
+      </div>
     </FileUploaderWrapper>
   );
 };
@@ -86,21 +105,11 @@ const UploadMethodWrapper = styled.div`
   display: flex;
   gap: 1rem;
   padding: 0.7rem 0.7rem 0 0.7rem;
-  border-bottom: 1px solid rgba(55, 53, 47, 0.3);
 `;
 
 const UploadMethod = styled.div`
   cursor: pointer;
   height: 3rem;
   width: 6rem;
-  text-align: center;
-`;
-
-const StyledFileUploader = styled.div`
-  cursor: pointer;
-  margin: 1rem 1rem 0 1rem;
-  padding: 0.5rem;
-  border: 1px solid rgba(55, 53, 47, 0.3);
-  border-radius: 0.5rem;
   text-align: center;
 `;

@@ -43,7 +43,7 @@ const PopupMenu = ({ changeShowFileUploader, fileData }) => {
         <UploadMethod>이미지</UploadMethod>
         {/* <UploadMethod>링크</UploadMethod> */}
       </UploadMethodWrapper>
-      <StyledFileUploader
+      <UploadButtonWrapper
         onClick={(e) => {
           e.stopPropagation();
           fileUploadRef.current.click();
@@ -59,7 +59,7 @@ const PopupMenu = ({ changeShowFileUploader, fileData }) => {
           }}
         />
         파일 업로드
-      </StyledFileUploader>
+      </UploadButtonWrapper>
     </FileUploaderWrapper>
   );
 };
@@ -86,7 +86,6 @@ const UploadMethodWrapper = styled.div`
   display: flex;
   gap: 1rem;
   padding: 0.7rem 0.7rem 0 0.7rem;
-  border-bottom: 1px solid rgba(55, 53, 47, 0.3);
 `;
 
 const UploadMethod = styled.div`
@@ -96,7 +95,7 @@ const UploadMethod = styled.div`
   text-align: center;
 `;
 
-const StyledFileUploader = styled.div`
+const UploadButtonWrapper = styled.div`
   cursor: pointer;
   margin: 1rem 1rem 0 1rem;
   padding: 0.5rem;

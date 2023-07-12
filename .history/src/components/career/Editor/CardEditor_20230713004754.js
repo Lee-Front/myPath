@@ -497,7 +497,8 @@ const CardEditor = ({ pathId }) => {
   const toggleFileUploader = (e) => {
     const filePopup = e.target.closest(`[name="filePopup"]`);
 
-    if (e.type === "mouseup" && filePopup) {
+    console.log("e : ", e);
+    if (!editorStore.hoverBlock || (e.type === "mouseup" && filePopup)) {
       return;
     }
 

@@ -6,7 +6,7 @@ const usePathCardStore = create((set, get) => ({
   pathList: [],
   contextMenuData: null,
   getPathList: async () => {
-    const response = await axios.get("/api/path", {
+    const response = await axios.get("/api/path/getList", {
       params: { userId },
     });
     set({ pathList: response.data });

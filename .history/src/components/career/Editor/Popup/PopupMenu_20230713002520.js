@@ -43,7 +43,7 @@ const PopupMenu = ({ changeShowFileUploader, fileData }) => {
         <UploadMethod>이미지</UploadMethod>
         {/* <UploadMethod>링크</UploadMethod> */}
       </UploadMethodWrapper>
-      <StyledFileUploader
+      <UploadButtonWrapper
         onClick={(e) => {
           e.stopPropagation();
           fileUploadRef.current.click();
@@ -52,14 +52,14 @@ const PopupMenu = ({ changeShowFileUploader, fileData }) => {
         <input
           type="file"
           ref={fileUploadRef}
-          style={{ display: "none" }}
+          // style={{ display: "none" }}
           onChange={(e) => {
             changeShowFileUploader(e);
             fileUpload(e.target.files[0]);
           }}
         />
         파일 업로드
-      </StyledFileUploader>
+      </UploadButtonWrapper>
     </FileUploaderWrapper>
   );
 };
@@ -96,7 +96,7 @@ const UploadMethod = styled.div`
   text-align: center;
 `;
 
-const StyledFileUploader = styled.div`
+const UploadButtonWrapper = styled.div`
   cursor: pointer;
   margin: 1rem 1rem 0 1rem;
   padding: 0.5rem;
