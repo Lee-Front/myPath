@@ -122,7 +122,7 @@ const CardEditor = ({ pathId }) => {
         setIsGrabbing(true);
       }
 
-      if (!editorStore.hoverBlock && e.button !== 2) {
+      if (!editorStore.hoverBlock) {
         window.getSelection().removeAllRanges();
       }
     }
@@ -179,6 +179,7 @@ const CardEditor = ({ pathId }) => {
       const { clientX, clientY } = e;
       setContextMenuPoint({ x: clientX, y: clientY });
 
+      //const hoverUuid = editorStore.hoverBlock?.getAttribute("data-uuid");
       const isSelected = editorStore.selectBlocks.find(
         (block) => block.uuid === hoverBlock.uuid
       );
@@ -194,9 +195,7 @@ const CardEditor = ({ pathId }) => {
             block.uuid === hoverBlock.uuid || block.tagName === "multiple"
         );
         editorStore.setSelectBlocks(blocks);
-        if (e.button !== 2) {
-          window.getSelection().removeAllRanges();
-        }
+        window.getSelection().removeAllRanges();
       }
       setIsContextMenuOpen(false);
     }

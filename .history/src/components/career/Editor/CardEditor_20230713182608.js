@@ -2,7 +2,7 @@ import React from "react";
 import styled from "@emotion/styled";
 import { useState, useEffect, useRef } from "react";
 import EditBranchComponent from "./EditBranchComponent";
-import FileUploader from "./Popup/FileUploader";
+import PopupMenu from "./Popup/PopupMenu";
 import ContextMenuPopup from "./Popup/ContextMenuPopup";
 import useEditorStore from "../../../stores/useEditorStore";
 import DraggbleSelection from "./DraggbleSelection";
@@ -122,7 +122,7 @@ const CardEditor = ({ pathId }) => {
         setIsGrabbing(true);
       }
 
-      if (!editorStore.hoverBlock && e.button !== 2) {
+      if (!editorStore.hoverBlock) {
         window.getSelection().removeAllRanges();
       }
     }
@@ -179,6 +179,7 @@ const CardEditor = ({ pathId }) => {
       const { clientX, clientY } = e;
       setContextMenuPoint({ x: clientX, y: clientY });
 
+      //const hoverUuid = editorStore.hoverBlock?.getAttribute("data-uuid");
       const isSelected = editorStore.selectBlocks.find(
         (block) => block.uuid === hoverBlock.uuid
       );
@@ -194,9 +195,7 @@ const CardEditor = ({ pathId }) => {
             block.uuid === hoverBlock.uuid || block.tagName === "multiple"
         );
         editorStore.setSelectBlocks(blocks);
-        if (e.button !== 2) {
-          window.getSelection().removeAllRanges();
-        }
+        window.getSelection().removeAllRanges();
       }
       setIsContextMenuOpen(false);
     }
@@ -315,7 +314,6 @@ const CardEditor = ({ pathId }) => {
       if (
         !isContextMenuOpen &&
         !isFileUploderOpen &&
-        !draggable &&
         (xAxisResults?.hoverEl || (minDistance && minDistance < 25))
       ) {
         const blockUuid = xAxisResults?.nearEl.getAttribute("data-uuid");
@@ -642,7 +640,7 @@ const CardEditor = ({ pathId }) => {
             </OverlayWrapper>
           )}
           {isFileUploderOpen && (
-            <FileUploader
+            <PopupMenu
               popupRef={popupRef}
               changeShowFileUploader={toggleFileUploader}
               fileData={fileData.current}
@@ -667,7 +665,7 @@ const CardEditor = ({ pathId }) => {
             )}
         </OverlayContainer>
       )}
-      {handleBlock && (
+      {handleBlock && !draggable && (
         <BlockHandleContainer
           name="block-handle"
           handlePosition={handleBlock.position}
@@ -725,6 +723,15 @@ const fadeIn = keyframes`
   }
 `;
 
+const fadeOut = keyframes`
+
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+`;
 const BlockHandle = styled.img`
   position: absolute;
   left: -1.4rem;

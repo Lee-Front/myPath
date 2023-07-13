@@ -69,7 +69,6 @@ const Image = styled.img`
 const UploadWrapper = styled.div`
   width: 100%;
   display: flex;
-  justify-content: center;
 `;
 
 const UploadImage = styled.svg`
