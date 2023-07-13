@@ -36,7 +36,7 @@ const FontSizeSelector = ({
   };
 
   const changeFontSize = async (value) => {
-    let newValue = value > 16 ? value : 16;
+    let newValue = value > 10 ? value : 10;
 
     inputRef.current.value = newValue;
     if (newValue === parsedDefaultFontSize) {

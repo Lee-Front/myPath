@@ -121,7 +121,7 @@ const useEditorStore = create((set, get) => ({
     get().setBlocks(newBlocks);
     await axios.post("/api/editor", modifyList);
   },
-  changeBlockStyle: (style) => {
+  changeBlockStyle: (blockId, style) => {
     const blocks = get().blocks;
     const selectBlocks = get().selectBlocks;
 
@@ -193,6 +193,8 @@ const useEditorStore = create((set, get) => ({
           // checkbox나 bullet의 경우 text 영역에 아래로 들어가는 경우에
 
           fromDatas.forEach((block) => (block.parentId = findToData.uuid));
+          const blocks = get().findChildBlocks(findToData.uuid);
+          console.log("blocks : ", blocks);
           filteredBlocks.splice("top" ? toIndex : toIndex + 1, 0, ...fromDatas);
         } else {
           const parentData = get().findBlock(findToData.parentId);
@@ -280,6 +282,7 @@ const useEditorStore = create((set, get) => ({
           filteredBlocks.splice(toIndex, 0, newElement, newColumElement2);
         }
       } else {
+        console.log("a");
         fromDatas.forEach(
           (element) =>
             (element.parentId =
@@ -288,12 +291,10 @@ const useEditorStore = create((set, get) => ({
                 : null)
         );
 
-        const blocks = get().findChildBlocks(findToData.uuid);
-
         if (movementData.position === "top") {
           filteredBlocks.splice(toIndex, 0, ...fromDatas);
         } else {
-          filteredBlocks.splice(toIndex + blocks.length + 1, 0, ...fromDatas);
+          filteredBlocks.splice(toIndex + 1, 0, ...fromDatas);
         }
       }
     }

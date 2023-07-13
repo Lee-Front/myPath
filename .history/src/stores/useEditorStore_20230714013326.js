@@ -121,7 +121,7 @@ const useEditorStore = create((set, get) => ({
     get().setBlocks(newBlocks);
     await axios.post("/api/editor", modifyList);
   },
-  changeBlockStyle: (style) => {
+  changeBlockStyle: (blockId, style) => {
     const blocks = get().blocks;
     const selectBlocks = get().selectBlocks;
 
@@ -289,11 +289,11 @@ const useEditorStore = create((set, get) => ({
         );
 
         const blocks = get().findChildBlocks(findToData.uuid);
-
+        console.log("blocks : ", blocks);
         if (movementData.position === "top") {
           filteredBlocks.splice(toIndex, 0, ...fromDatas);
         } else {
-          filteredBlocks.splice(toIndex + blocks.length + 1, 0, ...fromDatas);
+          filteredBlocks.splice(toIndex + 1, 0, ...fromDatas);
         }
       }
     }

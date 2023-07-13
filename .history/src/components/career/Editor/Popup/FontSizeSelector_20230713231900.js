@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 
-const sizeList = [16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
+const sizeList = [10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
 const fontSizeReg = /[^-0-9]/g;
 
 const FontSizeSelector = ({
@@ -31,12 +31,13 @@ const FontSizeSelector = ({
     const isOutside = !e.target.closest("[name=font-size-selector]");
 
     if (isOutside) {
+      console.log("a");
       setIsFontSizeOpen(false);
     }
   };
 
   const changeFontSize = async (value) => {
-    let newValue = value > 16 ? value : 16;
+    let newValue = value > 10 ? value : 10;
 
     inputRef.current.value = newValue;
     if (newValue === parsedDefaultFontSize) {
@@ -52,6 +53,7 @@ const FontSizeSelector = ({
   const handleClick = (e) => {
     const cancelButton = e.target.closest("[name=cancel-button]");
     if (!cancelButton) {
+      console.log("s");
       setIsFontSizeOpen(!isFontSizeOpen);
     }
   };
@@ -107,7 +109,8 @@ const FontSizeSelector = ({
             {sizeList.map((size, index) => (
               <TextSizeOption
                 key={index}
-                onMouseUp={() => {
+                onClick={() => {
+                  console.log("click");
                   changeFontSize(size);
                 }}
               >

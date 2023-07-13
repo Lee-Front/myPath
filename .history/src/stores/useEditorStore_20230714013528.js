@@ -121,7 +121,7 @@ const useEditorStore = create((set, get) => ({
     get().setBlocks(newBlocks);
     await axios.post("/api/editor", modifyList);
   },
-  changeBlockStyle: (style) => {
+  changeBlockStyle: (blockId, style) => {
     const blocks = get().blocks;
     const selectBlocks = get().selectBlocks;
 
@@ -304,6 +304,7 @@ const useEditorStore = create((set, get) => ({
       remainingElements.find((element) => element.uuid === block.uuid)
     );
     get().setSelectBlocks(remainingSelectBlocks);
+    console.log("remainingElements: ", remainingElements);
     get().saveBlocks(remainingElements);
   },
   removeColumnAndRowIfEmpty: (blocks) => {

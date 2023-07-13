@@ -138,6 +138,8 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     }
 
     const nodes = Array.from(editableTag.childNodes);
+
+    //const isFullSelection = selection.type === "Caret";
     const selection = window.getSelection();
     const range = selection.getRangeAt(0);
 
@@ -159,7 +161,7 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
   };
 
   const fullChangeTextStyle = async (blockUuid, style) => {
-    editorStore.changeBlockStyle({
+    editorStore.changeBlockStyle(blockUuid, {
       ...style,
     });
 

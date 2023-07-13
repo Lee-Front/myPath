@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 
-const sizeList = [16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
+const sizeList = [10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
 const fontSizeReg = /[^-0-9]/g;
 
 const FontSizeSelector = ({
@@ -36,7 +36,7 @@ const FontSizeSelector = ({
   };
 
   const changeFontSize = async (value) => {
-    let newValue = value > 16 ? value : 16;
+    let newValue = value > 10 ? value : 10;
 
     inputRef.current.value = newValue;
     if (newValue === parsedDefaultFontSize) {
