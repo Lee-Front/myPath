@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "@emotion/styled";
+import { useState } from "react";
 import EditBranchComponent from "../EditBranchComponent";
 import EditableBlock from "./EditableBlock";
 
@@ -91,15 +92,15 @@ const BulletUnderLine = styled.div`
   bottom: 0;
   left: 0;
   position: absolute;
-  width: 2.1rem;
+  width: 2.5rem;
   height: 0.4rem;
 `;
 
 const TextUnderLine = styled.div`
   background: rgba(35, 131, 226, 0.63);
   bottom: 0;
-  left: 2.3rem;
+  left: 2.7rem;
   position: absolute;
-  width: calc(100% - 2.3rem);
+  width: calc(100% - 2.7rem);
   height: 0.4rem;
 `;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 
 const sizeList = [16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
@@ -7,6 +7,7 @@ const fontSizeReg = /[^-0-9]/g;
 const FontSizeSelector = ({
   uuid,
   isSubMenu,
+  defaultValue,
   fontSize,
   onMouseEnter,
   changeTextStyle,
@@ -16,9 +17,10 @@ const FontSizeSelector = ({
     fontSize && parseInt(String(fontSize)?.replace(fontSizeReg, ""));
   const inputRef = useRef();
 
-  useEffect(() => {
-    inputRef.current.value = parsedFontSize || 16;
-  }, [parsedFontSize]);
+  useLayoutEffect(() => {
+    console.log("a");
+    inputRef.current.value = parsedFontSize || defaultValue;
+  }, [parsedFontSize, defaultValue]);
 
   useEffect(() => {
     setIsFontSizeOpen(false);
@@ -36,7 +38,7 @@ const FontSizeSelector = ({
     let newValue = value > 16 ? value : 16;
 
     inputRef.current.value = newValue;
-    if (newValue === 16) {
+    if (newValue === defaultValue) {
       newValue = "";
     } else {
       newValue = newValue + "px";
@@ -54,8 +56,8 @@ const FontSizeSelector = ({
   };
 
   const handleReset = () => {
-    inputRef.current.value = 16;
-    changeFontSize(16);
+    inputRef.current.value = defaultValue;
+    changeFontSize(defaultValue);
   };
 
   useEffect(() => {
@@ -94,7 +96,7 @@ const FontSizeSelector = ({
       <TextSizeWrapper>
         <FontInput
           ref={inputRef}
-          defaultValue={parsedFontSize || 16}
+          defaultValue={parsedFontSize || defaultValue}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
         />

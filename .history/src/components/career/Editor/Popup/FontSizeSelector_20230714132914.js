@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 
 const sizeList = [16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
@@ -16,7 +16,8 @@ const FontSizeSelector = ({
     fontSize && parseInt(String(fontSize)?.replace(fontSizeReg, ""));
   const inputRef = useRef();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    console.log("a");
     inputRef.current.value = parsedFontSize || 16;
   }, [parsedFontSize]);
 

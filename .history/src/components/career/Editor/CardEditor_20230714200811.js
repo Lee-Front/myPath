@@ -354,7 +354,6 @@ const CardEditor = ({ pathId }) => {
 
   const decideMovementSide = (x1, y1) => {
     const targetBlock = editorStore.hoverBlock || nearElement.current;
-    console.log("targetBlock: ", targetBlock);
     if (!targetBlock) {
       setMovementSide(null);
       return;
@@ -729,9 +728,9 @@ const fadeIn = keyframes`
 const BlockHandle = styled.img`
   position: absolute;
   left: -1.4rem;
-  top: 0;
+  //top: 0.2rem;
   width: 1.2rem;
-  height: 2.1rem;
+  height: 1.8rem;
   z-index: 3;
   animation: ${fadeIn} 0.2s ease-in-out;
 `;

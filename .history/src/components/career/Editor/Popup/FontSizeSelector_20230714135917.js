@@ -17,6 +17,7 @@ const FontSizeSelector = ({
   const inputRef = useRef();
 
   useEffect(() => {
+    console.log("parsedFontSize: ", parsedFontSize);
     inputRef.current.value = parsedFontSize || 16;
   }, [parsedFontSize]);
 

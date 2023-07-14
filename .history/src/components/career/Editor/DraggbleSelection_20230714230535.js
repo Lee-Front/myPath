@@ -24,33 +24,18 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
 
         const insideElements = Array.from(elements).filter((item) => {
           const rect = item.getBoundingClientRect();
-          const overlapWidth = Math.max(
+
+          const overlapX = Math.max(
             0,
             Math.min(rect.right, x + width) - Math.max(rect.left, x)
           );
-          const overlapHeight = Math.max(
+          const overlapY = Math.max(
             0,
             Math.min(rect.bottom, y + height) - Math.max(rect.top, y)
           );
 
-          if (overlapWidth > 0 && overlapHeight > 0) {
-            const blockData = editorStore.findBlock(
-              item.getAttribute("data-uuid")
-            );
-            if (
-              blockData.tagName === "checkbox" ||
-              blockData.tagName === "bullet"
-            ) {
-              const childs = editorStore.findChildBlocks(blockData.uuid);
-              if (
-                childs.length > 0 &&
-                (rect.width <= overlapWidth || rect.height <= overlapHeight)
-              ) {
-                return true;
-              }
-            } else {
-              return true;
-            }
+          if (overlapX > 0 && overlapY > 0) {
+            return true;
           }
           return false;
         });
@@ -60,7 +45,17 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
           const elementsData = insideElements
             .map((item) => {
               const uuid = item.getAttribute("data-uuid");
-              return editorStore.findBlock(uuid);
+              const blockData = editorStore.findBlock(uuid);
+              if (blockData.tagName === "checkbox") {
+                const childs = editorStore.findChildBlocks(blockData.uuid);
+                const isAllChilds = childs.every((child) => {
+                  const childData = editorStore.findBlock(child);
+                  return editorStore.selectBlocks.includes(childData);
+                });
+                return isAllChilds ? blockData : null;
+              }
+
+              return blockData;
             })
             .filter((block) => block);
           editorStore.setSelectBlocks(elementsData);

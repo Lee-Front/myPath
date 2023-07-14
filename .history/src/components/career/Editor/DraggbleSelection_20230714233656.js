@@ -37,15 +37,17 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
             const blockData = editorStore.findBlock(
               item.getAttribute("data-uuid")
             );
-            if (
-              blockData.tagName === "checkbox" ||
-              blockData.tagName === "bullet"
-            ) {
+            if (blockData.tagName === "checkbox") {
               const childs = editorStore.findChildBlocks(blockData.uuid);
-              if (
-                childs.length > 0 &&
-                (rect.width <= overlapWidth || rect.height <= overlapHeight)
-              ) {
+              if (childs.length > 0) {
+                if (
+                  rect.width <= overlapWidth ||
+                  rect.height <= overlapHeight
+                ) {
+                  console.log("a");
+                  return true;
+                }
+              } else {
                 return true;
               }
             } else {

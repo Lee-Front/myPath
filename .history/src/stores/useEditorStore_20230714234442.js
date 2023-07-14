@@ -48,25 +48,20 @@ const useEditorStore = create((set, get) => ({
 
     return newBlock;
   },
-  updateBlock: (blockUuid, updateData) => {
+  updateBlock: (blockUuid, newBlock) => {
     let blocks = JSON.parse(JSON.stringify(get().blocks));
-    const keys = Object.keys(updateData);
+    console.log("newBlock: ", newBlock);
+    const keys = Object.keys(newBlock);
 
-    const block = blocks.find((block) => block.uuid === blockUuid);
-
-    if (
-      keys.includes("tagName") &&
-      (block.tagName === "checkbox" || block.tagName === "bullet")
-    ) {
-      blocks.forEach((item) => {
-        if (item.parentId === block.uuid) {
-          item.parentId = block.parentId;
-        }
-      });
-    }
-    keys.forEach((key) => {
-      block[key] = updateData[key];
+    blocks = blocks.map((block) => {
+      if (block.uuid === blockUuid) {
+        keys.forEach((key) => {
+          block[key] = newBlock[key];
+        });
+      }
+      return block;
     });
+
     get().saveBlocks(blocks);
   },
   deleteBlocks: () => {
@@ -199,12 +194,7 @@ const useEditorStore = create((set, get) => ({
           // checkbox나 bullet의 경우 text 영역에 아래로 들어가는 경우에
 
           fromDatas.forEach((block) => (block.parentId = findToData.uuid));
-
-          filteredBlocks.splice(
-            movementData.position === "top" ? toIndex : toIndex + 1,
-            0,
-            ...fromDatas
-          );
+          filteredBlocks.splice("top" ? toIndex : toIndex + 1, 0, ...fromDatas);
         } else {
           const parentData = get().findBlock(findToData.parentId);
           fromDatas.forEach((block) => (block.parentId = parentData.uuid));

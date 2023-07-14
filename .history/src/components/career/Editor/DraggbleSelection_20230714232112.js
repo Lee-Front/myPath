@@ -24,33 +24,21 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
 
         const insideElements = Array.from(elements).filter((item) => {
           const rect = item.getBoundingClientRect();
-          const overlapWidth = Math.max(
+
+          const overlapX = Math.max(
             0,
             Math.min(rect.right, x + width) - Math.max(rect.left, x)
           );
-          const overlapHeight = Math.max(
+          const overlapY = Math.max(
             0,
             Math.min(rect.bottom, y + height) - Math.max(rect.top, y)
           );
 
-          if (overlapWidth > 0 && overlapHeight > 0) {
+          if (overlapX > 0 && overlapY > 0) {
             const blockData = editorStore.findBlock(
               item.getAttribute("data-uuid")
             );
-            if (
-              blockData.tagName === "checkbox" ||
-              blockData.tagName === "bullet"
-            ) {
-              const childs = editorStore.findChildBlocks(blockData.uuid);
-              if (
-                childs.length > 0 &&
-                (rect.width <= overlapWidth || rect.height <= overlapHeight)
-              ) {
-                return true;
-              }
-            } else {
-              return true;
-            }
+            return true;
           }
           return false;
         });

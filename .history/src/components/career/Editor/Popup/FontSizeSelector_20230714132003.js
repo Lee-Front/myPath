@@ -7,6 +7,7 @@ const fontSizeReg = /[^-0-9]/g;
 const FontSizeSelector = ({
   uuid,
   isSubMenu,
+  defaultValue,
   fontSize,
   onMouseEnter,
   changeTextStyle,
@@ -17,8 +18,8 @@ const FontSizeSelector = ({
   const inputRef = useRef();
 
   useEffect(() => {
-    inputRef.current.value = parsedFontSize || 16;
-  }, [parsedFontSize]);
+    inputRef.current.value = parsedFontSize || defaultValue;
+  }, [parsedFontSize, defaultValue]);
 
   useEffect(() => {
     setIsFontSizeOpen(false);
@@ -36,7 +37,8 @@ const FontSizeSelector = ({
     let newValue = value > 16 ? value : 16;
 
     inputRef.current.value = newValue;
-    if (newValue === 16) {
+    if (newValue === defaultValue) {
+      console.log("?");
       newValue = "";
     } else {
       newValue = newValue + "px";
@@ -54,8 +56,8 @@ const FontSizeSelector = ({
   };
 
   const handleReset = () => {
-    inputRef.current.value = 16;
-    changeFontSize(16);
+    inputRef.current.value = defaultValue;
+    changeFontSize(defaultValue);
   };
 
   useEffect(() => {
@@ -94,7 +96,7 @@ const FontSizeSelector = ({
       <TextSizeWrapper>
         <FontInput
           ref={inputRef}
-          defaultValue={parsedFontSize || 16}
+          defaultValue={parsedFontSize || parsedDefaultFontSize}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
         />

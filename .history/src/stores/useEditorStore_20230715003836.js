@@ -26,6 +26,7 @@ const useEditorStore = create((set, get) => ({
       return a.sort - b.sort;
     });
 
+    console.log("blocks: ", blocks);
     set((state) => ({ ...state, blocks }));
   },
   // blocks 조작 함수들
@@ -199,7 +200,10 @@ const useEditorStore = create((set, get) => ({
           // checkbox나 bullet의 경우 text 영역에 아래로 들어가는 경우에
 
           fromDatas.forEach((block) => (block.parentId = findToData.uuid));
-
+          console.log(
+            "aa : ",
+            movementData.position === "top" ? toIndex : toIndex + 1
+          );
           filteredBlocks.splice(
             movementData.position === "top" ? toIndex : toIndex + 1,
             0,

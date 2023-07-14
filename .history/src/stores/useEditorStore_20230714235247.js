@@ -60,13 +60,23 @@ const useEditorStore = create((set, get) => ({
     ) {
       blocks.forEach((item) => {
         if (item.parentId === block.uuid) {
-          item.parentId = block.parentId;
+          item.parentId = null;
         }
       });
     }
     keys.forEach((key) => {
       block[key] = updateData[key];
     });
+
+    // blocks = blocks.map((block) => {
+    //   if (block.uuid === blockUuid) {
+    //     keys.forEach((key) => {
+    //       block[key] = updateData[key];
+    //     });
+    //   }
+    //   return block;
+    // });
+
     get().saveBlocks(blocks);
   },
   deleteBlocks: () => {
@@ -199,12 +209,7 @@ const useEditorStore = create((set, get) => ({
           // checkbox나 bullet의 경우 text 영역에 아래로 들어가는 경우에
 
           fromDatas.forEach((block) => (block.parentId = findToData.uuid));
-
-          filteredBlocks.splice(
-            movementData.position === "top" ? toIndex : toIndex + 1,
-            0,
-            ...fromDatas
-          );
+          filteredBlocks.splice("top" ? toIndex : toIndex + 1, 0, ...fromDatas);
         } else {
           const parentData = get().findBlock(findToData.parentId);
           fromDatas.forEach((block) => (block.parentId = parentData.uuid));

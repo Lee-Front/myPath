@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from "react";
+import React from "react";
 import styled from "@emotion/styled";
 import { useState } from "react";
 import { useRef } from "react";
@@ -26,7 +26,7 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
   const [strikethrough, setStrikethrough] = useState(false);
   const contextRef = useRef();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const target = document.querySelector(`[data-uuid="${uuid}"]`);
     const editableTag = target?.querySelector("[name=editable-tag]");
 
@@ -477,6 +477,7 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
         <FontSizeSelector
           uuid={uuid}
           isSubMenu={isSubMenu}
+          defaultValue={16}
           fontSize={fontSize}
           changeTextStyle={changeTextStyle}
         />

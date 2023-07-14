@@ -354,7 +354,6 @@ const CardEditor = ({ pathId }) => {
 
   const decideMovementSide = (x1, y1) => {
     const targetBlock = editorStore.hoverBlock || nearElement.current;
-    console.log("targetBlock: ", targetBlock);
     if (!targetBlock) {
       setMovementSide(null);
       return;

@@ -13,6 +13,7 @@ import TextColorMenu from "./TextColorMenu";
 // 폰트 사이즈 목록
 
 const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
+  console.log("re");
   const editorStore = useEditorStore();
   const [uuid, setUuid] = useState(popupData?.uuid);
   const [isSubMenu, setIsSubMenu] = useState(false);
