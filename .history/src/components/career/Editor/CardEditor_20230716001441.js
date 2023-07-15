@@ -202,11 +202,11 @@ const CardEditor = ({ pathId }) => {
     }
 
     const moveMentSideData = movementSide;
-    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.data.uuid) {
+    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
-      editorStore.moveBlocks(filteredBlocks, movementSide);
+      editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
     if (
@@ -362,112 +362,122 @@ const CardEditor = ({ pathId }) => {
       return;
     }
 
+    const clonedEditDom = copyObjectArray(editorStore.blocks);
     const targetElement = document.querySelector(
       `[data-uuid="${targetBlock.uuid}"]`
     );
+    const hoverBlock = editorStore.hoverBlock;
 
-    // 가장 가까운 면 구하기
-    const minDistance = getNearestSide(targetElement, x1, y1);
-    if (!minDistance) {
-      setMovementSide(null);
-      return;
-    }
-
-    // 여러 조건을 고려한 최종적으로 옮겨질 위치의 block 계산
-    const targetElementData = getMovePositionByBlock(
-      targetBlock,
-      minDistance.position,
-      x1
-    );
-
-    setMovementSide(targetElementData);
-  };
-
-  const getNearestSide = (targetElement, x, y) => {
+    // 가장 가까운 면 구하기 시작
     const { top, bottom, left, right } = targetElement.getBoundingClientRect();
     const distanceList = [];
 
-    if (top <= y && y <= bottom) {
-      distanceList.push({ position: "left", distance: Math.abs(left - x) });
-      distanceList.push({ position: "right", distance: Math.abs(right - x) });
+    if (top <= y1 && y1 <= bottom) {
+      distanceList.push({ position: "left", distance: Math.abs(left - x1) });
+      distanceList.push({ position: "right", distance: Math.abs(right - x1) });
     }
 
-    if (left <= x && x <= right) {
-      distanceList.push({ position: "top", distance: Math.abs(top - y) });
+    if (left <= x1 && x1 <= right) {
+      distanceList.push({ position: "top", distance: Math.abs(top - y1) });
       distanceList.push({
         position: "bottom",
-        distance: Math.abs(bottom - y),
+        distance: Math.abs(bottom - y1),
       });
     }
 
     if (distanceList.length <= 0) {
-      return null;
+      setMovementSide(null);
+      return;
     }
 
-    return distanceList.reduce((min, item) =>
+    // list에 넣어둔 각 방향의 거리를 비교해서 가장 짧은 거리 찾아내기
+    const minDistance = distanceList.reduce((min, item) =>
       min.distance > item.distance ? item : min
     );
-  };
-
-  const getMovePositionByBlock = (targetBlock, position, x) => {
-    const clonedEditDom = copyObjectArray(editorStore.blocks);
-    const hoverBlock = editorStore.hoverBlock;
-    const targetElementData = {};
+    // 가장 가까운 면 구하기 끝
 
     const { previousSibling } = getSiblingsData(targetBlock, clonedEditDom);
     const topParentData = getTopParentData(targetBlock);
     const topParentSiblingsData = getSiblingsData(topParentData, clonedEditDom);
 
+    let targetElementData = {};
+
     let siblingBlock = targetBlock;
     targetBlock = hoverBlock ? targetBlock : topParentData;
-    if (position === "top") {
+
+    // top인 경우에 이전 블록이 있으면 이전의 bottom으로 해줘야함
+    // bottom의 경우에는 그대로 사용함
+    if (hoverBlock) {
+      siblingBlock =
+        minDistance.position === "top" ? previousSibling : targetBlock;
+    } else {
+      siblingBlock =
+        minDistance.position === "top"
+          ? topParentSiblingsData.previousSibling
+          : topParentSiblingsData.nextSibling;
+    }
+
+    if (minDistance.position === "top") {
       siblingBlock = hoverBlock
         ? previousSibling
         : topParentSiblingsData.previousSibling;
-    } else if (position === "bottom") {
+    } else if (minDistance.position === "bottom") {
       siblingBlock = hoverBlock
         ? targetBlock
         : topParentSiblingsData.nextSibling;
     }
 
-    targetElementData.data = siblingBlock ? siblingBlock : targetBlock;
+    targetElementData.uuid = siblingBlock
+      ? siblingBlock.uuid
+      : targetBlock.uuid;
     targetElementData.position =
-      position === "top" && siblingBlock ? "bottom" : position;
+      minDistance.position === "top" && siblingBlock
+        ? "bottom"
+        : minDistance.position;
 
-    if (targetBlock.parentId && (position === "left" || position === "right")) {
+    if (
+      targetBlock.parentId &&
+      (minDistance.position === "left" || minDistance.position === "right")
+    ) {
       const parentBlock = editorStore.findBlock(targetBlock.parentId);
       const parentSiblingData = getSiblingsData(parentBlock, clonedEditDom);
       // left, right는 기본적으로 parent의 uuid로 바뀜
-      if (position === "left" && parentSiblingData.previousSibling) {
-        targetElementData.data = parentSiblingData.previousSibling;
+      if (
+        minDistance.position === "left" &&
+        parentSiblingData.previousSibling
+      ) {
+        targetElementData.uuid = parentSiblingData.previousSibling.uuid;
         targetElementData.position = "right";
       } else {
-        targetElementData.data = parentBlock;
+        targetElementData.uuid = parentBlock.uuid;
       }
     }
 
+    const findTargerData = editorStore.findBlock(targetElementData.uuid);
+
     // 좌측, 우측이 나뉘어진 Tag의 경우 하위로 들어갈때 별도의 영역처리 필요
     const isSubTextAreaTag =
-      targetElementData.data.tagName === "checkbox" ||
-      targetElementData.data.tagName === "bullet";
+      findTargerData.tagName === "checkbox" ||
+      findTargerData.tagName === "bullet";
 
     // 체크박스만 예외적으로 추가처리 필요
     if (isSubTextAreaTag && targetElementData.position === "bottom") {
       const checkboxElement = contentRef.current.querySelector(
-        `[data-uuid="${targetElementData.data.uuid}"]`
+        `[data-uuid="${targetElementData.uuid}"]`
       );
       const checkboxTextElement =
         checkboxElement.querySelector(`[name="text-area"]`);
 
       const { left, right } = checkboxTextElement.getBoundingClientRect();
 
-      if (left <= x && x <= right) {
+      if (left <= x1 && x1 <= right) {
         targetElementData.movementSideType = "text";
       } else {
         targetElementData.movementSideType = "box";
       }
     }
-    return targetElementData;
+
+    setMovementSide(targetElementData);
   };
 
   const getSiblingsData = (data, editDomElements) => {

@@ -43,9 +43,11 @@ const DraggbleSelection = ({ startPointe, currentPoint }) => {
             ) {
               const childs = editorStore.findChildBlocks(blockData.uuid);
               if (childs.length > 0) {
+                console.log("overlapWidth: ", overlapWidth);
+                console.log("a : ", overlapWidth * 0.9);
                 return (
-                  rect.width * 0.95 <= overlapWidth ||
-                  rect.height * 0.95 <= overlapHeight
+                  rect.width <= overlapWidth * 0.9 ||
+                  rect.height <= overlapHeight * 0.9
                 );
               } else {
                 return true;

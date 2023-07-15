@@ -201,12 +201,13 @@ const CardEditor = ({ pathId }) => {
       setIsContextMenuOpen(false);
     }
 
-    const moveMentSideData = movementSide;
-    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.data.uuid) {
+    const moveMentSideData = movementSide?.data;
+    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
-      editorStore.moveBlocks(filteredBlocks, movementSide);
+      console.log("moveMentSideData: ", moveMentSideData);
+      editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
     if (

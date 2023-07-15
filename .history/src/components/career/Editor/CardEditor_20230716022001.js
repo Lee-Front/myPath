@@ -202,11 +202,11 @@ const CardEditor = ({ pathId }) => {
     }
 
     const moveMentSideData = movementSide;
-    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.data.uuid) {
+    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
-      editorStore.moveBlocks(filteredBlocks, movementSide);
+      editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
     if (
@@ -362,23 +362,84 @@ const CardEditor = ({ pathId }) => {
       return;
     }
 
+    const clonedEditDom = copyObjectArray(editorStore.blocks);
     const targetElement = document.querySelector(
       `[data-uuid="${targetBlock.uuid}"]`
     );
+    const hoverBlock = editorStore.hoverBlock;
 
-    // 가장 가까운 면 구하기
-    const minDistance = getNearestSide(targetElement, x1, y1);
-    if (!minDistance) {
-      setMovementSide(null);
-      return;
+    // 가장 가까운 면 구하기 시작
+    const minDistance = getNearestSide(targetElement);
+
+    // 가장 가까운 면 구하기 끝
+
+    const { previousSibling } = getSiblingsData(targetBlock, clonedEditDom);
+    const topParentData = getTopParentData(targetBlock);
+    const topParentSiblingsData = getSiblingsData(topParentData, clonedEditDom);
+
+    let targetElementData = {};
+
+    let siblingBlock = targetBlock;
+    targetBlock = hoverBlock ? targetBlock : topParentData;
+    if (minDistance.position === "top") {
+      siblingBlock = hoverBlock
+        ? previousSibling
+        : topParentSiblingsData.previousSibling;
+    } else if (minDistance.position === "bottom") {
+      siblingBlock = hoverBlock
+        ? targetBlock
+        : topParentSiblingsData.nextSibling;
     }
 
-    // 여러 조건을 고려한 최종적으로 옮겨질 위치의 block 계산
-    const targetElementData = getMovePositionByBlock(
-      targetBlock,
-      minDistance.position,
-      x1
-    );
+    targetElementData.uuid = siblingBlock
+      ? siblingBlock.uuid
+      : targetBlock.uuid;
+    targetElementData.position =
+      minDistance.position === "top" && siblingBlock
+        ? "bottom"
+        : minDistance.position;
+
+    if (
+      targetBlock.parentId &&
+      (minDistance.position === "left" || minDistance.position === "right")
+    ) {
+      const parentBlock = editorStore.findBlock(targetBlock.parentId);
+      const parentSiblingData = getSiblingsData(parentBlock, clonedEditDom);
+      // left, right는 기본적으로 parent의 uuid로 바뀜
+      if (
+        minDistance.position === "left" &&
+        parentSiblingData.previousSibling
+      ) {
+        targetElementData.uuid = parentSiblingData.previousSibling.uuid;
+        targetElementData.position = "right";
+      } else {
+        targetElementData.uuid = parentBlock.uuid;
+      }
+    }
+
+    const findTargerData = editorStore.findBlock(targetElementData.uuid);
+
+    // 좌측, 우측이 나뉘어진 Tag의 경우 하위로 들어갈때 별도의 영역처리 필요
+    const isSubTextAreaTag =
+      findTargerData.tagName === "checkbox" ||
+      findTargerData.tagName === "bullet";
+
+    // 체크박스만 예외적으로 추가처리 필요
+    if (isSubTextAreaTag && targetElementData.position === "bottom") {
+      const checkboxElement = contentRef.current.querySelector(
+        `[data-uuid="${targetElementData.uuid}"]`
+      );
+      const checkboxTextElement =
+        checkboxElement.querySelector(`[name="text-area"]`);
+
+      const { left, right } = checkboxTextElement.getBoundingClientRect();
+
+      if (left <= x1 && x1 <= right) {
+        targetElementData.movementSideType = "text";
+      } else {
+        targetElementData.movementSideType = "box";
+      }
+    }
 
     setMovementSide(targetElementData);
   };
@@ -401,73 +462,14 @@ const CardEditor = ({ pathId }) => {
     }
 
     if (distanceList.length <= 0) {
-      return null;
+      setMovementSide(null);
+      return;
     }
 
+    // list에 넣어둔 각 방향의 거리를 비교해서 가장 짧은 거리 찾아내기
     return distanceList.reduce((min, item) =>
       min.distance > item.distance ? item : min
     );
-  };
-
-  const getMovePositionByBlock = (targetBlock, position, x) => {
-    const clonedEditDom = copyObjectArray(editorStore.blocks);
-    const hoverBlock = editorStore.hoverBlock;
-    const targetElementData = {};
-
-    const { previousSibling } = getSiblingsData(targetBlock, clonedEditDom);
-    const topParentData = getTopParentData(targetBlock);
-    const topParentSiblingsData = getSiblingsData(topParentData, clonedEditDom);
-
-    let siblingBlock = targetBlock;
-    targetBlock = hoverBlock ? targetBlock : topParentData;
-    if (position === "top") {
-      siblingBlock = hoverBlock
-        ? previousSibling
-        : topParentSiblingsData.previousSibling;
-    } else if (position === "bottom") {
-      siblingBlock = hoverBlock
-        ? targetBlock
-        : topParentSiblingsData.nextSibling;
-    }
-
-    targetElementData.data = siblingBlock ? siblingBlock : targetBlock;
-    targetElementData.position =
-      position === "top" && siblingBlock ? "bottom" : position;
-
-    if (targetBlock.parentId && (position === "left" || position === "right")) {
-      const parentBlock = editorStore.findBlock(targetBlock.parentId);
-      const parentSiblingData = getSiblingsData(parentBlock, clonedEditDom);
-      // left, right는 기본적으로 parent의 uuid로 바뀜
-      if (position === "left" && parentSiblingData.previousSibling) {
-        targetElementData.data = parentSiblingData.previousSibling;
-        targetElementData.position = "right";
-      } else {
-        targetElementData.data = parentBlock;
-      }
-    }
-
-    // 좌측, 우측이 나뉘어진 Tag의 경우 하위로 들어갈때 별도의 영역처리 필요
-    const isSubTextAreaTag =
-      targetElementData.data.tagName === "checkbox" ||
-      targetElementData.data.tagName === "bullet";
-
-    // 체크박스만 예외적으로 추가처리 필요
-    if (isSubTextAreaTag && targetElementData.position === "bottom") {
-      const checkboxElement = contentRef.current.querySelector(
-        `[data-uuid="${targetElementData.data.uuid}"]`
-      );
-      const checkboxTextElement =
-        checkboxElement.querySelector(`[name="text-area"]`);
-
-      const { left, right } = checkboxTextElement.getBoundingClientRect();
-
-      if (left <= x && x <= right) {
-        targetElementData.movementSideType = "text";
-      } else {
-        targetElementData.movementSideType = "box";
-      }
-    }
-    return targetElementData;
   };
 
   const getSiblingsData = (data, editDomElements) => {

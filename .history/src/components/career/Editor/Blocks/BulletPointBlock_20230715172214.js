@@ -30,7 +30,7 @@ const CheckBoxBlock = ({
         ))}
       </TextAreaWrapper>
 
-      {data.uuid === movementSide?.data.uuid &&
+      {data.uuid === movementSide?.uuid &&
       movementSide?.movementSideType === "text" ? (
         <>
           <BulletUnderLine />

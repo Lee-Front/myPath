@@ -168,6 +168,7 @@ const useEditorStore = create((set, get) => ({
   },
   moveBlocks: (selectDatas, movementData) => {
     const targetData = movementData.data;
+    console.log("targetData: ", targetData);
     const fromDatas = [];
 
     const filteredBlocks = JSON.parse(JSON.stringify(get().blocks)).filter(

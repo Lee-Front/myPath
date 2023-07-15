@@ -201,12 +201,12 @@ const CardEditor = ({ pathId }) => {
       setIsContextMenuOpen(false);
     }
 
-    const moveMentSideData = movementSide;
-    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.data.uuid) {
+    const moveMentSideData = movementSide?.data;
+    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
-      editorStore.moveBlocks(filteredBlocks, movementSide);
+      editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
     if (
@@ -450,7 +450,7 @@ const CardEditor = ({ pathId }) => {
     const isSubTextAreaTag =
       targetElementData.data.tagName === "checkbox" ||
       targetElementData.data.tagName === "bullet";
-
+    console.log("?");
     // 체크박스만 예외적으로 추가처리 필요
     if (isSubTextAreaTag && targetElementData.position === "bottom") {
       const checkboxElement = contentRef.current.querySelector(

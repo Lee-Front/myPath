@@ -202,11 +202,11 @@ const CardEditor = ({ pathId }) => {
     }
 
     const moveMentSideData = movementSide;
-    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.data.uuid) {
+    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
-      editorStore.moveBlocks(filteredBlocks, movementSide);
+      editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
     if (
@@ -430,7 +430,9 @@ const CardEditor = ({ pathId }) => {
         : topParentSiblingsData.nextSibling;
     }
 
-    targetElementData.data = siblingBlock ? siblingBlock : targetBlock;
+    targetElementData.uuid = siblingBlock
+      ? siblingBlock.uuid
+      : targetBlock.uuid;
     targetElementData.position =
       position === "top" && siblingBlock ? "bottom" : position;
 
@@ -439,22 +441,23 @@ const CardEditor = ({ pathId }) => {
       const parentSiblingData = getSiblingsData(parentBlock, clonedEditDom);
       // left, right는 기본적으로 parent의 uuid로 바뀜
       if (position === "left" && parentSiblingData.previousSibling) {
-        targetElementData.data = parentSiblingData.previousSibling;
+        targetElementData.uuid = parentSiblingData.previousSibling.uuid;
         targetElementData.position = "right";
       } else {
-        targetElementData.data = parentBlock;
+        targetElementData.uuid = parentBlock.uuid;
       }
     }
+    const findTargerData = editorStore.findBlock(targetElementData.uuid);
 
     // 좌측, 우측이 나뉘어진 Tag의 경우 하위로 들어갈때 별도의 영역처리 필요
     const isSubTextAreaTag =
-      targetElementData.data.tagName === "checkbox" ||
-      targetElementData.data.tagName === "bullet";
+      findTargerData.tagName === "checkbox" ||
+      findTargerData.tagName === "bullet";
 
     // 체크박스만 예외적으로 추가처리 필요
     if (isSubTextAreaTag && targetElementData.position === "bottom") {
       const checkboxElement = contentRef.current.querySelector(
-        `[data-uuid="${targetElementData.data.uuid}"]`
+        `[data-uuid="${targetElementData.uuid}"]`
       );
       const checkboxTextElement =
         checkboxElement.querySelector(`[name="text-area"]`);

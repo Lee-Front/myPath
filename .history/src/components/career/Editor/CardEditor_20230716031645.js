@@ -201,12 +201,12 @@ const CardEditor = ({ pathId }) => {
       setIsContextMenuOpen(false);
     }
 
-    const moveMentSideData = movementSide;
-    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.data.uuid) {
+    const moveMentSideData = movementSide?.data;
+    if (editorStore.selectBlocks.length > 0 && moveMentSideData?.uuid) {
       const filteredBlocks = editorStore.selectBlocks.filter(
         (item) => item.tagName !== "multiple"
       );
-      editorStore.moveBlocks(filteredBlocks, movementSide);
+      editorStore.moveBlocks(filteredBlocks, moveMentSideData);
     }
 
     if (
@@ -460,10 +460,13 @@ const CardEditor = ({ pathId }) => {
         checkboxElement.querySelector(`[name="text-area"]`);
 
       const { left, right } = checkboxTextElement.getBoundingClientRect();
+      console.log({ left, right });
 
       if (left <= x && x <= right) {
+        console.log("a");
         targetElementData.movementSideType = "text";
       } else {
+        console.log("b");
         targetElementData.movementSideType = "box";
       }
     }

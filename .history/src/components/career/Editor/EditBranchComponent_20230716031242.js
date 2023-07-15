@@ -45,7 +45,7 @@ const EditBranchComponent = ({
     }
     return styleObject;
   };
-
+  console.log("movementSide : ", movementSide);
   const movement =
     movementSide?.data.uuid === data.uuid ? movementSide.position : null;
   const style = movement && getMovementStyle(movement);

@@ -15,7 +15,9 @@ const EditBranchComponent = ({
   overlayWidth,
   isOverlay,
 }) => {
-  const getMovementStyle = (side) => {
+  const getMovementStyle = (movementData) => {
+    const side = movementData.position;
+
     const styleObject = {
       position: "absolute",
       background: "rgba(35, 131, 226, 0.28)",
@@ -46,8 +48,7 @@ const EditBranchComponent = ({
     return styleObject;
   };
 
-  const movement =
-    movementSide?.data.uuid === data.uuid ? movementSide.position : null;
+  const movement = movementSide?.uuid === data.uuid ? movementSide : null;
   const style = movement && getMovementStyle(movement);
   const editorStore = useEditorStore();
   const isSelection = editorStore.selectBlocks?.filter((block) => {
@@ -136,6 +137,7 @@ export default EditBranchComponent;
 const BlockContainer = styled.div`
   display: flex;
   position: relative;
+  padding: 0.1rem;
 `;
 
 const SelectionHalo = styled.div`
