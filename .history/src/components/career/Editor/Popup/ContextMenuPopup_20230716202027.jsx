@@ -263,12 +263,18 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
         // 선택된 범위안의 node 들
         const prevText =
           i === startNodeIndex
-            ? nodeData.textContent.slice(0, startOffset)
+            ? nodeData.textContent.slice(0, startOffset).trim()
             : "";
         const nextText =
           i === endNodeIndex
-            ? nodeData.textContent.slice(endOffset, nodeData.textContent.length)
+            ? nodeData.textContent
+                .slice(endOffset, nodeData.textContent.length)
+                .trim()
             : "";
+
+        console.log("prevText: ", prevText);
+        console.log("nextText: ", nextText);
+        console.log("nodeData: ", nodeData);
 
         if (prevText.length > 0) {
           nodeData.textContent = nodeData.textContent.slice(startOffset);
@@ -309,21 +315,6 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
   const applyStyle = (splitedNodeDatas, style, splitedDragInfo) => {
     const newStyleList = Object.keys(style);
     return splitedNodeDatas.map((nodeData, index) => {
-      // 공백에는 시각적으로 보이는 스타일만 유지
-      if (nodeData.textContent.trim() === "" && nodeData.nodeName === "SPAN") {
-        const preservedStyles = [
-          "link",
-          "border-bottom",
-          "text-decoration",
-          "background",
-        ];
-        Object.keys(nodeData.style)
-          .filter((style) => !preservedStyles.includes(style))
-          .forEach((styleName) => {
-            delete nodeData.style[styleName];
-          });
-      }
-
       if (
         index < splitedDragInfo.startNodeIndex ||
         index > splitedDragInfo.endNodeIndex

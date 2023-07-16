@@ -307,30 +307,16 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
   };
 
   const applyStyle = (splitedNodeDatas, style, splitedDragInfo) => {
+    console.log(JSON.parse(JSON.stringify(splitedNodeDatas)));
     const newStyleList = Object.keys(style);
     return splitedNodeDatas.map((nodeData, index) => {
-      // 공백에는 시각적으로 보이는 스타일만 유지
-      if (nodeData.textContent.trim() === "" && nodeData.nodeName === "SPAN") {
-        const preservedStyles = [
-          "link",
-          "border-bottom",
-          "text-decoration",
-          "background",
-        ];
-        Object.keys(nodeData.style)
-          .filter((style) => !preservedStyles.includes(style))
-          .forEach((styleName) => {
-            delete nodeData.style[styleName];
-          });
-      }
-
       if (
         index < splitedDragInfo.startNodeIndex ||
         index > splitedDragInfo.endNodeIndex
       ) {
         return nodeData;
       }
-
+      console.log("newStyleList: ", newStyleList);
       for (let i = 0; i < newStyleList.length; i++) {
         const styleName = newStyleList[i];
         if (style[styleName] === "") {

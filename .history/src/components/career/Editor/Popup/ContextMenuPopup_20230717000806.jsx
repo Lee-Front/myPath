@@ -311,14 +311,13 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     return splitedNodeDatas.map((nodeData, index) => {
       // 공백에는 시각적으로 보이는 스타일만 유지
       if (nodeData.textContent.trim() === "" && nodeData.nodeName === "SPAN") {
-        const preservedStyles = [
-          "link",
-          "border-bottom",
-          "text-decoration",
-          "background",
-        ];
         Object.keys(nodeData.style)
-          .filter((style) => !preservedStyles.includes(style))
+          .filter(
+            (style) =>
+              style !== "link" &&
+              style !== "border-bottom" &&
+              style !== "text-decoration"
+          )
           .forEach((styleName) => {
             delete nodeData.style[styleName];
           });

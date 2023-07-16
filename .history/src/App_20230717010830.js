@@ -7,8 +7,6 @@ import styled from "@emotion/styled";
 import SideBar from "./components/common/sidebar/SideBar";
 import { useEffect, useState } from "react";
 import usePathCardStore from "./stores/usePathCardStore";
-import Toast from "./components/common/Toast";
-import { isMobile } from "react-device-detect";
 
 function App() {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
@@ -16,11 +14,6 @@ function App() {
   const pathCardStore = usePathCardStore();
   const [toast, setToast] = useState(false);
   // 모바일은 읽기 모드만 지원해줄 예정
-  useEffect(() => {
-    if (isMobile) {
-      setToast(true);
-    }
-  }, []);
   useEffect(() => {
     pathCardStore.getPathList();
   }, [location]);
@@ -41,9 +34,6 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/write/:pathId" element={<PathWrite />} />
         </Routes>
-        {toast && (
-          <Toast setToast={setToast} text="모바일은 읽기전용 입니다." />
-        )}
       </ContentWarpper>
     </PageWrapper>
   );

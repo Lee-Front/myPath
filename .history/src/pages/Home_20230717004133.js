@@ -5,7 +5,6 @@ import useEditorStore from "../stores/useEditorStore";
 
 const Home = () => {
   const editorStore = useEditorStore();
-
   useEffect(() => {
     editorStore.clear();
   }, []);

@@ -10,6 +10,7 @@ const SideBar = ({ isSideBarOpen }) => {
   const imagePath = process.env.PUBLIC_URL + "/images";
 
   useEffect(() => {
+    console.log("a");
     pathCardStore.getPathList();
   }, []);
 

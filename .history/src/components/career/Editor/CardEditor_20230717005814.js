@@ -8,8 +8,10 @@ import useEditorStore from "../../../stores/useEditorStore";
 import DraggbleSelection from "./DraggbleSelection";
 import { keyframes } from "@emotion/react";
 import { throttle } from "lodash";
+import { isMobile } from "react-device-detect";
 
-const CardEditor = ({ pathId, readonly }) => {
+const CardEditor = ({ pathId }) => {
+  console.log("isMobile : ", isMobile);
   const editorStore = useEditorStore();
 
   // 이 두개는 store로 빼거나 state로 빼면 리렌더링이 너무 많이 발생함
@@ -53,7 +55,7 @@ const CardEditor = ({ pathId, readonly }) => {
   // 최초 페이지 진입시 기본 이벤트 셋팅
   useEffect(() => {
     editorStore.getBlocks(pathId);
-    if (!readonly) {
+    if (!isMobile) {
       const keyDown = (e) => {
         if (e.key === "Escape") {
           setIsContextMenuOpen(false);
@@ -597,7 +599,6 @@ const CardEditor = ({ pathId, readonly }) => {
 
   return (
     <EditorContainer
-      readonly={readonly}
       onMouseLeave={() => setHandleBlock(null)}
       onContextMenu={handleEditorContextMenu}
       ref={editorRef}
@@ -682,7 +683,6 @@ const CardEditor = ({ pathId, readonly }) => {
 export default CardEditor;
 
 const EditorContainer = styled.div`
-  pointer-events: ${(props) => (props.readonly ? "none" : "auto")};
   display: flex;
   padding-left: 2.5rem;
   padding-right: 2.5rem;

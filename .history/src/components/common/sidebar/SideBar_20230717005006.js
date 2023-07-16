@@ -11,7 +11,7 @@ const SideBar = ({ isSideBarOpen }) => {
 
   useEffect(() => {
     pathCardStore.getPathList();
-  }, []);
+  }, [isSideBarOpen]);
 
   const handleInputChange = (e) => {
     setSearchText(e.target.value);

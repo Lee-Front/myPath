@@ -311,6 +311,7 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     return splitedNodeDatas.map((nodeData, index) => {
       // 공백에는 시각적으로 보이는 스타일만 유지
       if (nodeData.textContent.trim() === "" && nodeData.nodeName === "SPAN") {
+        console.log("nodeData.style: ", nodeData.style);
         const preservedStyles = [
           "link",
           "border-bottom",

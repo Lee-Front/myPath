@@ -2,12 +2,14 @@ import React, { useEffect } from "react";
 import PathList from "../components/career/PathCard/PathList";
 import styled from "@emotion/styled";
 import useEditorStore from "../stores/useEditorStore";
+import usePathCardStore from "../stores/usePathCardStore";
 
 const Home = () => {
   const editorStore = useEditorStore();
-
+  const pathCardStore = usePathCardStore();
   useEffect(() => {
     editorStore.clear();
+    pathCardStore.getPathList();
   }, []);
   return (
     <HomeContainer>

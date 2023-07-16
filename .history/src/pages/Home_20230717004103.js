@@ -5,9 +5,9 @@ import useEditorStore from "../stores/useEditorStore";
 
 const Home = () => {
   const editorStore = useEditorStore();
-
   useEffect(() => {
     editorStore.clear();
+    console.log("editorStore : ", editorStore.blocks);
   }, []);
   return (
     <HomeContainer>
