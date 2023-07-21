@@ -8,6 +8,7 @@ const useEditorStore = create((set, get) => ({
     blocks: [],
     selectBlocks: [],
     hoverBlock: null,
+    handleBlock: null,
     clear: () => {
         set((state) => ({
             ...state,
@@ -24,6 +25,9 @@ const useEditorStore = create((set, get) => ({
     },
     setHoverBlock: (block) => {
         set((state) => ({ ...state, hoverBlock: block }));
+    },
+    setHandleBlock: (block) => {
+        set((state) => ({ ...state, handleBlock: block }));
     },
     getBlocks: async (pathId) => {
         const response = await axios.get('/api/editor', {
@@ -97,6 +101,10 @@ const useEditorStore = create((set, get) => ({
 
         const filteredBlocks = blocks.filter((block) => !deleteList.includes(block.uuid));
         const remainingElements = get().removeColumnAndRowIfEmpty(filteredBlocks);
+
+        if (deleteList.includes(get().handleBlock.uuid)) {
+            get().setHandleBlock(null);
+        }
         get().setSelectBlocks([]);
         get().saveBlocks(remainingElements);
     },

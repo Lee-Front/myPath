@@ -32,7 +32,6 @@ const CardEditor = ({ pathId, readonly }) => {
 
     const [popupUuid, setPopupUuid] = useState();
     const [draggable, setDraggable] = useState(false);
-    const [handleBlock, setHandleBlock] = useState(null);
     const [newUuid, setNewUuid] = useState(null);
     const [editorScroll, setEditorScroll] = useState(null);
 
@@ -65,12 +64,6 @@ const CardEditor = ({ pathId, readonly }) => {
             cancelAnimationFrame(scrollAnimation.current);
         };
     }, [editorScroll]);
-
-    useEffect(() => {
-        if (editorStore.blocks.length <= 0) {
-            setHandleBlock(null);
-        }
-    }, [editorStore.blocks.length]);
 
     const mouseDown = (e) => {
         eventRef.current.mouseDown(e);
@@ -112,14 +105,14 @@ const CardEditor = ({ pathId, readonly }) => {
         }
     }, [newUuid]);
 
-    // 현시점 editDom 데이터를 원본과 분리하기 위해 복사해서 리턴해주는 함수
+    // 현시점 editDom 데이터를 원본과 분리하기 위해 복사해서 리턴해주는 함수ƒ
     const copyObjectArray = (arr) => {
         return JSON.parse(JSON.stringify(arr));
     };
 
     // 마우스 이동에 따른 데이터 수정을 위한 이벤트
     eventRef.current.mouseDown = (e) => {
-        const handleBlockData = editorStore.findBlock(handleBlock?.uuid);
+        const handleBlockData = editorStore.findBlock(editorStore.handleBlock?.uuid);
 
         if (!isFileUploderOpen && !isContextMenuOpen) {
             if (!handleBlockData) {
@@ -353,9 +346,9 @@ const CardEditor = ({ pathId, readonly }) => {
         // handleBlock 지정
         if (xAxisResults?.hoverEl || (minDistance && minDistance < 25)) {
             const blockUuid = xAxisResults?.nearEl.getAttribute('data-uuid');
-            if (blockUuid !== handleBlock?.uuid) {
+            if (blockUuid !== editorStore.handleBlock?.uuid) {
                 const editorTop = editorRef.current?.getBoundingClientRect().top;
-                setHandleBlock({
+                editorStore.setHandleBlock({
                     uuid: blockUuid,
                     position: {
                         x: nearRect.x,
@@ -364,7 +357,7 @@ const CardEditor = ({ pathId, readonly }) => {
                 });
             }
         } else {
-            setHandleBlock(null);
+            editorStore.setHandleBlock(null);
         }
 
         if (!xAxisResults?.nearEl) {
@@ -617,12 +610,12 @@ const CardEditor = ({ pathId, readonly }) => {
     return (
         <EditorContainer
             readonly={readonly}
-            onMouseLeave={() => setHandleBlock(null)}
+            onMouseLeave={() => editorStore.setHandleBlock(null)}
             onContextMenu={handleEditorContextMenu}
             ref={editorRef}
             onScroll={() => {
-                if (handleBlock) {
-                    setHandleBlock(null);
+                if (editorStore.handleBlock) {
+                    editorStore.setHandleBlock(null);
                 }
             }}
         >
@@ -674,8 +667,8 @@ const CardEditor = ({ pathId, readonly }) => {
                         draggable && <DraggbleSelection startPointe={selectPoint} currentPoint={currentPoint} />}
                 </OverlayContainer>
             )}
-            {!draggable && handleBlock && !isFileUploderOpen && !isContextMenuOpen && (
-                <BlockHandleContainer name="block-handle" handlePosition={handleBlock.position}>
+            {!draggable && editorStore.handleBlock && !isFileUploderOpen && !isContextMenuOpen && (
+                <BlockHandleContainer name="block-handle" handlePosition={editorStore.handleBlock.position}>
                     <BlockHandle src={`${process.env.PUBLIC_URL}/images/blockGrip.svg`} />
                 </BlockHandleContainer>
             )}
