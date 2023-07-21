@@ -66,6 +66,7 @@ const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
         if (isFontSize) {
             setFontSize(style['font-size']);
         }
+
         if (selection.type === 'Range') {
             const innerHTML = textStyler.partialChangeTextStyle(blockUuid, style, selection);
             editorStore.updateBlocks([blockUuid], {

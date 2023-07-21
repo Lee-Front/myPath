@@ -234,26 +234,30 @@ const CardEditor = ({ pathId, readonly }) => {
             const baseNode = window.getSelection().baseNode;
             if (baseNode) {
                 const startNode = range.startContainer.parentElement;
-                const blockElement = startNode.closest('[data-uuid]');
+                // block UUID
+                const uuid = startNode.closest('[data-uuid]')?.getAttribute('data-uuid');
+                // 해당 블록의 실제 엘리먼트중 텍스트영역
+                const element = startNode.closest('[name="editable-tag"]');
+                const newblock = editorStore.createBlock({ tagName: 'div' });
                 const blocks = JSON.parse(JSON.stringify(editorStore.blocks));
 
-                const block = blocks.find((block) => block.uuid === blockElement?.getAttribute('data-uuid'));
+                if (element?.childNodes) {
+                    const nodes = Array.from(element?.childNodes);
 
-                const nodes = Array.from(blockElement.childNodes);
-                const nodeDatas = textStyler.getNodesData(nodes);
-                const caretInfo = textStyler.getCaretInfoFromNodes();
-                const splited = textStyler.splitNodes(nodeDatas, caretInfo);
+                    const nodeDatas = textStyler.getNodesData(nodes);
+                    const caretInfo = textStyler.getCaretInfoFromNodes();
+                    const { splitedNodeDatas } = textStyler.splitNodes(nodeDatas, caretInfo);
 
-                const newblock = editorStore.createBlock({ tagName: 'div' });
+                    const block = blocks.find((item) => item.uuid === uuid);
 
-                const index = blocks.findIndex((item) => item.uuid === block.uuid);
-                const splitedText = splited.splitedNodeDatas[0]?.textContent;
-                block.html = splitedText;
-                console.log('nodes : ', nodes);
-                console.log('splited : ', splited);
+                    const prevText = splitedNodeDatas.find((node) => node.type === 'prev')?.textContent;
+                    const nextText = splitedNodeDatas.find((node) => node.type === 'next')?.textContent;
+                    nodes[0].textContent = prevText;
+                    block.html = prevText;
+                    newblock.html = nextText;
+                }
 
-                nodes[splited.splitedDragInfo.startNodeIndex - 1].textContent = splitedText;
-                console.log('newblock: ', newblock);
+                const index = blocks.findIndex((item) => item.uuid === uuid);
 
                 blocks.splice(index + 1, 0, newblock);
                 editorStore.saveBlocks(blocks);
@@ -584,7 +588,6 @@ const CardEditor = ({ pathId, readonly }) => {
             if (!contextMenu) {
                 const { clientX, clientY } = e;
                 setContextMenuPoint({ x: clientX, y: clientY });
-                console.log(editorStore.selectBlocks);
                 const isSelected = editorStore.selectBlocks.find((block) => block.uuid === hoverBlock.uuid);
 
                 if (!isSelected) {

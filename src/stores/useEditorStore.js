@@ -102,7 +102,7 @@ const useEditorStore = create((set, get) => ({
         const filteredBlocks = blocks.filter((block) => !deleteList.includes(block.uuid));
         const remainingElements = get().removeColumnAndRowIfEmpty(filteredBlocks);
 
-        if (deleteList.includes(get().handleBlock.uuid)) {
+        if (deleteList.includes(get().handleBlock?.uuid)) {
             get().setHandleBlock(null);
         }
         get().setSelectBlocks([]);
