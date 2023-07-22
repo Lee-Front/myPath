@@ -8,13 +8,12 @@ import useEditorStore from '../../../../stores/useEditorStore';
 import TextMenuButton from './TextMenuButton';
 import FontSizeSelector from './FontSizeSelector';
 import TextColorMenu from './TextColorMenu';
-import useTextStyler from '../../../../hooks/useTextStyler';
+import textStyler from '../../../../utils/textStyler.js';
 
 // 폰트 사이즈 목록
 
 const ContextMenuPopup = ({ pointer, changeContextMenuYn, popupData }) => {
     const editorStore = useEditorStore();
-    const textStyler = useTextStyler();
     const uuid = popupData?.uuid;
 
     const [isSubMenu, setIsSubMenu] = useState(false);

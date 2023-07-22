@@ -8,11 +8,10 @@ import useEditorStore from '../../../stores/useEditorStore';
 import DraggbleSelection from './DraggbleSelection';
 import { keyframes } from '@emotion/react';
 import { throttle } from 'lodash';
-import useTextStyler from '../../../hooks/useTextStyler';
+import textStyler from '../../../utils/textStyler.js';
 
 const CardEditor = ({ pathId, readonly }) => {
     const editorStore = useEditorStore();
-    const textStyler = useTextStyler();
 
     // state로 빼면 리렌더링이 너무 많이 발생함
     const nearElement = useRef(null);
