@@ -229,41 +229,54 @@ const CardEditor = ({ pathId, readonly }) => {
             editorStore.setSelectBlocks([]);
         } else if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
+            splitBlock();
+        }
+    };
 
+    const splitBlock = () => {
+        const baseNode = window.getSelection().baseNode;
+        if (baseNode) {
             const range = window.getSelection().getRangeAt(0);
-            const baseNode = window.getSelection().baseNode;
-            if (baseNode) {
-                const startNode = range.startContainer.parentElement;
-                // block UUID
-                const uuid = startNode.closest('[data-uuid]')?.getAttribute('data-uuid');
-                // 해당 블록의 실제 엘리먼트중 텍스트영역
-                const element = startNode.closest('[name="editable-tag"]');
-                const newblock = editorStore.createBlock({ tagName: 'div' });
-                const blocks = JSON.parse(JSON.stringify(editorStore.blocks));
+            const startNode = range.startContainer.parentElement;
+            // block UUID
+            const uuid = startNode.closest('[data-uuid]')?.getAttribute('data-uuid');
+            // 해당 블록의 실제 엘리먼트중 텍스트영역
+            const element = startNode.closest('[name="editable-tag"]');
+            const newblock = editorStore.createBlock({ tagName: 'div' });
+            const blocks = JSON.parse(JSON.stringify(editorStore.blocks));
 
-                if (element?.childNodes) {
-                    const nodes = Array.from(element?.childNodes);
+            if (element?.childNodes) {
+                const nodes = Array.from(element?.childNodes);
 
-                    const nodeDatas = textStyler.getNodesData(nodes);
-                    const caretInfo = textStyler.getCaretInfoFromNodes();
-                    const { splitedNodeDatas } = textStyler.splitNodes(nodeDatas, caretInfo);
+                const nodeDatas = textStyler.getNodesData(nodes);
+                const caretInfo = textStyler.getCaretInfoFromNodes();
+                const { splitedNodeDatas, splitedDragInfo } = textStyler.splitNodes(nodeDatas, caretInfo);
 
-                    const block = blocks.find((item) => item.uuid === uuid);
+                const block = blocks.find((item) => item.uuid === uuid);
 
-                    const prevText = splitedNodeDatas.find((node) => node.type === 'prev')?.textContent;
-                    const nextText = splitedNodeDatas.find((node) => node.type === 'next')?.textContent;
-                    nodes[0].textContent = prevText;
-                    block.html = prevText;
-                    newblock.html = nextText;
-                }
+                const prevText = textStyler
+                    .generateStyledElements(
+                        splitedNodeDatas.filter((_, index) => index < splitedDragInfo.startNodeIndex),
+                    )
+                    .map((item) => (item.nodeType === 3 ? item.textContent : item.outerHTML))
+                    .join('');
 
-                const index = blocks.findIndex((item) => item.uuid === uuid);
+                const nextText = textStyler
+                    .generateStyledElements(splitedNodeDatas.filter((_, index) => index > splitedDragInfo.endNodeIndex))
+                    .map((item) => (item.nodeType === 3 ? item.textContent : item.outerHTML))
+                    .join('');
 
-                blocks.splice(index + 1, 0, newblock);
-                editorStore.saveBlocks(blocks);
-
-                setNewUuid(newblock.uuid);
+                element.innerHTML = prevText;
+                block.html = prevText;
+                newblock.html = nextText;
             }
+
+            const index = blocks.findIndex((item) => item.uuid === uuid);
+
+            blocks.splice(index + 1, 0, newblock);
+            editorStore.saveBlocks(blocks);
+
+            setNewUuid(newblock.uuid);
         }
     };
 

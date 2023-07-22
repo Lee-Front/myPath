@@ -132,6 +132,7 @@ const useTextStyler = () => {
                     splitedNodeDatas.push(prevNode);
                 }
 
+                nodeData.type = 'selected';
                 splitedNodeDatas.push(nodeData);
 
                 if (nextText.length > 0) {
